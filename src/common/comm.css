@@ -1,0 +1,40 @@
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+.comBottom {
+    margin-bottom: 20px;
+}
+
+.href,
+a {
+    text-decoration: none;
+    color: white;
+}
+
+.href {
+    color: black;
+}
+
+.hrefleft {
+    margin-right: 172px;
+}
+
+.hrefright {
+    margin-left: 252px;
+}
+
+.sidebar {
+    height: 100%;
+    background-color: #355c7d;
+}
+
+body .el-table th.gutter {
+    display: table-cell!important;
+}
+
+body .el-table colgroup.gutter {
+    display: table-cell!important;
+}
