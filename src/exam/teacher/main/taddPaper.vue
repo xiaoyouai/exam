@@ -213,7 +213,7 @@ export default {
       }
     };
     return {
-      state: -1, //state为1表示添加试卷，为0表示修改试卷
+      paperId: "-1", //paperId为-1表示添加试卷
       name: "",
       starttime: "", //考试开始时间
       sumtime: "", //考试总时长
@@ -255,7 +255,38 @@ export default {
   methods: {
     init() {
       //初始化
-      this.state = parseInt(this.$route.params.state);
+      this.paperId = this.$route.params.paperId;
+      if (this.paperId !== "-1") {
+        this.$axios
+          .post("/api/tgetpapermsg", { paperId: this.paperId })
+          .then(response => {
+            let res = response.data;
+            if (res.msg == "success" && res.status == "0") {
+              let data=res.result;
+              this.name= data.name;
+              this.starttime=  data.startTime; //考试开始时间
+              this.sumtime=  data.time; //考试总时长
+              this.grade= data.totalPoints;
+              this.myclass=  data.examclass;
+              this.paper=data._questions
+            } else {
+              this.$message({
+                showClose: true,
+                message: "获取试卷信息失败，请返回重试",
+                type: "error",
+                duration: 2000
+              });
+            }
+          })
+          .catch(err => {
+            this.$message({
+              showClose: true,
+              message: "获取试卷信息失败，请返回重试",
+              type: "warning",
+              duration: 2000
+            });
+          });
+      }
     },
     // 从题库搜索出现结果
     querySearchAsync(queryString, cb) {
@@ -429,15 +460,15 @@ export default {
         return;
       }
 
-      if (this.state == 1) {
+      if (this.paperId == "-1") {
         this.$axios
           .post("/api/taddpaper", {
             paperData: {
               name: this.name,
               totalPoints: this.grade,
-              time: this.sumtime,
-              examclass: this.myclass,
-              startTime: this.startTime,
+              time: parseInt(this.sumtime),
+              examclass: parseInt(this.myclass),
+              startTime: this.starttime,
               _questions: this.paper
             },
             userId: parseInt(this.$route.params.id)
@@ -452,7 +483,9 @@ export default {
                 duration: 2000
               });
               // this.$mySessionStorage.set("currentUser", res.result, "json");
-              this.$router.push({path:'/tmain/tmypaper/'+parseInt(this.$route.params.id)})
+              this.$router.push({
+                path: "/tmain/tmypaper/" + parseInt(this.$route.params.id)
+              });
             } else {
               this.$message({
                 showClose: true,

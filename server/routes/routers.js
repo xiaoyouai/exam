@@ -23,10 +23,12 @@ module.exports = function(app) {
     app.post('/api/tmain', Teacher.tmain);
     app.post('/api/tchangeMsg', Teacher.tchangeMsg); //修改信息
     app.get('/api/tsignout', Teacher.tsignout); //教师退出系统
-    app.get('/api/taddquestion', Teacher.taddquestion); //教师添加题目
+    // app.get('/api/taddquestion', Teacher.taddquestion); //教师添加题目
     app.post('/api/taddpaper', Teacher.taddpaper); //教师添加试卷
-
-
+    app.post('/api/tupdatepaper', Teacher.tupdatepaper); //教师更新试卷
+    app.post('/api/tgetAllpaper', Teacher.tgetAllpaper); //教师获取所有的试卷
+    app.post('/api/tgetmyquestion', Teacher.tgetmyquestion); //教师获取自己创造的题目
+    app.post('/api/tgetpapermsg', Teacher.tgetpapermsg); //教师修改试卷信息，一开始进入页面需要获取试卷信息
 
 
     /*----------------------学生用户----------------------*/

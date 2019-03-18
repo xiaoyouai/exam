@@ -8,10 +8,10 @@ let studentSchema = new Schema({
     class: Number, //班级
     exams: [{ //参加的考试
         _paper: { type: Schema.Types.ObjectId, ref: 'Paper' }, //试卷
-        date: Date, //考试时间
+        date: Number, //考试总时长
         isSure: Boolean,
         score: Number, //考试分数
-        sartTime: Date,
+        startTime: Date,
         answers: [{
             _question: { type: Schema.Types.ObjectId, ref: 'Question' },
             answer: String

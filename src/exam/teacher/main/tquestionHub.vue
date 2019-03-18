@@ -73,98 +73,146 @@
 
 <script>
 export default {
-  data () {
+  data() {
     return {
-       name:'小明',
-      password:'',
-      myclass:1,
-      userId:150920,
-      mygrade:1,
-      test:'',
-        tableData: [{
-          type: '选择题',
-          name: 'Python下有许多款不同的 Web 框架。Django是重量级选手中最有代表性的一位。许多成功的网站和APP都基于Django。Django是一个开放源代码的Web应用框架，由Python写成。Django遵守BSD版权，初次发布于2005年7月, 并于2008年9月发布了第一个正式版本1.0 Django采用了MVC的软件设计模式，即模型M，视图V和控制器CPython下有许多款不同的 Web 框架。Django是重量级选手中最有代表性的一位。许多成功的网站和APP都基于Django。Django是一个开放源代码的Web应用框架，由Python写成。Django遵守BSD版权，初次发布于2005年7月, 并于2008年9月发布了第一个正式版本1.0 Django采用了MVC的软件设计模式，即模型M，视图V和控制器C',
+      name: "小明",
+      myclass: 1,
+      userId: "",
+      test: "",
+      questionData:[],
+      tableData: [
+        {
+          type: "选择题",
+          name:
+            "Python下有许多款不同的 Web 框架。Django是重量级选手中最有代表性的一位。许多成功的网站和APP都基于Django。Django是一个开放源代码的Web应用框架，由Python写成。Django遵守BSD版权，初次发布于2005年7月, 并于2008年9月发布了第一个正式版本1.0 Django采用了MVC的软件设计模式，即模型M，视图V和控制器CPython下有许多款不同的 Web 框架。Django是重量级选手中最有代表性的一位。许多成功的网站和APP都基于Django。Django是一个开放源代码的Web应用框架，由Python写成。Django遵守BSD版权，初次发布于2005年7月, 并于2008年9月发布了第一个正式版本1.0 Django采用了MVC的软件设计模式，即模型M，视图V和控制器C",
           grade: 69,
-          answer:'A'
-        }, {
-          type: '选择题',
-          name: '王小虎',
+          answer: "A"
+        },
+        {
+          type: "选择题",
+          name: "王小虎",
           grade: 79,
-          answer:'A',
-          descrip:'行首下拉查看详情'
-        }, {
-          type: '选择题',
-          name: '王小虎',
+          answer: "A",
+          descrip: "行首下拉查看详情"
+        },
+        {
+          type: "选择题",
+          name: "王小虎",
           grade: 89,
-          answer:'A'
-        }, {
-          type: '选择题',
-          name: '王小虎',
+          answer: "A"
+        },
+        {
+          type: "选择题",
+          name: "王小虎",
           grade: 63,
-          answer:'A',
-          descrip:'行首下拉查看详情'
-        }, {
-          type: '选择题',
-          name: '王小虎',
+          answer: "A",
+          descrip: "行首下拉查看详情"
+        },
+        {
+          type: "选择题",
+          name: "王小虎",
           grade: 80,
-          answer:'A'
-        }, {
-          type: '选择题',
-          name: '王小虎',
+          answer: "A"
+        },
+        {
+          type: "选择题",
+          name: "王小虎",
           grade: 76,
-          answer:'A'
-        }, {
-          type: '选择题',
-          name: '王小虎',
+          answer: "A"
+        },
+        {
+          type: "选择题",
+          name: "王小虎",
           grade: 92,
-          answer:'A'
-        }]
-    }
+          answer: "A"
+        }
+      ]
+    };
   },
-
+  mounted() {
+    this.init();
+  },
   methods: {
-     handleSelectionChange(val) {
-        this.multipleSelection = val;
-      },
-      handleEdit(index, row) {
-        console.log(index, row);
-      },
-      handleDelete(index, row) {
-        console.log(index, row);
-         this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
+    init() {
+      this.userId = this.$route.params.id;
+      this.$axios
+        .post("/api/tgetmyquestion", {
+          userId: this.userId
+        })
+        .then(response => {
+          let res = response.data;
+          if (res.msg == "success" && res.status == "0") {
+            this.questionData = res.result;
+            this.questionData.forEach(item => {
+              this.tableData.push({
+                type: item.startTime,
+                name: item.name,
+                grade: item.totalPoints,
+                answer: item.time
+              });
+            });
+          } else {
+            this.$message({
+              showClose: true,
+              message: "获取题目失败，请稍后再试！",
+              type: "error",
+              duration: 2000
+            });
+          }
+        })
+        .catch(err => {
+          console.log(err);
           this.$message({
-            type: 'success',
-            message: '删除成功!'
-          });
-        }).catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消删除'
+            showClose: true,
+            message: "获取题目失败，请稍后再试！",
+            type: "warning",
+            duration: 2000
           });
         });
-      }
-
+    },
+    handleSelectionChange(val) {
+      this.multipleSelection = val;
+    },
+    handleEdit(index, row) {
+      console.log(index, row);
+    },
+    handleDelete(index, row) {
+      console.log(index, row);
+      this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          this.$message({
+            type: "success",
+            message: "删除成功!"
+          });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
+    }
   }
-}
-
+};
 </script>
 <style scoped>
-  .demo-table-expand {
-    font-size: 0;
-  }
-  .demo-table-expand label {
-    width: 90px;
-  }
-  .demo-table-expand .el-form-item {
-    margin-right: 0;
-    margin-bottom: 0;
-    width: 33.3%; color: #0a2f5f;
-  }
-  .demo-table-expand .el-form-item:last-child{
-    width: 100%;
-  }
+.demo-table-expand {
+  font-size: 0;
+}
+.demo-table-expand label {
+  width: 90px;
+}
+.demo-table-expand .el-form-item {
+  margin-right: 0;
+  margin-bottom: 0;
+  width: 33.3%;
+  color: #0a2f5f;
+}
+.demo-table-expand .el-form-item:last-child {
+  width: 100%;
+}
 </style>

@@ -89,7 +89,7 @@ export default new Router({
                     name: 'tcomQuestionHub',
                     component: tcomQuestionHub
                 }, {
-                    path: 'taddPaper/:state/:id', //添加试卷,state为1表示添加试卷，为0表示修改试卷
+                    path: 'taddPaper/:paperId/:id', //添加试卷,paperId为-1表示添加试卷
                     name: 'taddPaper',
                     component: taddPaper
                 },

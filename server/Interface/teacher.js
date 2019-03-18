@@ -2,6 +2,7 @@
 const Teacher = require('./../models/teachers');
 const Paper = require('./../models/papers');
 const Question = require('./../models/questions');
+const Student = require('./../models/students');
 
 const crypto = require('crypto');
 
@@ -198,7 +199,7 @@ exports.taddpaper = function(req, res) { //添加试卷
                     _teacher: doc._id,
                     _questions: []
                 }
-                Paper.create(data, (err1, doc1) => {
+                Paper.create(data, (err1, doc1) => { //创造试卷
                     if (err1) {
                         res.json({
                             status: '1',
@@ -213,7 +214,7 @@ exports.taddpaper = function(req, res) { //添加试卷
                                 item._papers.push(doc1._id);
                                 item._teacher = doc._id;
                             })
-                            Question.create(paperData._questions, function(err2, doc2) {
+                            Question.create(paperData._questions, function(err2, doc2) { //创造题目
                                 if (err2) {
                                     res.json({
                                         status: '1',
@@ -221,12 +222,57 @@ exports.taddpaper = function(req, res) { //添加试卷
                                     })
                                 } else {
                                     if (doc2) {
-                                        doc2.forEach(item => { doc1._questions.push(item._id) });
+                                        let studentQuestion = []; //学生考卷对应的题目
+                                        doc2.forEach(item => {
+                                            doc1._questions.push(item._id) //试卷填入题目信息
+                                            doc._questions.push(item._id) //老师表增加出的题目信息
+                                            studentQuestion.push({ //学生填入题目信息
+                                                _question: item._id,
+                                                answer: ''
+                                            })
+                                        });
                                         doc1.save();
-                                        res.json({
-                                            status: '0',
-                                            msg: 'success'
+                                        doc.save();
+                                        let examData = {
+                                                _paper: doc1._id, //试卷
+                                                date: paperData.time, //考试时间
+                                                isSure: false,
+                                                score: paperData.totalPoints, //考试分数
+                                                startTime: paperData.startTime,
+                                                answers: studentQuestion
+                                            }
+                                            // Student.update({ class: paperData.examclass }, { $push: { exams: examData } }, { multi: true });
+                                            // res.json({
+                                            //         status: '4',
+                                            //         msg: 'success'
+                                            //     })
+                                            // db.getCollection('students').update({ class: 1 }, { $push: { exams: { _paper: ObjectId("5c8df52e170dbb09f8465612"), date: 20, isSure: false, score: 100, startTime: "2017-09-12 15:30", answers: [{ _question: ObjectId("5c8df52e170dbb09f8465613"), answer: '' }] } } }, { multi: true })
+                                        Student.find({ //学生添加题目和试卷
+                                            class: paperData.examclass
+                                        }, (err3, doc3) => {
+                                            if (err3) {
+                                                res.json({
+                                                    status: '1',
+                                                    msg: err3.message
+                                                })
+                                            } else {
+                                                if (doc3) {
+                                                    doc3.forEach(item => {
+                                                        item.exams.push(examData);
+                                                        item.save();
+                                                        // Student.update({ "userId": item.userId }, item, (err4, doc4) => {})
+                                                        // .update({
+                                                        //     "userId": user.userId
+                                                        // }, user, (err2, doc2) => {
+                                                    })
+                                                    res.json({
+                                                        status: '0',
+                                                        msg: 'success'
+                                                    })
+                                                }
+                                            }
                                         })
+
                                     } else {
                                         res.json({
                                             status: '2',
@@ -253,7 +299,145 @@ exports.taddpaper = function(req, res) { //添加试卷
         }
     })
 }
+exports.tupdatepaper = function(req, res) {
+    let paperId = req.body.paperId;
+    Paper.findOne({ _id: paperId }, (err, doc) => {
+        if (err) {
+            res.json({
+                status: '1',
+                msg: err.message
+            })
+        } else {
+            if (doc) {
+                console.log(doc);
+            }
+        }
+    })
+}
 
-exports.taddquestion = function(req, res) {
+exports.tgetpapermsg = function(req, res) {
+    let paperId = req.body.paperId;
+    let questionData = [];
+    // Paper.findOne({ _id: paperId }, (err, doc) => {
+    //     if (err) {
+    //         res.json({
+    //             status: '1',
+    //             msg: err.message
+    //         })
+    //     } else {
+    //         if (doc) {
+    //             doc._questions.forEach(item => {
+    //                 Question.findOne({ _id: item }, (err2, doc2) => {
+    //                     if (err2) {
+    //                         res.json({
+    //                             status: '1',
+    //                             msg: err.message
+    //                         })
+    //                     } else {
+    //                         if (doc2) {
+    //                             questionData.push(doc2);
+    //                         }
+    //                     }
+    //                 })
+    //             })
+    //             console.log(questionData);
+    //             doc._questions = questionData;
+    //             res.json({
+    //                 status: '0',
+    //                 msg: 'success',
+    //                 result: doc
+    //             })
+    //         }
+    //     }
+    // })
+    Paper.findOne({ '_id': paperId }).populate({ path: '_questions' }).exec((err1, doc1) => {
+        if (err1) {
+            res.json({
+                status: '1',
+                msg: err.message
+            })
+        } else {
+            if (doc1) {
+                res.json({
+                    status: '0',
+                    msg: 'success',
+                    result: doc1
+                })
+            } else {
+                res.json({
+                    status: '2',
+                    msg: '没有该试卷'
+                })
+            }
+        }
+    })
+}
 
+exports.tgetAllpaper = function(req, res) {
+    let userId = req.body.userId;
+    Teacher.findOne({ userId: userId }, (err, doc) => {
+        if (err) {
+            res.json({
+                status: '1',
+                msg: err.message
+            })
+        } else {
+            if (doc) {
+                Paper.find({ _teacher: doc._id }, (err2, doc2) => {
+                    if (err2) {
+                        res.json({
+                            status: '1',
+                            msg: err2.message
+                        })
+                    } else {
+                        if (doc2) {
+                            res.json({
+                                status: '0',
+                                msg: 'success',
+                                result: doc2
+                            })
+                        }
+                    }
+                })
+            }
+        }
+    })
+}
+
+exports.tgetmyquestion = function(req, res) {
+    let userId = req.body.userId;
+    Teacher.findOne({ userId: userId }, (err, doc) => {
+        if (err) {
+            res.json({
+                status: '1',
+                msg: err.message
+            })
+        } else {
+            if (doc) {
+                let questionData = [{ "name": 1 }];
+                doc._questions.forEach(item => {
+                    console.log(item);
+                    Question.findOne({ _id: item }, (err2, doc2) => {
+                        if (err2) {
+                            res.json({
+                                status: '1',
+                                msg: err2.message
+                            })
+                        } else {
+                            if (doc2) {
+                                // console.log(doc2);
+                                questionData.push(doc2);
+                                console.log(questionData);
+                            }
+                        }
+                    })
+                })
+                res.json({
+                    status: '0',
+                    msg: 'success',
+                    result: questionData
+                })
+            }
+        }
+    })
 }
