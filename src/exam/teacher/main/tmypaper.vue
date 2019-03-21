@@ -20,7 +20,7 @@
             </el-row>
 
           </div>
-          <el-table :data="tableData" height="420" border  style="width: 100%" :default-sort = "{prop: 'date', order: 'descending'}" @selection-change="handleSelectionChange">
+          <el-table :data="tableData" height="420" border v-loading="loading" style="width: 100%" :default-sort = "{prop: 'date', order: 'descending'}" @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="55"> </el-table-column>
             <el-table-column prop="date" label="考试时间" sortable> </el-table-column>
             <el-table-column prop="name" label="试卷名称" > </el-table-column>
@@ -30,7 +30,7 @@
               <template slot-scope="scope">
                 <el-button
                   size="mini"
-                  @click="handleEdit(scope.$index,paperId)">编辑</el-button>
+                  @click="handleEdit(scope.$index,scope.row)">编辑</el-button>
                 <el-button
                   size="mini"
                   type="danger"
@@ -51,14 +51,8 @@ export default {
       papername: "", //搜索的试卷名
       userId: "",
       paperData: [], //从数据库获取得来的试卷数据
-      tableData: [
-        // {
-        //   date: "2016-05-03",
-        //   name: "王小虎",
-        //   grade: 69,
-        //   time: 120
-        // },
-      ]
+      tableData: [],
+      loading: true
     };
   },
   mounted() {
@@ -84,6 +78,7 @@ export default {
                 time: item.time
               });
             });
+            this.loading=false
           } else {
             this.$message({
               showClose: true,
@@ -106,17 +101,19 @@ export default {
     handleSelectionChange(val) {
       this.multipleSelection = val;
     },
-    handleEdit(index,paperId) {//跳转去修改试卷
-    console.log(index,paperId);
+    handleEdit(index,row) {//表格的编辑按钮，跳转去修改试卷
     let now = new Date();
-    // console.log((new Date(this.tableData[index].time)-now)/(1000*60*60));
-    // if(this.paperData[index].startTime)
-      this.$router.push({ path: "/tmain/taddpaper/" +this.tableData[index].paperId+"/"+ this.userId });
-      // if(res.result.startTime&&(now - new Date(res.result.startTime))/(1000*60) < 60){
-      //         this.$router.go(-1);
-      //         this.$message.warning('正在考试，不能修改!');
-      //       }
-
+    if((now-new Date(row.date)>0)){
+      this.$message({
+            showClose: true,
+            message: "已开考或正在考试，无法修改",
+            type: "warning",
+            duration: 2000
+          });
+          return ;
+    }
+    if((now-new Date(row.date)))
+      this.$router.push({ path: "/tmain/taddpaper/" +row.paperId+"/"+ this.userId });
     },
     handleDelete(index, row) {
       console.log(index, row);

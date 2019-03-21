@@ -37,9 +37,12 @@
       <el-col :span="8">
         <div class="grid-content bg-purple">
           <el-form-item label="考试班级：">
-            <el-input v-model="myclass" clearable  placeholder="请输入数字">
-              <template slot="append">班</template>
-            </el-input>
+            <el-tooltip class="item" content="请认真填写班级，一经保存无法修改" placement="top-start" style="color:red" v-if="paperId=='-1'">
+              <el-input v-model="myclass" clearable  placeholder="请输入数字" >
+                <template slot="append">班</template>
+              </el-input>
+            </el-tooltip>
+            <span v-if="paperId!=='-1'">{{myclass}}</span>
           </el-form-item>
         </div>
       </el-col>
@@ -214,7 +217,9 @@ export default {
     };
     return {
       paperId: "-1", //paperId为-1表示添加试卷
-      name: "",
+      teacherId:"",//teacher表对应的_id，后面修改试卷的时候添加题目了需要用到
+      delQuestion:[],//存放删除的题目的_id，便于后面接口里对试卷进行修改
+      name: "",//试卷名称
       starttime: "", //考试开始时间
       sumtime: "", //考试总时长
       grade: 100,
@@ -262,13 +267,14 @@ export default {
           .then(response => {
             let res = response.data;
             if (res.msg == "success" && res.status == "0") {
-              let data=res.result;
-              this.name= data.name;
-              this.starttime=  data.startTime; //考试开始时间
-              this.sumtime=  data.time; //考试总时长
-              this.grade= data.totalPoints;
-              this.myclass=  data.examclass;
-              this.paper=data._questions
+              let data = res.result;
+              this.name = data.name;
+              this.starttime = data.startTime; //考试开始时间
+              this.sumtime = data.time; //考试总时长
+              this.grade = data.totalPoints;
+              this.myclass = data.examclass;
+              this.paper = data._questions;
+              this.teacherId=data._questions[0]._teacher;
             } else {
               this.$message({
                 showClose: true,
@@ -376,7 +382,6 @@ export default {
       this.dialogVisible = true;
       this.myquestion.type = item.type;
       this.editIndex = index;
-      // console.item;
       this.myquestion = this.$deepCopy(item);
     },
     delPaperItem(index) {
@@ -387,6 +392,7 @@ export default {
         type: "warning"
       })
         .then(() => {
+          this.delQuestion.push(this.paper[index]._id);//放入删除试卷的_id，便于后续接口里实现删除题目
           this.paper.splice(index, 1);
           this.$message({
             type: "success",
@@ -461,8 +467,65 @@ export default {
       }
 
       if (this.paperId == "-1") {
+        this.$confirm("确定新增试卷吗？请确认已正确选择班级信息", "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type:'warning'
+        })
+          .then(() => {
+            this.$axios
+              .post("/api/taddpaper", {
+                paperData: {
+                  name: this.name,
+                  totalPoints: this.grade,
+                  time: parseInt(this.sumtime),
+                  examclass: parseInt(this.myclass),
+                  startTime: this.starttime,
+                  _questions: this.paper
+                },
+                userId: parseInt(this.$route.params.id)
+              })
+              .then(response => {
+                let res = response.data;
+                if (res.msg == "success" && res.status == "0") {
+                  this.$message({
+                    showClose: true,
+                    message: "保存成功",
+                    type: "success",
+                    duration: 2000
+                  });
+                  // this.$mySessionStorage.set("currentUser", res.result, "json");
+                  this.$router.push({
+                    path: "/tmain/tmypaper/" + parseInt(this.$route.params.id)
+                  });
+                } else {
+                  this.$message({
+                    showClose: true,
+                    message: "保存失败，请稍后再试！",
+                    type: "error",
+                    duration: 2000
+                  });
+                }
+              })
+              .catch(err => {
+                this.$message({
+                  showClose: true,
+                  message: "保存失败，请稍后再试！",
+                  type: "warning",
+                  duration: 2000
+                });
+              });
+          })
+          .catch(() => {
+            this.$message({
+              type: "info",
+              message: "已取消操作"
+            });
+          });
+      } else {
+        //修改试卷接口
         this.$axios
-          .post("/api/taddpaper", {
+          .post("/api/tupdatepaper", {
             paperData: {
               name: this.name,
               totalPoints: this.grade,
@@ -471,14 +534,16 @@ export default {
               startTime: this.starttime,
               _questions: this.paper
             },
-            userId: parseInt(this.$route.params.id)
+            paperId: this.paperId,
+            teacherId: this.teacherId,
+            delQuestion:this.delQuestion
           })
           .then(response => {
             let res = response.data;
             if (res.msg == "success" && res.status == "0") {
               this.$message({
                 showClose: true,
-                message: "保存成功",
+                message: "修改成功",
                 type: "success",
                 duration: 2000
               });
@@ -489,7 +554,7 @@ export default {
             } else {
               this.$message({
                 showClose: true,
-                message: "请输入正确的用户名和密码",
+                message: "修改失败，请稍后重试",
                 type: "error",
                 duration: 2000
               });
@@ -498,13 +563,11 @@ export default {
           .catch(err => {
             this.$message({
               showClose: true,
-              message: "登录失败，请稍后再试！",
+              message: "修改失败，请稍后重试",
               type: "warning",
               duration: 2000
             });
           });
-      } else {
-        //修改试卷接口
       }
     }
   }
