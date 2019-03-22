@@ -8,7 +8,7 @@
     <el-col :span="7" :offset="14">
       <div class="grid-content bg-purple-light" style="margin-top:1em;">
         <el-button type="primary" size="small" @click="save">保存</el-button>
-        <el-button type="danger" size="small" @click="resetPaper">清空试卷内容</el-button>
+        <el-button type="danger" size="small" @click="resetPaper">清空试卷题目</el-button>
         <el-button type="primary" size="small">
           <router-link to="/tmain/tmypaper">返回</router-link>
           </el-button>
@@ -627,3 +627,8 @@ export default {
 /* 试卷相关样式 */
 </style>
 
+var a=[1,2,3,4,5];
+a.forEach((item,index)=>{
+  a[index]=100;
+  console.log(item);
+})

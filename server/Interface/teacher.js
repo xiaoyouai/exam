@@ -327,10 +327,127 @@ exports.tgetpapermsg = function(req, res) {
     })
 }
 
-exports.tupdatepaper = function(req, res) { // 修改试卷
+// exports.tupdatepaper = function(req, res) { // 修改试卷
+//     let paperId = req.body.paperId;
+//     let paperData = req.body.paperData;
+//     let delQuestion = req.body.delQuestion;
+//     let updateQuestion = [];
+//     let addQuestion = [];
+//     let teacherId = req.body.teacherId; //老师的_id
+//     let paperParams = {
+//         name: paperData.name,
+//         totalPoints: paperData.totalPoints,
+//         time: paperData.time,
+//         examclass: paperData.examclass,
+//         startTime: paperData.startTime
+//     }
+//     paperData._questions.forEach(item => {
+//         if (item._id) {
+//             updateQuestion.push(item);
+//         } else {
+//             addQuestion.push(item);
+//         }
+//     })
+//     if (delQuestion.length > 0) {
+//         // Paper.findOneAndUpdate({ _id: paperId }, paperParams, (err, doc) => {
+//         //     if (err) {
+//         //         res.json({
+//         //             status: '1',
+//         //             msg: err.message
+//         //         })
+//         //     } else {
+//         //         if (doc) {
+//         //             delQuestion.forEach(delitem => {
+//         //                 doc = doc._questions.filter(item => item !== delitem);
+//         //             })
+//         //             doc.save();
+//         //         }
+//         //     }
+//         // })
+//     }
+//     Paper.findOneAndUpdate({ _id: paperId }, paperParams, (err, doc) => {
+//         if (err) {
+//             res.json({
+//                 status: '1',
+//                 msg: err.message
+//             })
+//         } else {
+//             if (doc) {
+//                 updateQuestion.forEach((item, index) => {
+//                     Question.update({ "_id": item._id }, item, (err2, doc2) => {
+//                         if (err2) {
+//                             res.json({
+//                                 status: '1',
+//                                 msg: err2.message
+//                             })
+//                         } else {
+//                             if (doc2) {
+//                                 if (index == (updateQuestion.length - 1)) {
+//                                     if (addQuestion.length > 0) {
+//                                         addQuestion.forEach(item => {
+//                                             item._papers = [];
+//                                             item._papers.push(doc._id); //放入试卷_id
+//                                             item._teacher = teacherId;
+//                                         })
+//                                         Question.create(addQuestion, (err3, doc3) => {
+//                                             if (err3) {
+//                                                 res.json({
+//                                                     status: '1',
+//                                                     msg: err3.message
+//                                                 })
+//                                             } else {
+//                                                 if (doc3) {
+//                                                     doc3.forEach(item => {
+//                                                             doc._questions.push(item._id); //试卷存入新增题目_id
+//                                                         })
+//                                                         // if (delQuestion.length > 0) {
+//                                                         //     delQuestion.forEach(delitem => {
+//                                                         //         doc = doc._questions.filter(item => item !== delitem)
+//                                                         //     })
+//                                                         // }
+//                                                         // console.log(doc);
+//                                                     doc.save(); //试卷存入新增题目_id
+//                                                     res.json({
+//                                                         status: '0',
+//                                                         msg: 'success'
+//                                                     })
+//                                                 } else {
+//                                                     res.json({
+//                                                         status: '1',
+//                                                         msg: 'error'
+//                                                     })
+//                                                 }
+//                                             }
+//                                         })
+//                                     } else {
+//                                         res.json({
+//                                             status: '0',
+//                                             msg: 'success'
+//                                         })
+//                                     }
+//                                 }
+//                             } else {
+//                                 res.json({
+//                                     status: '1',
+//                                     msg: '没找到题目'
+//                                 })
+//                             }
+//                         }
+//                     })
+//                 })
+//             } else {
+//                 res.json({
+//                     status: '1',
+//                     msg: '没找到试卷'
+//                 })
+//             }
+//         }
+//     })
+// }
+
+exports.tupdatepaper = function(req, res) { //修改试卷
     let paperId = req.body.paperId;
     let paperData = req.body.paperData;
-    let delQuestion = req.body.delQuestion;
     let updateQuestion = [];
     let addQuestion = [];
     let teacherId = req.body.teacherId; //老师的_id
@@ -339,111 +456,126 @@ exports.tupdatepaper = function(req, res) { // 修改试卷
         totalPoints: paperData.totalPoints,
         time: paperData.time,
         examclass: paperData.examclass,
-        startTime: paperData.startTime
+        startTime: paperData.startTime,
+        _questions: []
     }
-    paperData._questions.forEach(item => {
+    paperData._questions.forEach((item) => {
         if (item._id) {
             updateQuestion.push(item);
+            paperParams._questions.push(item._id);
         } else {
+            item._papers = [paperId];
+            item._teacher = teacherId;
             addQuestion.push(item);
         }
     })
-    if (delQuestion.length > 0) {
-        // Paper.findOneAndUpdate({ _id: paperId }, paperParams, (err, doc) => {
-        //     if (err) {
-        //         res.json({
-        //             status: '1',
-        //             msg: err.message
-        //         })
-        //     } else {
-        //         if (doc) {
-        //             delQuestion.forEach(delitem => {
-        //                 doc = doc._questions.filter(item => item !== delitem);
-        //             })
-        //             doc.save();
-        //         }
-        //     }
-        // })
-    }
-    Paper.findOneAndUpdate({ _id: paperId }, paperParams, (err, doc) => {
-        if (err) {
-            res.json({
-                status: '1',
-                msg: err.message
-            })
-        } else {
-            if (doc) {
-                updateQuestion.forEach((item, index) => {
-                    Question.update({ "_id": item._id }, item, (err2, doc2) => {
+
+    if (addQuestion.length > 0) { //如果有新增题目就新增题目，
+        Question.create(addQuestion, (err3, doc3) => {
+            if (err3) {
+                res.json({
+                    status: '1',
+                    msg: err3.message
+                })
+            } else {
+                if (doc3) {
+                    doc3.forEach(item => {
+                        paperParams._questions.push(`${item._id}`); //试卷存入新增题目_id
+                    })
+                    Paper.findOneAndUpdate({ _id: paperId }, paperParams, (err2, doc2) => { //写到这里是因为异步，不写这里上面的push操作不起作用
                         if (err2) {
                             res.json({
                                 status: '1',
-                                msg: err2.message
+                                msg: err.message
                             })
                         } else {
                             if (doc2) {
-                                if (index == (updateQuestion.length - 1)) {
-                                    if (addQuestion.length > 0) {
-                                        addQuestion.forEach(item => {
-                                            item._papers = [];
-                                            item._papers.push(doc._id); //放入试卷_id
-                                            item._teacher = teacherId;
-                                        })
-                                        Question.create(addQuestion, (err3, doc3) => {
-                                            if (err3) {
+                                if (updateQuestion.length > 0) {
+                                    updateQuestion.forEach((item, index) => {
+                                        Question.update({ "_id": item._id }, item, (err, doc) => {
+                                            if (err) {
                                                 res.json({
                                                     status: '1',
-                                                    msg: err3.message
+                                                    msg: err2.message
                                                 })
                                             } else {
-                                                if (doc3) {
-                                                    doc3.forEach(item => {
-                                                            doc._questions.push(item._id); //试卷存入新增题目_id
+                                                if (doc) {
+                                                    if (index === updateQuestion.length - 1) {
+                                                        res.json({
+                                                            status: '0',
+                                                            msg: 'success'
                                                         })
-                                                        // if (delQuestion.length > 0) {
-                                                        //     delQuestion.forEach(delitem => {
-                                                        //         doc = doc._questions.filter(item => item !== delitem)
-                                                        //     })
-                                                        // }
-                                                        // console.log(doc);
-                                                    doc.save(); //试卷存入新增题目_id
-                                                    res.json({
-                                                        status: '0',
-                                                        msg: 'success'
-                                                    })
+                                                    }
                                                 } else {
                                                     res.json({
                                                         status: '1',
-                                                        msg: 'error'
+                                                        msg: '没找到题目'
                                                     })
                                                 }
                                             }
                                         })
-                                    } else {
-                                        res.json({
-                                            status: '0',
-                                            msg: 'success'
-                                        })
-                                    }
+                                    })
+                                } else {
+                                    res.json({
+                                        status: '0',
+                                        msg: 'success'
+                                    })
                                 }
-                            } else {
-                                res.json({
-                                    status: '1',
-                                    msg: '没找到题目'
-                                })
+
                             }
                         }
                     })
-                })
-            } else {
+                }
+            }
+        })
+    } else { //没有添加题目就直接改试卷
+        Paper.findOneAndUpdate({ _id: paperId }, paperParams, (err2, doc2) => {
+            if (err2) {
                 res.json({
                     status: '1',
-                    msg: '没找到试卷'
+                    msg: err.message
                 })
+            } else {
+                if (doc2) {
+                    if (updateQuestion.length > 0) {
+                        updateQuestion.forEach((item, index) => {
+                            Question.update({ "_id": item._id }, item, (err, doc) => {
+                                if (err) {
+                                    res.json({
+                                        status: '1',
+                                        msg: err2.message
+                                    })
+                                } else {
+                                    if (doc) {
+                                        if (index === updateQuestion.length - 1) {
+                                            res.json({
+                                                status: '0',
+                                                msg: 'success'
+                                            })
+                                        }
+                                    } else {
+                                        res.json({
+                                            status: '1',
+                                            msg: '没找到题目'
+                                        })
+                                    }
+                                }
+                            })
+                        })
+                    } else {
+                        res.json({
+                            status: '0',
+                            msg: 'success'
+                        })
+                    }
+
+                }
             }
-        }
-    })
+        })
+    }
 }
+
+
 exports.tgetAllpaper = function(req, res) { //教师--我的试卷里获取所有的试卷信息
     let userId = req.body.userId;
     Teacher.findOne({ userId: userId }, (err, doc) => {
