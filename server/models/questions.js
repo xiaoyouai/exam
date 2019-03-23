@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 let Schema = mongoose.Schema;
 let questionSchema = new Schema({
-    name: String, //问题名
     _teacher: {
         type: Schema.Types.ObjectId,
         ref: 'Teacher'

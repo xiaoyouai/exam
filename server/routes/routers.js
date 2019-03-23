@@ -29,7 +29,7 @@ module.exports = function(app) {
     app.post('/api/tgetAllpaper', Teacher.tgetAllpaper); //教师获取所有的试卷
     app.post('/api/tgetmyquestion', Teacher.tgetmyquestion); //教师获取自己创造的题目
     app.post('/api/tgetpapermsg', Teacher.tgetpapermsg); //教师修改试卷信息，一开始进入页面需要获取试卷信息
-
+    app.post('/api/tgetallquestion', Teacher.tgetallquestion); //公共题库获取所有题目
 
     /*----------------------学生用户----------------------*/
     app.get('/api/look', Student.look);

@@ -490,7 +490,8 @@ exports.tupdatepaper = function(req, res) { //修改试卷
                             })
                         } else {
                             if (doc2) {
-                                if (updateQuestion.length > 0) {
+                                let len = updateQuestion.length;
+                                if (len > 0) {
                                     updateQuestion.forEach((item, index) => {
                                         Question.update({ "_id": item._id }, item, (err, doc) => {
                                             if (err) {
@@ -500,7 +501,7 @@ exports.tupdatepaper = function(req, res) { //修改试卷
                                                 })
                                             } else {
                                                 if (doc) {
-                                                    if (index === updateQuestion.length - 1) {
+                                                    if (index === len - 1) {
                                                         res.json({
                                                             status: '0',
                                                             msg: 'success'
@@ -537,7 +538,8 @@ exports.tupdatepaper = function(req, res) { //修改试卷
                 })
             } else {
                 if (doc2) {
-                    if (updateQuestion.length > 0) {
+                    let len = updateQuestion.length;
+                    if (len > 0) {
                         updateQuestion.forEach((item, index) => {
                             Question.update({ "_id": item._id }, item, (err, doc) => {
                                 if (err) {
@@ -547,7 +549,7 @@ exports.tupdatepaper = function(req, res) { //修改试卷
                                     })
                                 } else {
                                     if (doc) {
-                                        if (index === updateQuestion.length - 1) {
+                                        if (index === len - 1) {
                                             res.json({
                                                 status: '0',
                                                 msg: 'success'
@@ -617,9 +619,9 @@ exports.tgetmyquestion = function(req, res) {
             })
         } else {
             if (doc) {
-                let questionData = [{ "name": 1 }];
-                doc._questions.forEach(item => {
-                    console.log(item);
+                let questionData = [];
+                let len = doc._questions.length;
+                doc._questions.forEach((item, index) => {
                     Question.findOne({ _id: item }, (err2, doc2) => {
                         if (err2) {
                             res.json({
@@ -628,18 +630,39 @@ exports.tgetmyquestion = function(req, res) {
                             })
                         } else {
                             if (doc2) {
-                                // console.log(doc2);
                                 questionData.push(doc2);
-                                console.log(questionData);
+                            }
+                            if (index === len - 1) {
+                                res.json({
+                                    status: '0',
+                                    msg: 'success',
+                                    result: questionData
+                                })
                             }
                         }
                     })
                 })
+
+            }
+        }
+    })
+}
+
+exports.tgetallquestion = function(req, res) {
+    Question.find((err, doc) => {
+        if (err) {
+            res.json({
+                status: '1',
+                msg: err.message
+            })
+        } else {
+            if (doc) {
                 res.json({
                     status: '0',
                     msg: 'success',
-                    result: questionData
+                    result: doc
                 })
+
             }
         }
     })

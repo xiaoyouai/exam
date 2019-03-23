@@ -10,7 +10,7 @@
         <el-button type="primary" size="small" @click="save">保存</el-button>
         <el-button type="danger" size="small" @click="resetPaper">清空试卷题目</el-button>
         <el-button type="primary" size="small">
-          <router-link to="/tmain/tmypaper">返回</router-link>
+          <router-link :to="'/tmain/tmypaper/'+userId">返回</router-link>
           </el-button>
         </div>
     </el-col>
@@ -143,7 +143,7 @@
   width="30%">
     <el-form :model="myquestion" :rules="rules" ref="myquestion" label-width="100px" class="demo-ruleForm">
           <el-form-item prop="content" label="题目：">
-            <el-input placeholder="请输入题目" v-model="myquestion.content" clearable></el-input>
+            <el-input placeholder="请输入题目" v-model.trim="myquestion.content" clearable></el-input>
           </el-form-item>
           <el-form-item prop="type" label="类型：">
             <el-select v-model="myquestion.type" style="width:100%">
@@ -216,9 +216,9 @@ export default {
       }
     };
     return {
+      userId:'',//老师的id，唯一的用处是用于返回按钮
       paperId: "-1", //paperId为-1表示添加试卷
       teacherId:"",//teacher表对应的_id，后面修改试卷的时候添加题目了需要用到
-      delQuestion:[],//存放删除的题目的_id，便于后面接口里对试卷进行修改
       name: "",//试卷名称
       starttime: "", //考试开始时间
       sumtime: "", //考试总时长
@@ -251,7 +251,7 @@ export default {
           { pattern: /^[0-9]+$/, message: "分值必须为数字值" }
         ]
       },
-      paper: []
+      paper: []//试卷题目
     };
   },
   mounted() {
@@ -259,6 +259,7 @@ export default {
   },
   methods: {
     init() {
+      this.userId=parseInt(this.$route.params.id);
       //初始化
       this.paperId = this.$route.params.paperId;
       if (this.paperId !== "-1") {
@@ -392,7 +393,6 @@ export default {
         type: "warning"
       })
         .then(() => {
-          this.delQuestion.push(this.paper[index]._id);//放入删除试卷的_id，便于后续接口里实现删除题目
           this.paper.splice(index, 1);
           this.$message({
             type: "success",
@@ -535,8 +535,7 @@ export default {
               _questions: this.paper
             },
             paperId: this.paperId,
-            teacherId: this.teacherId,
-            delQuestion:this.delQuestion
+            teacherId: this.teacherId
           })
           .then(response => {
             let res = response.data;

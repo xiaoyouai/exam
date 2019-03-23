@@ -18,7 +18,7 @@
               </el-col>
             </el-row>
           </div>
-          <el-table :data="tableData" height="420" border  style="width: 100%" :default-sort = "{prop: 'date', order: 'descending'}" @selection-change="handleSelectionChange">
+          <el-table v-loading="loading" :data="tableData" height="420" border  style="width: 100%" :default-sort = "{prop: 'date', order: 'descending'}" @selection-change="handleSelectionChange">
             <el-table-column type="expand">
                 <template slot-scope="props">
                   <el-form label-position="left" inline class="demo-table-expand">
@@ -39,7 +39,6 @@
             </el-table-column>
             <el-table-column type="selection"> </el-table-column>
             <el-table-column prop="type" label="题目类型" > </el-table-column>
-            <!-- <el-table-column prop="descrip" label="题目"></el-table-column> -->
             <el-table-column label="题目" >
               <template slot-scope="props">
                 <span v-if="props.row.name.length<12">{{props.row.name}}</span>
@@ -48,8 +47,7 @@
             </el-table-column>
             <el-table-column label="题目答案" >
               <template slot-scope="props">
-                <span v-if="props.row.answer.length<10">{{props.row.answer}}</span>
-                <span v-else>行首下拉查看详情</span>
+                <span>{{props.row.answer}}</span>
               </template>
             </el-table-column>
             <el-table-column prop="grade" label="题目分值" > </el-table-column>
@@ -80,53 +78,8 @@ export default {
       userId: "",
       test: "",
       questionData:[],
-      tableData: [
-        {
-          type: "选择题",
-          name:
-            "Python下有许多款不同的 Web 框架。Django是重量级选手中最有代表性的一位。许多成功的网站和APP都基于Django。Django是一个开放源代码的Web应用框架，由Python写成。Django遵守BSD版权，初次发布于2005年7月, 并于2008年9月发布了第一个正式版本1.0 Django采用了MVC的软件设计模式，即模型M，视图V和控制器CPython下有许多款不同的 Web 框架。Django是重量级选手中最有代表性的一位。许多成功的网站和APP都基于Django。Django是一个开放源代码的Web应用框架，由Python写成。Django遵守BSD版权，初次发布于2005年7月, 并于2008年9月发布了第一个正式版本1.0 Django采用了MVC的软件设计模式，即模型M，视图V和控制器C",
-          grade: 69,
-          answer: "A"
-        },
-        {
-          type: "选择题",
-          name: "王小虎",
-          grade: 79,
-          answer: "A",
-          descrip: "行首下拉查看详情"
-        },
-        {
-          type: "选择题",
-          name: "王小虎",
-          grade: 89,
-          answer: "A"
-        },
-        {
-          type: "选择题",
-          name: "王小虎",
-          grade: 63,
-          answer: "A",
-          descrip: "行首下拉查看详情"
-        },
-        {
-          type: "选择题",
-          name: "王小虎",
-          grade: 80,
-          answer: "A"
-        },
-        {
-          type: "选择题",
-          name: "王小虎",
-          grade: 76,
-          answer: "A"
-        },
-        {
-          type: "选择题",
-          name: "王小虎",
-          grade: 92,
-          answer: "A"
-        }
-      ]
+      tableData: [],
+      loading:true
     };
   },
   mounted() {
@@ -144,11 +97,18 @@ export default {
           if (res.msg == "success" && res.status == "0") {
             this.questionData = res.result;
             this.questionData.forEach(item => {
+              let type='';
+              if(item.type=='single'){type='单选题'}
+              else if(item.type=='multi'){type='多选题'}
+              else if(item.type=='apfill'){type='填空题'}
+              else if(item.type=='Q&A'){type='简答题'}
+              else if(item.type=='judgement'){type='判断题'}
+
               this.tableData.push({
-                type: item.startTime,
-                name: item.name,
-                grade: item.totalPoints,
-                answer: item.time
+                type: type,
+                name: item.content,
+                grade: item.score,
+                answer: item.answer.length>0?item.answer:'该类型无答案'
               });
             });
           } else {
@@ -169,6 +129,7 @@ export default {
             duration: 2000
           });
         });
+        this.loading = false;
     },
     handleSelectionChange(val) {
       this.multipleSelection = val;

@@ -8,7 +8,7 @@
                 <el-input placeholder="请输入试卷名" v-model="test" clearable prefix-icon="el-icon-search"  size="small" style="width:30%">  </el-input>
                 <el-button type="primary" size="small">搜索</el-button>
           </div>
-          <el-table :data="tableData" height="420" border  style="width: 100%" :default-sort = "{prop: 'date', order: 'descending'}">
+          <el-table v-loading="loading" :data="tableData" height="420" border  style="width: 100%" :default-sort = "{prop: 'date', order: 'descending'}">
             <el-table-column prop="date" label="考试日期" sortable> </el-table-column>
             <el-table-column prop="name" label="试卷名称" > </el-table-column>
             <el-table-column prop="grade" label="试卷总分"> </el-table-column>

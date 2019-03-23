@@ -30,11 +30,11 @@
               <template slot-scope="scope">
                 <el-button
                   size="mini"
-                  @click="handleEdit(scope.$index,scope.row)">编辑</el-button>
+                  @click="handleEdit(scope.row)">编辑</el-button>
                 <el-button
                   size="mini"
                   type="danger"
-                  @click="handleDelete(scope.$index)">删除</el-button>
+                  @click="handleDelete(scope.$index,scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -71,14 +71,14 @@ export default {
             this.paperData = res.result;
             this.paperData.forEach(item => {
               this.tableData.push({
-                paperId:item._id,
+                paperId: item._id,
                 date: item.startTime,
                 name: item.name,
                 grade: item.totalPoints,
                 time: item.time
               });
             });
-            this.loading=false
+            this.loading = false;
           } else {
             this.$message({
               showClose: true,
@@ -101,22 +101,49 @@ export default {
     handleSelectionChange(val) {
       this.multipleSelection = val;
     },
-    handleEdit(index,row) {//表格的编辑按钮，跳转去修改试卷
-    let now = new Date();
-    if((now-new Date(row.date)>0)){
-      this.$message({
-            showClose: true,
-            message: "已开考或正在考试，无法修改",
-            type: "warning",
-            duration: 2000
-          });
-          return ;
-    }
-    if((now-new Date(row.date)))
-      this.$router.push({ path: "/tmain/taddpaper/" +row.paperId+"/"+ this.userId });
+    handleEdit(row) {
+      //表格的编辑按钮，跳转去修改试卷
+      let now = new Date();
+      if (now - new Date(row.date) > 0) {
+        this.$message({
+          showClose: true,
+          message: "已开考或正在考试，无法修改",
+          type: "warning",
+          duration: 2000
+        });
+        return;
+      }
+      if (now - new Date(row.date))
+        this.$router.push({
+          path: "/tmain/taddpaper/" + row.paperId + "/" + this.userId
+        });
     },
     handleDelete(index, row) {
-      console.log(index, row);
+      this.$confirm("确认删除?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          // this.paper.splice(index, 1);
+          this.$axios.post("").then(response => {
+            let res = response.data;
+          });
+          this.$message({
+            type: "success",
+            message: "删除成功!",
+            showClose: true,
+            duration: 1000
+          });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除",
+            showClose: true,
+            duration: 1000
+          });
+        });
     }
   }
 };
