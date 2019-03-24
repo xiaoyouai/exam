@@ -23,48 +23,101 @@
                 <template slot-scope="props">
                   <el-form label-position="left" inline class="demo-table-expand">
                     <el-form-item label="题目类型">
-                      <span>{{ props.row.type }}</span>
+                      <span>{{ transType(props.row) }}</span>
                     </el-form-item>
                     <el-form-item label="题目分值">
-                      <span>{{ props.row.grade }}</span>
+                      <span>{{ props.row.score }}</span>
                     </el-form-item>
                     <el-form-item label="题目答案">
-                      <span>{{ props.row.answer }}</span>
+                      <span>{{transAnswer(props.row)}}</span>
                     </el-form-item>
                     <el-form-item label="题目">
-                      <span>{{ props.row.name }}</span>
+                      <span>{{ props.row.content }}</span>
+                    </el-form-item>
+                    <el-form-item label="题目选项" v-for="(item,index) in props.row.selection" :key="index" v-if="props.row.type=='multi'||props.row.type=='single'">
+                      <span>{{(index + 10).toString(36).toUpperCase()}}：{{item.value}}</span>
                     </el-form-item>
                   </el-form>
                 </template>
             </el-table-column>
             <el-table-column type="selection"> </el-table-column>
-            <el-table-column prop="type" label="题目类型" > </el-table-column>
+            <el-table-column label="题目类型" >
+              <template slot-scope="props">
+                <span>{{ transType(props.row) }}</span>
+              </template>
+            </el-table-column>
             <el-table-column label="题目" >
               <template slot-scope="props">
-                <span v-if="props.row.name.length<12">{{props.row.name}}</span>
+                <span v-if="props.row.content.length<12">{{props.row.content}}</span>
                 <span v-else>行首下拉查看详情</span>
               </template>
             </el-table-column>
             <el-table-column label="题目答案" >
               <template slot-scope="props">
-                <span>{{props.row.answer}}</span>
+                <span>{{transAnswer(props.row)}}</span>
               </template>
             </el-table-column>
-            <el-table-column prop="grade" label="题目分值" > </el-table-column>
+            <el-table-column prop="score" label="题目分值" > </el-table-column>
             <el-table-column label="操作">
               <template slot-scope="scope">
                 <el-button
                   size="mini"
-                  @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+                  @click="handleEdit(scope.row)">编辑</el-button>
                 <el-button
                   size="mini"
                   type="danger"
-                  @click="handleDelete(scope.$index, scope.row)">删除</el-button>
+                  @click="handleDelete(scope.row)">删除</el-button>
               </template>
             </el-table-column>
         </el-table>
     </el-main>
   </el-container>
+
+  <!-- 编辑问题弹窗 -->
+  <el-dialog
+  title="修改题目"
+  :visible.sync="dialogVisible"
+  width="30%">
+    <el-form :model="myquestion" :rules="rules" ref="myquestion" label-width="100px" class="demo-ruleForm">
+          <el-form-item prop="content" label="题目：">
+            <el-input placeholder="请输入题目" v-model.trim="myquestion.content" clearable></el-input>
+          </el-form-item>
+          <el-form-item prop="type" label="类型：">
+            <el-select v-model="myquestion.type" style="width:100%">
+                <el-option label="单选题" value="single"></el-option>
+                <el-option label="判断题" value="judgement"></el-option>
+                <el-option label="填空题" value="apfill"></el-option>
+                <el-option label="多选题" value="multi"></el-option>
+                <el-option label="简答题" value="Q&A"></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item :prop="'selection.' + index + '.value'"
+              v-for="(item,index) in myquestion.selection"
+              :rules="rules.selectionVal"
+              :label="'选项'+(index+1)"
+              :key="index"
+              v-if="myquestion.type=='single'||myquestion.type=='multi'"
+              >
+                <el-input placeholder="请输入内容" v-model="myquestion.selection[index].value" style="width:85%"  clearable></el-input>
+                <i class="el-icon-delete delicon" @click="delsel(index)"></i>
+          </el-form-item>
+          <el-form-item v-if="myquestion.type=='single'||myquestion.type=='multi'">
+            <el-button @click="addsel" type="primary" size="small">新增选项</el-button>
+          </el-form-item>
+          <el-form-item prop="answer" label="答案：" v-if="myquestion.type!=='Q&A'&&myquestion.type!=='apfill'">
+            <span class="tip" v-if="myquestion.type=='judgement'">判断题A(正确) 、 B(错误)</span>
+            <el-input placeholder="请输入答案---A或A,B" v-model="myquestion.answer" clearable></el-input>
+          </el-form-item>
+          <el-form-item prop="score" label="分值：">
+            <el-input placeholder="请输入分值" v-model="myquestion.score" clearable></el-input>
+          </el-form-item>
+    </el-form>
+    <span slot="footer" class="dialog-footer">
+      <el-button @click="quit">取 消</el-button>
+      <el-button type="primary" @click="sureEditQuestion">确 定</el-button>
+    </span>
+  </el-dialog>
+  <!-- 编辑问题弹窗 -->
 
 </div>
 </template>
@@ -72,15 +125,104 @@
 <script>
 export default {
   data() {
+      // 弹窗验证规则
+    var checkContent = (rule, value, callback) => {
+      if (!value) {
+        return callback(new Error("题目不能为空"));
+      } else {
+        callback();
+      }
+    };
+    var checkSelection = (rule, value, callback) => {
+      if (!value) {
+        return callback(new Error("选项不能为空"));
+      } else {
+        callback();
+      }
+    };
+    var checkAnswer = (rule, value, callback) => {
+      if (!value) {
+        return callback(new Error("答案不能为空"));
+      } else {
+        callback();
+      }
+    };
+    var checkScore = (rule, value, callback) => {
+      if (!value) {
+        return callback(new Error("分值不能为空"));
+      } else {
+        callback();
+      }
+    }; // 弹窗验证规则
     return {
-      name: "小明",
+      content: "小明",
       myclass: 1,
       userId: "",
       test: "",
-      questionData:[],
+      questionData: [],
       tableData: [],
-      loading:true
+      loading: true,
+      editQuestionId:'',//点击编辑，题目对应的_id
+      // 弹窗相关数据
+      dialogVisible: false,
+      myquestion: {
+        questionId:'',
+        content: "", //题目内容
+        type: "",
+        selection: [{ value: "" }, { value: "" }, { value: "" }, { value: "" }],
+        answer: "",
+        score: ""
+      },
+      rules: {
+        content: [{ validator: checkContent, trigger: "blur", required: true }],
+        selectionVal: [
+          { validator: checkSelection, trigger: "blur", required: true }
+        ],
+        answer: [
+          { validator: checkAnswer, trigger: "blur", required: true },
+          {
+            pattern: /(^[A-Z]|[A-Z],[A-Z])+$/,
+            message: "请按正确格式(A或A,B)输入答案"
+          }
+        ],
+        score: [
+          { validator: checkScore, trigger: "blur", required: true },
+          { pattern: /^[0-9]+$/, message: "分值必须为数字值" }
+        ]
+      }
+      // 弹窗相关数据
+
     };
+  },
+  computed: {
+    transType() {
+      //用于显示不同的类型
+      return function(row) {
+        if (row.type == "single") {
+          return "单选题";
+        } else if (row.type == "multi") {
+          return "多选题";
+        } else if (row.type == "apfill") {
+          return "填空题";
+        } else if (row.type == "Q&A") {
+          return "简答题";
+        } else if (row.type == "judgement") {
+          return "判断题";
+        }
+      };
+    },
+    transAnswer() {
+      //用于在类型为判断题时显示对或者错或者该类型未保存答案
+      return function(row) {
+        if (row.type == "judgement") {
+          return row.answer == "A" ? "对" : "错";
+        } else if (row.type == "apfill"||row.type == "Q&A") {
+          return "该类型未保存答案";
+        } else {
+          return row.answer;
+        }
+      };
+    }
   },
   mounted() {
     this.init();
@@ -96,20 +238,31 @@ export default {
           let res = response.data;
           if (res.msg == "success" && res.status == "0") {
             this.questionData = res.result;
-            this.questionData.forEach(item => {
-              let type='';
-              if(item.type=='single'){type='单选题'}
-              else if(item.type=='multi'){type='多选题'}
-              else if(item.type=='apfill'){type='填空题'}
-              else if(item.type=='Q&A'){type='简答题'}
-              else if(item.type=='judgement'){type='判断题'}
-
-              this.tableData.push({
-                type: type,
-                name: item.content,
-                grade: item.score,
-                answer: item.answer.length>0?item.answer:'该类型无答案'
+            if (this.questionData.length > 0) {
+              this.questionData.forEach(item => {
+                this.tableData.push({
+                  questionId:item._id,//用于编辑和删除
+                  type: item.type,
+                  content: item.content,
+                  score: item.score,
+                  answer:  item.answer,
+                  selection:item.selection
+                });
               });
+            } else {
+              this.$message({
+                showClose: true,
+                message: "还没有创建题目！！！",
+                type: "warning",
+                duration: 2000
+              });
+            }
+          } else if (res.status == "2") {
+            this.$message({
+              showClose: true,
+              message: "还没有创建题目！！！",
+              type: "warning",
+              duration: 2000
             });
           } else {
             this.$message({
@@ -119,9 +272,11 @@ export default {
               duration: 2000
             });
           }
+          this.loading = false;
         })
         .catch(err => {
           console.log(err);
+          this.loading = false;
           this.$message({
             showClose: true,
             message: "获取题目失败，请稍后再试！",
@@ -129,16 +284,16 @@ export default {
             duration: 2000
           });
         });
-        this.loading = false;
     },
     handleSelectionChange(val) {
       this.multipleSelection = val;
     },
-    handleEdit(index, row) {
-      console.log(index, row);
+    handleEdit(row) {
+      this.dialogVisible = true;//唤起弹窗
+      this.myquestion = this.$deepCopy(row);//给数据
     },
-    handleDelete(index, row) {
-      console.log(index, row);
+    handleDelete(row) {
+      console.log(row);
       this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
@@ -156,7 +311,44 @@ export default {
             message: "已取消删除"
           });
         });
+    },
+
+    // 弹窗相关
+    addsel() {
+      //添加选项
+      this.myquestion.selection.push({ value: "" });
+    },
+    delsel(index) {
+      //删除选项
+      this.myquestion.selection.splice(index, 1);
+    },
+    quit() {
+      //取消编辑题目
+      this.dialogVisible = false;
+      this.myquestion.content = "";
+      this.myquestion.answer = "";
+      this.myquestion.score = "";
+      this.myquestion.selection.forEach(item => (item.value = ""));
+    },
+    sureEditQuestion() {
+      //确认编辑题目
+      this.$refs.myquestion.validate(valid => {
+        if (valid) {
+          let item = this.$deepCopy(this.myquestion); //深度克隆，不然下面的值的置空会影响到push的值
+          let questionItem=this.tableData.filter(item=>item.questionId===item.questionId);
+
+          this.quit(); //并不是真的取消，只是这里要用到一样的代码
+        } else {
+          this.$message({
+            showClose: true,
+            message: "请将正确填写信息！",
+            type: "warning",
+            duration: 2000
+          });
+        }
+      });
     }
+    // 弹窗相关
   }
 };
 </script>
@@ -176,4 +368,18 @@ export default {
 .demo-table-expand .el-form-item:last-child {
   width: 100%;
 }
+
+/* 题目弹窗相关样式 */
+.tip {
+  color: red;
+  font-size: 11px;
+  position: absolute;
+  top: -27px;
+}
+.delicon {
+  color: red;
+  width: 30px;
+  font-size: 20px;
+}
+/* 题目弹窗相关样式 */
 </style>

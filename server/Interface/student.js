@@ -104,13 +104,18 @@ exports.slogin = function(req, res) {
                     })
                 }
 
+            } else {
+                res.json({
+                    status: '2',
+                    msg: '请先注册',
+                })
             }
         }
     })
 }
 
 // 获取考试记录
-exports.smain = function(req, res) {
+exports.smain = function(req, res) { //smsgCenter里面的init方法里调用
     let userId = req.body.userId;
     Student.findOne({ userId: userId }, (err, doc) => {
         if (err) {
@@ -130,7 +135,7 @@ exports.smain = function(req, res) {
     })
 }
 
-exports.schangeMsg = function(req, res) {
+exports.schangeMsg = function(req, res) { //smsgCenter里面的submit方法里调用
     let user = req.body.user;
     let password = md5(req.body.password); //原密码
     user.password = md5(user.password); //新密码
@@ -169,7 +174,7 @@ exports.schangeMsg = function(req, res) {
     })
 }
 
-exports.ssignout = function(req, res) {
+exports.ssignout = function(req, res) { //smsgCenter里面调用
     req.session.userId = '';
     req.session.password = '';
     res.json({

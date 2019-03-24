@@ -21,8 +21,9 @@
 
           </div>
           <el-table :data="tableData" height="420" border v-loading="loading" style="width: 100%" :default-sort = "{prop: 'date', order: 'descending'}" @selection-change="handleSelectionChange">
-            <el-table-column type="selection" width="55"> </el-table-column>
+            <el-table-column type="selection" width="56"> </el-table-column>
             <el-table-column prop="date" label="考试时间" sortable> </el-table-column>
+            <el-table-column prop="class" label="考试班级"> </el-table-column>
             <el-table-column prop="name" label="试卷名称" > </el-table-column>
             <el-table-column prop="grade" label="试卷总分"> </el-table-column>
             <el-table-column prop="time" label="考试时长"> </el-table-column>
@@ -34,7 +35,7 @@
                 <el-button
                   size="mini"
                   type="danger"
-                  @click="handleDelete(scope.$index,scope.row)">删除</el-button>
+                  @click="handleDelete(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -69,16 +70,32 @@ export default {
           let res = response.data;
           if (res.msg == "success" && res.status == "0") {
             this.paperData = res.result;
-            this.paperData.forEach(item => {
-              this.tableData.push({
-                paperId: item._id,
-                date: item.startTime,
-                name: item.name,
-                grade: item.totalPoints,
-                time: item.time
+            if (this.paperData.length > 0) {
+              this.paperData.forEach(item => {
+                this.tableData.push({
+                  paperId: item._id,
+                  date: item.startTime,
+                  name: item.name,
+                  grade: item.totalPoints,
+                  time: item.time,
+                  class: item.examclass
+                });
               });
+            } else {
+              this.$message({
+                showClose: true,
+                message: "还没有创建试卷！！！",
+                type: "warning",
+                duration: 2000
+              });
+            }
+          } else if (res.status == "2") {
+            this.$message({
+              showClose: true,
+              message: "还没有创建试卷！！！",
+              type: "error",
+              duration: 2000
             });
-            this.loading = false;
           } else {
             this.$message({
               showClose: true,
@@ -87,9 +104,11 @@ export default {
               duration: 2000
             });
           }
+          this.loading = false;
         })
         .catch(err => {
           console.log(err);
+          this.loading = false;
           this.$message({
             showClose: true,
             message: "获取试卷失败，请稍后再试！",
@@ -118,23 +137,57 @@ export default {
           path: "/tmain/taddpaper/" + row.paperId + "/" + this.userId
         });
     },
-    handleDelete(index, row) {
+    handleDelete(row) {
       this.$confirm("确认删除?", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
       })
         .then(() => {
-          // this.paper.splice(index, 1);
-          this.$axios.post("").then(response => {
-            let res = response.data;
-          });
-          this.$message({
-            type: "success",
-            message: "删除成功!",
-            showClose: true,
-            duration: 1000
-          });
+          this.$axios
+            .post("/api/tdelpaper", {
+              userId: this.userId,
+              paperId: row.paperId,
+              class: row.class
+            })
+            .then(response => {
+              let res = response.data;
+              if (res.msg == "success" && res.status == "0") {
+                this.tableData = this.tableData.filter(
+                  item => item.paperId !== row.paperId
+                );
+                this.paperData = this.paperData.filter(
+                  item => item.paperId !== row.paperId
+                );
+                this.$message({
+                  type: "success",
+                  message: "删除成功!",
+                  showClose: true,
+                  duration: 1000
+                });
+              } else if (res.status == "3") {
+                this.$message({
+                  showClose: true,
+                  message: "没有该试卷",
+                  type: "error",
+                  duration: 2000
+                });
+              } else if (res.status == "4") {
+                this.$message({
+                  showClose: true,
+                  message: "题目删除试卷失败",
+                  type: "error",
+                  duration: 2000
+                });
+              } else {
+                this.$message({
+                  showClose: true,
+                  message: "删除失败，请稍后再试！",
+                  type: "error",
+                  duration: 2000
+                });
+              }
+            });
         })
         .catch(() => {
           this.$message({

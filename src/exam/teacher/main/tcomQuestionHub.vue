@@ -13,22 +13,29 @@
                 <template slot-scope="props">
                   <el-form label-position="left" inline class="demo-table-expand">
                     <el-form-item label="题目类型">
-                      <span>{{ props.row.type }}</span>
+                      <span>{{ transType(props.row) }}</span>
                     </el-form-item>
                     <el-form-item label="题目分值">
                       <span>{{ props.row.grade }}</span>
                     </el-form-item>
                     <el-form-item label="题目答案">
-                      <span>{{ props.row.answer }}</span>
+                      <span>{{transAnswer(props.row)}}</span>
                     </el-form-item>
                     <el-form-item label="题目">
                       <span>{{ props.row.name }}</span>
                     </el-form-item>
+                    <el-form-item label="题目选项" v-for="(item,index) in props.row.selection" :key="index" v-if="props.row.type=='multi'||props.row.type=='single'">
+                      <span>{{(index + 10).toString(36).toUpperCase()}}：{{item.value}}</span>
+                    </el-form-item>
                   </el-form>
                 </template>
             </el-table-column>
-            <el-table-column type="selection"> </el-table-column>
-            <el-table-column prop="type" label="题目类型" > </el-table-column>
+            <el-table-column type="selection"  width="56"> </el-table-column>
+            <el-table-column label="题目类型" >
+              <template slot-scope="props">
+                <span>{{ transType(props.row) }}</span>
+              </template>
+            </el-table-column>
             <el-table-column label="题目" >
               <template slot-scope="props">
                 <span v-if="props.row.name.length<12">{{props.row.name}}</span>
@@ -37,7 +44,7 @@
             </el-table-column>
             <el-table-column label="题目答案" >
               <template slot-scope="props">
-                <span>{{props.row.answer}}</span>
+                <span>{{transAnswer(props.row)}}</span>
               </template>
             </el-table-column>
             <el-table-column prop="grade" label="题目分值" > </el-table-column>
@@ -63,7 +70,35 @@ export default {
       loading: true
     };
   },
-
+  computed: {
+    transType() {
+      //用于显示不同的类型
+      return function(row) {
+        if (row.type == "single") {
+          return "单选题";
+        } else if (row.type == "multi") {
+          return "多选题";
+        } else if (row.type == "apfill") {
+          return "填空题";
+        } else if (row.type == "Q&A") {
+          return "简答题";
+        } else if (row.type == "judgement") {
+          return "判断题";
+        }
+      };
+    },
+    transAnswer() {//用于在类型为判断题时显示对或者错或者该类型未保存答案
+      return function(row) {
+        if (row.type == "judgement") {
+          return row.answer == "A" ? "对" : "错";
+        } else if (row.type == "apfill"||row.type == "Q&A") {
+          return "该类型未保存答案";
+        } else {
+          return row.answer;
+        }
+      };
+    }
+  },
   mounted() {
     this.init();
   },
@@ -75,22 +110,31 @@ export default {
           let res = response.data;
           if (res.msg == "success" && res.status == "0") {
             this.questionData = res.result;
-            this.questionData.forEach(item => {
-              let type='';
-              if(item.type=='single'){type='单选题'}
-              else if(item.type=='multi'){type='多选题'}
-              else if(item.type=='apfill'){type='填空题'}
-              else if(item.type=='Q&A'){type='简答题'}
-              else if(item.type=='judgement'){type='判断题'}
-
-              this.tableData.push({
-                type: type,
-                name: item.content,
-                grade: item.score,
-                answer: item.answer.length>0?item.answer:'该类型无答案'
+            if (this.questionData.length > 0) {
+              this.questionData.forEach(item => {
+                this.tableData.push({
+                  type: item.type,
+                  name: item.content,
+                  grade: item.score,
+                  answer: item.answer,
+                  selection: item.selection
+                });
               });
+            } else {
+              this.$message({
+                showClose: true,
+                message: "还没有创建题目！！！",
+                type: "warning",
+                duration: 2000
+              });
+            }
+          } else if (res.status == "2") {
+            this.$message({
+              showClose: true,
+              message: "还没有创建题目！！！",
+              type: "warning",
+              duration: 2000
             });
-
           } else {
             this.$message({
               showClose: true,
@@ -99,8 +143,10 @@ export default {
               duration: 2000
             });
           }
+          this.loading = false;
         })
         .catch(err => {
+          this.loading = false;
           this.$message({
             showClose: true,
             message: "获取题目失败，请稍后再试！",
@@ -108,7 +154,6 @@ export default {
             duration: 2000
           });
         });
-        this.loading = false;
     },
     handleSelectionChange(val) {
       this.multipleSelection = val;

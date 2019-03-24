@@ -21,6 +21,7 @@ let questionSchema = new Schema({
         ]
     },
     score: Number, //分数
-    answer: String //答案
+    answer: String, //答案
+    selection: Array, //选项
 });
 module.exports = mongoose.model('Question', questionSchema);

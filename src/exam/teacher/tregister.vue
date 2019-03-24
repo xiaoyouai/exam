@@ -1,7 +1,7 @@
 <template>
-  <div>
+<div style="height:100%">
     <el-container>
-      <el-header>教师注册</el-header>
+      <el-header><img src="../../../static/img/logo.png">教师注册</el-header>
       <el-main>
         <el-row>
           <el-col :span="6" :offset="8">
@@ -21,11 +21,12 @@
               </el-form-item>
             </el-form>
           </el-col>
-        </el-row>
-      </el-main>
-      <div>
+        </el-row><br>
+         <div>
         <router-link to="/" class="href hrefright">去登录</router-link>
       </div>
+      </el-main>
+
     </el-container>
 
 
@@ -122,16 +123,30 @@ export default {
 
   </script>
   <style scoped>
-    .el-header {
-      background-color: #409EFF;
-      color: #fff;
-      text-align: center;
-      line-height: 60px;
-    }
+.el-header {
+    font-family: '微软雅黑';
+    font-size: 28px;
+    color:#A569BD;
+    width: 16%;
+    margin: 90px 0px 0px 49%;
+    text-align: center;
+    line-height: 60px;
+    position: relative;
+  }
+.el-header img {
+  width: 60px;
+  height: 60px;
+  position: absolute;
+  left: -110px;
+}
 
-    .el-container {
-      margin-bottom: 40px;
-    }
+.el-container {
+  height: 100%;
+  background: url("../../../static/img/bg3.jpg");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  padding-bottom: 40px;
+}
     .el-input{
       width: 300px;
     }

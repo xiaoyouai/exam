@@ -1,17 +1,18 @@
 
 <template>
-<div>
+<div style="height:100%">
   <el-container>
-    <el-header>学生登录</el-header>
+    <el-header><img src="../../../static/img/logo.png">学生登录</el-header>
     <el-main>
       <el-input placeholder="请输入学号" v-model="userId" clearable></el-input><br><br>
-      <el-input placeholder="请输入密码" v-model="pwd" clearable></el-input><br><br>
-      <el-button type="primary" plain @click="login">登录</el-button>
-    </el-main>
-    <div>
+      <el-input placeholder="请输入密码" v-model="pwd" type="password" clearable></el-input><br><br>
+      <el-button type="primary" plain @click="login">登录</el-button><br><br>
+      <div>
       <router-link to="/sregister" class="href hrefleft">学生注册</router-link>
       <router-link to="/tlogin" class="href">教师登录</router-link>
     </div>
+    </el-main>
+
   </el-container>
 </div>
 
@@ -46,7 +47,14 @@ export default {
             if(res.msg=='success'&&res.status=='0'){
               this.$mySessionStorage.set('currentUser',res.result,'json');
               this.$router.push({path:'/smsgCenter'})
-            }else{
+            }else if(res.status=='2'){
+            this.$message({
+              showClose: true,
+              message: '您还没有注册，请先注册',
+              type: 'error',
+              duration:2000
+            });
+          }else{
               this.$message({
                 showClose: true,
                 message: '请输入正确的用户名和密码',
@@ -68,16 +76,31 @@ export default {
 
 </script>
 <style scoped>
+
+.el-container{
+  height: 100%;
+  background:url("../../../static/img/bg3.jpg");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  padding-bottom: 40px;
+}
   .el-header {
-    background-color: #409EFF;
-    color: #fff;
+    font-family: '微软雅黑';
+    font-size: 28px;
+    color:#A569BD;
+    width: 16%;
+    margin: 150px 0px 0px 49%;
     text-align: center;
     line-height: 60px;
+    position: relative;
   }
+.el-header img{
+  width: 60px;
+  height: 60px;
+  position: absolute;
+  left: -138px;
+}
 
-   .el-container {
-    margin-bottom: 40px;
-  }
   .el-input{
     width: 300px;
   }

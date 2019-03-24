@@ -21,14 +21,14 @@
       <el-col :span="8">
         <div class="grid-content bg-purple">
           <el-form-item label="试卷名：">
-            <el-input v-model="name" clearable></el-input>
+            <el-input v-model.trim="name" clearable></el-input>
           </el-form-item>
         </div>
       </el-col>
       <el-col :span="8">
         <div class="grid-content bg-purple">
           <el-form-item label="试卷总分：">
-            <el-input v-model="grade" clearable  placeholder="请输入数字">
+            <el-input v-model.trim="grade" clearable  placeholder="请输入数字">
               <template slot="append">分</template>
             </el-input>
           </el-form-item>
@@ -38,7 +38,7 @@
         <div class="grid-content bg-purple">
           <el-form-item label="考试班级：">
             <el-tooltip class="item" content="请认真填写班级，一经保存无法修改" placement="top-start" style="color:red" v-if="paperId=='-1'">
-              <el-input v-model="myclass" clearable  placeholder="请输入数字" >
+              <el-input v-model.trim="myclass" clearable  placeholder="请输入数字" >
                 <template slot="append">班</template>
               </el-input>
             </el-tooltip>
@@ -65,7 +65,7 @@
       <el-col :span="8">
         <div class="grid-content bg-purple">
           <el-form-item label="考试总时长：">
-            <el-input v-model="sumtime" clearable  placeholder="请输入数字">
+            <el-input v-model.trim="sumtime" clearable  placeholder="请输入数字">
               <template slot="append">分钟</template>
             </el-input>
           </el-form-item>
@@ -124,7 +124,7 @@
                   <span v-if="item.type=='multi'">(多选题)</span>
                   <span v-if="item.type=='Q&A'">(简答题)</span>
             <span>{{item.content}}</span>
-            <span>{{item.score}}</span>
+            <span>&nbsp;&nbsp;({{item.score}}分)</span>
             <span><i class="el-icon-edit editicon" @click="editPaperItem(item,index)"></i></span>
             <span><i class="el-icon-delete delicon" @click="delPaperItem(index)"></i></span>
           </div>
@@ -161,7 +161,7 @@
               :key="index"
               v-if="myquestion.type=='single'||myquestion.type=='multi'"
               >
-                <el-input placeholder="请输入内容" v-model="myquestion.selection[index].value" style="width:85%"  clearable></el-input>
+                <el-input placeholder="请输入内容" v-model.trim="myquestion.selection[index].value" style="width:85%"  clearable></el-input>
                 <i class="el-icon-delete delicon" @click="delsel(index)"></i>
           </el-form-item>
           <el-form-item v-if="myquestion.type=='single'||myquestion.type=='multi'">
@@ -169,10 +169,10 @@
           </el-form-item>
           <el-form-item prop="answer" label="答案：" v-if="myquestion.type!=='Q&A'&&myquestion.type!=='apfill'">
             <span class="tip" v-if="myquestion.type=='judgement'">判断题A(正确) 、 B(错误)</span>
-            <el-input placeholder="请输入答案---A或A,B" v-model="myquestion.answer" clearable></el-input>
+            <el-input placeholder="请输入答案---A或A,B" v-model.trim="myquestion.answer" clearable></el-input>
           </el-form-item>
           <el-form-item prop="score" label="分值：">
-            <el-input placeholder="请输入分值" v-model="myquestion.score" clearable></el-input>
+            <el-input placeholder="请输入分值" v-model.trim="myquestion.score" clearable></el-input>
           </el-form-item>
     </el-form>
     <span slot="footer" class="dialog-footer">
@@ -216,10 +216,10 @@ export default {
       }
     };
     return {
-      userId:'',//老师的id，唯一的用处是用于返回按钮
+      userId: "", //老师的id，唯一的用处是用于返回按钮
       paperId: "-1", //paperId为-1表示添加试卷
-      teacherId:"",//teacher表对应的_id，后面修改试卷的时候添加题目了需要用到
-      name: "",//试卷名称
+      teacherId: "", //teacher表对应的_id，后面修改试卷的时候添加题目了需要用到
+      name: "", //试卷名称
       starttime: "", //考试开始时间
       sumtime: "", //考试总时长
       grade: 100,
@@ -227,6 +227,9 @@ export default {
       dialogVisible: false,
       findQuestion: "", //从题库添加题目对应输入栏
       editIndex: -1, //编辑试卷题目时题目的位置
+      paper: [], //试卷题目
+
+      // 题目弹窗相关
       myquestion: {
         content: "", //题目内容
         type: "",
@@ -250,8 +253,8 @@ export default {
           { validator: checkScore, trigger: "blur", required: true },
           { pattern: /^[0-9]+$/, message: "分值必须为数字值" }
         ]
-      },
-      paper: []//试卷题目
+      }
+      // 题目弹窗相关
     };
   },
   mounted() {
@@ -259,7 +262,7 @@ export default {
   },
   methods: {
     init() {
-      this.userId=parseInt(this.$route.params.id);
+      this.userId = parseInt(this.$route.params.id);
       //初始化
       this.paperId = this.$route.params.paperId;
       if (this.paperId !== "-1") {
@@ -275,7 +278,14 @@ export default {
               this.grade = data.totalPoints;
               this.myclass = data.examclass;
               this.paper = data._questions;
-              this.teacherId=data._questions[0]._teacher;
+              this.teacherId = data._questions[0]._teacher;
+            } else if (res.status == "2") {
+              this.$message({
+                showClose: true,
+                message: "没有该试卷",
+                type: "error",
+                duration: 2000
+              });
             } else {
               this.$message({
                 showClose: true,
@@ -319,7 +329,7 @@ export default {
     },
     // 从题库搜索出现结果
 
-    // 添加题目相关
+    // 添加题目弹窗相关
     single() {
       this.dialogVisible = true;
       this.myquestion.type = "single";
@@ -376,7 +386,7 @@ export default {
         }
       });
     },
-    // 添加题目相关
+    // 添加题目弹窗相关
 
     editPaperItem(item, index) {
       // 编辑试卷中的题目
@@ -411,7 +421,7 @@ export default {
         });
     },
 
-    // 清空试卷：
+    // 清空试卷题目：
     resetPaper() {
       this.$confirm("确认清空?", "提示", {
         confirmButtonText: "确定",
@@ -470,7 +480,7 @@ export default {
         this.$confirm("确定新增试卷吗？请确认已正确选择班级信息", "提示", {
           confirmButtonText: "确定",
           cancelButtonText: "取消",
-          type:'warning'
+          type: "warning"
         })
           .then(() => {
             this.$axios
@@ -494,9 +504,29 @@ export default {
                     type: "success",
                     duration: 2000
                   });
-                  // this.$mySessionStorage.set("currentUser", res.result, "json");
                   this.$router.push({
                     path: "/tmain/tmypaper/" + parseInt(this.$route.params.id)
+                  });
+                } else if (res.status == "2") {
+                  this.$message({
+                    showClose: true,
+                    message: "创造题目失败，请稍后再试！",
+                    type: "error",
+                    duration: 2000
+                  });
+                } else if (res.status == "3") {
+                  this.$message({
+                    showClose: true,
+                    message: "创造试卷失败，请稍后再试！",
+                    type: "error",
+                    duration: 2000
+                  });
+                } else if (res.status == "4") {
+                  this.$message({
+                    showClose: true,
+                    message: "未查询到教师信息，请登陆重试！",
+                    type: "error",
+                    duration: 2000
                   });
                 } else {
                   this.$message({
@@ -546,9 +576,22 @@ export default {
                 type: "success",
                 duration: 2000
               });
-              // this.$mySessionStorage.set("currentUser", res.result, "json");
               this.$router.push({
                 path: "/tmain/tmypaper/" + parseInt(this.$route.params.id)
+              });
+            } else if (res.status == "2") {
+              this.$message({
+                showClose: true,
+                message: "没找到题目",
+                type: "error",
+                duration: 2000
+              });
+            } else if (res.status == "3") {
+              this.$message({
+                showClose: true,
+                message: "新添加题目失败",
+                type: "error",
+                duration: 2000
               });
             } else {
               this.$message({
@@ -577,6 +620,7 @@ export default {
   font-size: 1.17em;
   margin-left: 10px;
 }
+/* 题目弹窗相关样式 */
 .tip {
   color: red;
   font-size: 11px;
@@ -588,6 +632,7 @@ export default {
   width: 30px;
   font-size: 20px;
 }
+/* 题目弹窗相关样式 */
 
 /* 试卷相关样式 */
 .text {
