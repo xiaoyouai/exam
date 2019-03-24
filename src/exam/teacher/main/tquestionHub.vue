@@ -162,7 +162,6 @@ export default {
       questionData: [],
       tableData: [],
       loading: true,
-      editQuestionId:'',//点击编辑，题目对应的_id
       // 弹窗相关数据
       dialogVisible: false,
       myquestion: {
