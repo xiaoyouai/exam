@@ -753,3 +753,86 @@ exports.tdelpaper = function(req, res) { //tmypaper里面调用
         }
     })
 }
+
+
+exports.tupdateQuestion = function(req, res) { //我的题库里面修改题目，tquestionHub里面调用
+    let data = req.body.questionData;
+    Question.update({ "_id": data._id }, data, (err, doc) => {
+        if (err) {
+            res.json({
+                status: '1',
+                msg: err.message
+            })
+        } else {
+            if (doc) {
+                res.json({
+                    status: '0',
+                    msg: 'success'
+                })
+            } else {
+                res.json({
+                    status: '1',
+                    msg: '修改失败'
+                })
+            }
+        }
+    })
+}
+
+exports.tdelQuestion = function(req, res) { //tcomQuestionHub里面调用
+    let data = req.body.questionData;
+    let questionId = data._id; //题目的_id
+    let teacherId = data._teacher; //老师的_id
+    Teacher.update({ "_id": teacherId }, { '$pull': { '_questions': { $in: questionId } } }, (err, doc) => {
+        if (err) {
+            res.json({
+                status: '1',
+                msg: err.message
+            })
+        } else {
+            if (doc) {
+                Question.remove({ "_id": { $in: questionId } }, function(err1, doc1) {
+                    if (err1) {
+                        res.json({
+                            status: '1',
+                            msg: err1.message
+                        })
+                    } else {
+                        if (doc1) {
+                            Paper.updateMany({ '_questions': { $in: questionId } }, { '$pull': { '_questions': { $in: questionId } } }, function(err2, doc2) {
+                                if (err2) {
+                                    res.json({
+                                        status: '1',
+                                        msg: err2.message
+                                    })
+                                } else {
+                                    if (doc2) {
+                                        res.json({
+                                            status: '0',
+                                            msg: 'success'
+                                        })
+                                    } else {
+                                        res.json({
+                                            status: '4',
+                                            msg: '试卷删除题目失败'
+                                        })
+                                    }
+                                }
+                            })
+                        } else {
+                            res.json({
+                                status: '3',
+                                msg: '没有该题目'
+                            })
+                        }
+                    }
+                })
+            } else {
+                res.json({
+                    status: '2',
+                    msg: '没有该教师'
+                })
+            }
+        }
+    })
+}

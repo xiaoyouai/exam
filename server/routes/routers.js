@@ -31,6 +31,9 @@ module.exports = function(app) {
     app.post('/api/tgetpapermsg', Teacher.tgetpapermsg); //教师修改试卷信息，一开始进入页面需要获取试卷信息
     app.post('/api/tgetallquestion', Teacher.tgetallquestion); //公共题库获取所有题目
     app.post('/api/tdelpaper', Teacher.tdelpaper); //删除试卷
+    app.post('/api/tupdateQuestion', Teacher.tupdateQuestion); //修改我的题库中的题目
+    app.post('/api/tdelQuestion', Teacher.tdelQuestion); //删除我的题库中的题目
+
 
 
     /*----------------------学生用户----------------------*/

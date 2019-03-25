@@ -13,7 +13,7 @@
               <el-col :span="4">
                 <el-row>
                   <el-col :span="12"><el-button type="primary" size="small">新增题目</el-button></el-col>
-                  <el-col :span="12"><el-button type="danger" size="small">批量删除</el-button></el-col>
+                  <el-col :span="12"><el-button type="danger" size="small" @click="multiDel">批量删除</el-button></el-col>
                 </el-row>
               </el-col>
             </el-row>
@@ -125,7 +125,7 @@
 <script>
 export default {
   data() {
-      // 弹窗验证规则
+    // 弹窗验证规则
     var checkContent = (rule, value, callback) => {
       if (!value) {
         return callback(new Error("题目不能为空"));
@@ -162,10 +162,11 @@ export default {
       questionData: [],
       tableData: [],
       loading: true,
+      selQuestion: [], //所有选中的题目
       // 弹窗相关数据
       dialogVisible: false,
       myquestion: {
-        questionId:'',
+        questionId: "", //题目的_id
         content: "", //题目内容
         type: "",
         selection: [{ value: "" }, { value: "" }, { value: "" }, { value: "" }],
@@ -190,7 +191,6 @@ export default {
         ]
       }
       // 弹窗相关数据
-
     };
   },
   computed: {
@@ -215,7 +215,7 @@ export default {
       return function(row) {
         if (row.type == "judgement") {
           return row.answer == "A" ? "对" : "错";
-        } else if (row.type == "apfill"||row.type == "Q&A") {
+        } else if (row.type == "apfill" || row.type == "Q&A") {
           return "该类型未保存答案";
         } else {
           return row.answer;
@@ -240,12 +240,12 @@ export default {
             if (this.questionData.length > 0) {
               this.questionData.forEach(item => {
                 this.tableData.push({
-                  questionId:item._id,//用于编辑和删除
+                  questionId: item._id, //用于编辑和删除
                   type: item.type,
                   content: item.content,
                   score: item.score,
-                  answer:  item.answer,
-                  selection:item.selection
+                  answer: item.answer,
+                  selection: item.selection
                 });
               });
             } else {
@@ -285,24 +285,52 @@ export default {
         });
     },
     handleSelectionChange(val) {
-      this.multipleSelection = val;
+      //val为所有的选中项[{...},{...}...]
+      this.selQuestion = val;
     },
     handleEdit(row) {
-      this.dialogVisible = true;//唤起弹窗
-      this.myquestion = this.$deepCopy(row);//给数据
+      this.dialogVisible = true; //唤起弹窗
+      this.myquestion = this.$deepCopy(row); //给数据
     },
     handleDelete(row) {
-      console.log(row);
       this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
       })
         .then(() => {
-          this.$message({
-            type: "success",
-            message: "删除成功!"
-          });
+          this.tableData = this.tableData.filter(
+            item => item.questionId !== row.questionId
+          );
+          let data = this.questionData.filter(
+            item => item._id === row.questionId
+          );
+          this.$axios
+            .post("/api/tdelQuestion", { questionData: data[0] })
+            .then(response => {
+              let res = response.data;
+              if (res.msg == "success" && res.status == "0") {
+                this.$message({
+                  type: "success",
+                  message: "删除成功!"
+                });
+              } else {
+                this.$message({
+                  showClose: true,
+                  message: "修改失败",
+                  type: "error",
+                  duration: 2000
+                });
+              }
+            })
+            .catch(err => {
+              this.$message({
+                showClose: true,
+                message: "修改失败",
+                type: "warning",
+                duration: 2000
+              });
+            });
         })
         .catch(() => {
           this.$message({
@@ -311,7 +339,48 @@ export default {
           });
         });
     },
-
+    multiDel() {
+      //批量删除
+      this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          this.$axios
+            .post("/api/tdelQuestion", { questionData: data[0] })
+            .then(response => {
+              let res = response.data;
+              if (res.msg == "success" && res.status == "0") {
+                this.$message({
+                  type: "success",
+                  message: "删除成功!"
+                });
+              } else {
+                this.$message({
+                  showClose: true,
+                  message: "修改失败",
+                  type: "error",
+                  duration: 2000
+                });
+              }
+            })
+            .catch(err => {
+              this.$message({
+                showClose: true,
+                message: "修改失败",
+                type: "warning",
+                duration: 2000
+              });
+            });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
+    },
     // 弹窗相关
     addsel() {
       //添加选项
@@ -333,9 +402,48 @@ export default {
       //确认编辑题目
       this.$refs.myquestion.validate(valid => {
         if (valid) {
-          let item = this.$deepCopy(this.myquestion); //深度克隆，不然下面的值的置空会影响到push的值
-          let questionItem=this.tableData.filter(item=>item.questionId===item.questionId);
-
+          let questiondata = this.$deepCopy(this.myquestion); //深度克隆
+          for (let i = 0, len = this.tableData.length; i < len; i++) {
+            if (this.tableData[i].questionId === questiondata.questionId) {
+              this.tableData.splice(i, 1, questiondata); //替换表格的值
+              break;
+            }
+          }
+          for (let i = 0, len = this.questionData.length; i < len; i++) {
+            if (this.questionData[i]._id === questiondata.questionId) {
+              (this.questionData[i].type = questiondata.type),
+                (this.questionData[i].content = questiondata.content),
+                (this.questionData[i].score = questiondata.score),
+                (this.questionData[i].answer = questiondata.answer),
+                (this.questionData[i].selection = questiondata.selection);
+              break;
+            }
+          }
+          let data = this.questionData.filter(
+            item => item._id === questiondata.questionId
+          );
+          this.$axios
+            .post("/api/tupdateQuestion", { questionData: data[0] })
+            .then(response => {
+              let res = response.data;
+              if (res.msg == "success" && res.status == "0") {
+              } else {
+                this.$message({
+                  showClose: true,
+                  message: "修改失败",
+                  type: "error",
+                  duration: 2000
+                });
+              }
+            })
+            .catch(err => {
+              this.$message({
+                showClose: true,
+                message: "修改失败",
+                type: "warning",
+                duration: 2000
+              });
+            });
           this.quit(); //并不是真的取消，只是这里要用到一样的代码
         } else {
           this.$message({

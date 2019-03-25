@@ -23,7 +23,7 @@
           </el-col>
         </el-row><br>
          <div>
-        <router-link to="/" class="href hrefright">去登录</router-link>
+        <router-link to="/tlogin" class="href hrefright">去登录</router-link>
       </div>
       </el-main>
 
@@ -142,7 +142,7 @@ export default {
 
 .el-container {
   height: 100%;
-  background: url("../../../static/img/bg3.jpg");
+  background: url("../../../static/img/bg4.jpg");
   background-repeat: no-repeat;
   background-size: 100% 100%;
   padding-bottom: 40px;
