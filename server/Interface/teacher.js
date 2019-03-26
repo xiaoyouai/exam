@@ -781,58 +781,124 @@ exports.tupdateQuestion = function(req, res) { //我的题库里面修改题目�
 
 exports.tdelQuestion = function(req, res) { //tcomQuestionHub里面调用
     let data = req.body.questionData;
-    let questionId = data._id; //题目的_id
-    let teacherId = data._teacher; //老师的_id
-    Teacher.update({ "_id": teacherId }, { '$pull': { '_questions': { $in: questionId } } }, (err, doc) => {
-        if (err) {
-            res.json({
-                status: '1',
-                msg: err.message
-            })
-        } else {
-            if (doc) {
-                Question.remove({ "_id": { $in: questionId } }, function(err1, doc1) {
-                    if (err1) {
-                        res.json({
-                            status: '1',
-                            msg: err1.message
-                        })
-                    } else {
-                        if (doc1) {
-                            Paper.updateMany({ '_questions': { $in: questionId } }, { '$pull': { '_questions': { $in: questionId } } }, function(err2, doc2) {
-                                if (err2) {
-                                    res.json({
-                                        status: '1',
-                                        msg: err2.message
+    if (Array.isArray(data)) { //批量删除的情况----未完成
+        let sum = -1;
+        let len = data.length;
+        for (let i = 0; i < len; i++) {
+            let questionId = data[i]._id; //题目的_id
+            let teacherId = data[i]._teacher; //老师的_id
+            Teacher.update({ "_id": teacherId }, { '$pull': { '_questions': { $in: questionId } } }, (err, doc) => {
+                if (err) {
+                    res.json({
+                        status: '1',
+                        msg: err.message
+                    })
+                } else {
+                    if (doc) {
+                        Question.remove({ "_id": { $in: questionId } }, function(err1, doc1) {
+                            if (err1) {
+                                res.json({
+                                    status: '1',
+                                    msg: err1.message
+                                })
+                            } else {
+                                if (doc1) {
+                                    Paper.updateMany({ '_questions': { $in: questionId } }, { '$pull': { '_questions': { $in: questionId } } }, function(err2, doc2) {
+                                        if (err2) {
+                                            res.json({
+                                                status: '1',
+                                                msg: err2.message
+                                            })
+                                        } else {
+                                            if (doc2) {
+                                                sum++;
+                                                console.log(sum);
+                                                if (sum == len - 1) {
+                                                    res.json({
+                                                        status: '0',
+                                                        msg: 'success'
+                                                    })
+                                                }
+                                            } else {
+                                                res.json({
+                                                    status: '4',
+                                                    msg: '试卷删除题目失败'
+                                                })
+                                            }
+                                        }
                                     })
                                 } else {
-                                    if (doc2) {
-                                        res.json({
-                                            status: '0',
-                                            msg: 'success'
-                                        })
-                                    } else {
-                                        res.json({
-                                            status: '4',
-                                            msg: '试卷删除题目失败'
-                                        })
-                                    }
+                                    res.json({
+                                        status: '3',
+                                        msg: '没有该题目'
+                                    })
                                 }
-                            })
-                        } else {
-                            res.json({
-                                status: '3',
-                                msg: '没有该题目'
-                            })
-                        }
+                            }
+                        })
+                    } else {
+                        res.json({
+                            status: '2',
+                            msg: '没有该教师'
+                        })
                     }
+                }
+            })
+        }
+    } else { //不是批量删除的情况
+        let questionId = data._id; //题目的_id
+        let teacherId = data._teacher; //老师的_id
+        Teacher.update({ "_id": teacherId }, { '$pull': { '_questions': { $in: questionId } } }, (err, doc) => {
+            if (err) {
+                res.json({
+                    status: '1',
+                    msg: err.message
                 })
             } else {
-                res.json({
-                    status: '2',
-                    msg: '没有该教师'
-                })
+                if (doc) {
+                    Question.remove({ "_id": { $in: questionId } }, function(err1, doc1) {
+                        if (err1) {
+                            res.json({
+                                status: '1',
+                                msg: err1.message
+                            })
+                        } else {
+                            if (doc1) {
+                                Paper.updateMany({ '_questions': { $in: questionId } }, { '$pull': { '_questions': { $in: questionId } } }, function(err2, doc2) {
+                                    if (err2) {
+                                        res.json({
+                                            status: '1',
+                                            msg: err2.message
+                                        })
+                                    } else {
+                                        if (doc2) {
+                                            res.json({
+                                                status: '0',
+                                                msg: 'success'
+                                            })
+                                        } else {
+                                            res.json({
+                                                status: '4',
+                                                msg: '试卷删除题目失败'
+                                            })
+                                        }
+                                    }
+                                })
+                            } else {
+                                res.json({
+                                    status: '3',
+                                    msg: '没有该题目'
+                                })
+                            }
+                        }
+                    })
+                } else {
+                    res.json({
+                        status: '2',
+                        msg: '没有该教师'
+                    })
+                }
             }
-        }
-    })
+        })
+    }
+
 }

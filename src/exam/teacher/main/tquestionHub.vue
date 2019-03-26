@@ -311,8 +311,10 @@ export default {
               let res = response.data;
               if (res.msg == "success" && res.status == "0") {
                 this.$message({
+                  showClose: true,
                   type: "success",
-                  message: "删除成功!"
+                  message: "删除成功!",
+                  duration: 2000
                 });
               } else {
                 this.$message({
@@ -340,7 +342,7 @@ export default {
         });
     },
     multiDel() {
-      //批量删除
+      //批量删除----未完成
       this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
@@ -348,18 +350,29 @@ export default {
       })
         .then(() => {
           this.$axios
-            .post("/api/tdelQuestion", { questionData: data[0] })
+            .post("/api/tdelQuestion", { questionData: this.selQuestion })
             .then(response => {
               let res = response.data;
               if (res.msg == "success" && res.status == "0") {
+                this.selQuestion.forEach(data => {
+                  this.questionData = this.questionData.filter(
+                    item => item._id !== data.questionId
+                  );
+                  this.tableData = this.tableData.filter(
+                    item => item._id !== data.questionId
+                  );
+                });
+
                 this.$message({
+                  showClose: true,
                   type: "success",
-                  message: "删除成功!"
+                  message: "删除成功!",
+                  duration: 2000
                 });
               } else {
                 this.$message({
                   showClose: true,
-                  message: "修改失败",
+                  message: "删除失败",
                   type: "error",
                   duration: 2000
                 });
@@ -368,13 +381,14 @@ export default {
             .catch(err => {
               this.$message({
                 showClose: true,
-                message: "修改失败",
+                message: "删除失败",
                 type: "warning",
                 duration: 2000
               });
             });
         })
-        .catch(() => {
+        .catch(err => {
+          console.log(err);
           this.$message({
             type: "info",
             message: "已取消删除"
@@ -402,6 +416,17 @@ export default {
       //确认编辑题目
       this.$refs.myquestion.validate(valid => {
         if (valid) {
+          if (this.myquestion.type == "single"||this.myquestion.type == "judgement") {//确保单选和判断只选一个
+            if (!/^[A-Z]*$/.test(this.myquestion.answer)) {
+              this.$message({
+                showClose: true,
+                message: "该题目只有一个答案",
+                type: "warning",
+                duration: 2000
+              });
+              return;
+            }
+          }
           let questiondata = this.$deepCopy(this.myquestion); //深度克隆
           for (let i = 0, len = this.tableData.length; i < len; i++) {
             if (this.tableData[i].questionId === questiondata.questionId) {
@@ -427,6 +452,12 @@ export default {
             .then(response => {
               let res = response.data;
               if (res.msg == "success" && res.status == "0") {
+                this.$message({
+                  showClose: true,
+                  type: "success",
+                  message: "修改成功!",
+                  duration: 2000
+                });
               } else {
                 this.$message({
                   showClose: true,

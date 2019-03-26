@@ -370,6 +370,17 @@ export default {
       //添加题目
       this.$refs.myquestion.validate(valid => {
         if (valid) {
+          if (this.myquestion.type == "single"||this.myquestion.type == "judgement") {//确保单选和判断只选一个
+            if (!/^[A-Z]*$/.test(this.myquestion.answer)) {
+              this.$message({
+                showClose: true,
+                message: "该题目只有一个答案",
+                type: "warning",
+                duration: 2000
+              });
+              return;
+            }
+          }
           let item = this.$deepCopy(this.myquestion); //深度克隆，不然下面的值的置空会影响到push的值
           this.editIndex == -1
             ? this.paper.push(item)
