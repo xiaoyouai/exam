@@ -33,8 +33,7 @@ module.exports = function(app) {
     app.post('/api/tdelpaper', Teacher.tdelpaper); //删除试卷
     app.post('/api/tupdateQuestion', Teacher.tupdateQuestion); //修改我的题库中的题目
     app.post('/api/tdelQuestion', Teacher.tdelQuestion); //删除我的题库中的题目
-
-
+    app.post('/api/tsearchQuestion', Teacher.tsearchQuestion); //删除我的题库中的题目
 
     /*----------------------学生用户----------------------*/
     app.get('/api/look', Student.look);

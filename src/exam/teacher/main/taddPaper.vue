@@ -381,6 +381,19 @@ export default {
               return;
             }
           }
+          if (
+            this.myquestion.type == "apfill" ||
+            this.myquestion.type == "judgement" ||
+            this.myquestion.type == "Q&A"
+          ) {
+            //把选项置空
+            this.myquestion.selection = [
+              { value: "" },
+              { value: "" },
+              { value: "" },
+              { value: "" }
+            ];
+          }
           let item = this.$deepCopy(this.myquestion); //深度克隆，不然下面的值的置空会影响到push的值
           this.editIndex == -1
             ? this.paper.push(item)

@@ -779,71 +779,72 @@ exports.tupdateQuestion = function(req, res) { //我的题库里面修改题目�
     })
 }
 
-exports.tdelQuestion = function(req, res) { //tcomQuestionHub里面调用
+exports.tdelQuestion = function(req, res) { //tquestionHub里面调用
     let data = req.body.questionData;
-    if (Array.isArray(data)) { //批量删除的情况----未完成
+    let teacherId = req.session.userId;
+    if (Array.isArray(data)) { //批量删除的情况----未完成,可以删除一个
         let sum = -1;
         let len = data.length;
+        let questionId = [];
+        let _questions = []; //教师删除，形如[{ '_questions':'gfdgf'},{ '_questions':'gfdgf'}]
         for (let i = 0; i < len; i++) {
-            let questionId = data[i]._id; //题目的_id
-            let teacherId = data[i]._teacher; //老师的_id
-            Teacher.update({ "_id": teacherId }, { '$pull': { '_questions': { $in: questionId } } }, (err, doc) => {
-                if (err) {
-                    res.json({
-                        status: '1',
-                        msg: err.message
-                    })
-                } else {
-                    if (doc) {
-                        Question.remove({ "_id": { $in: questionId } }, function(err1, doc1) {
-                            if (err1) {
-                                res.json({
-                                    status: '1',
-                                    msg: err1.message
-                                })
-                            } else {
-                                if (doc1) {
-                                    Paper.updateMany({ '_questions': { $in: questionId } }, { '$pull': { '_questions': { $in: questionId } } }, function(err2, doc2) {
-                                        if (err2) {
+            questionId.push({ "_id": data[i]._id }); //题目的_id
+            _questions.push({ "_questions": data[i]._id });
+        }
+        console.log(_questions);
+        Teacher.update({ "_id": data[0]._teacher }, { '$pull': { $or: _questions } }, (err, doc) => {
+            if (err) {
+                res.json({
+                    status: '11',
+                    msg: err.message
+                })
+            } else {
+                if (doc) {
+                    Question.remove({ '$or': questionId, }, function(err1, doc1) {
+                        if (err1) {
+                            res.json({
+                                status: '12',
+                                msg: err1.message
+                            })
+                        } else {
+                            if (doc1) {
+                                Paper.updateMany({ $or: _questions }, { '$pull': { $or: _questions } }, function(err2, doc2) {
+                                    if (err2) {
+                                        res.json({
+                                            status: '13',
+                                            msg: err2.message
+                                        })
+                                    } else {
+                                        if (doc2) {
                                             res.json({
-                                                status: '1',
-                                                msg: err2.message
+                                                status: '0',
+                                                msg: 'success'
                                             })
                                         } else {
-                                            if (doc2) {
-                                                sum++;
-                                                console.log(sum);
-                                                if (sum == len - 1) {
-                                                    res.json({
-                                                        status: '0',
-                                                        msg: 'success'
-                                                    })
-                                                }
-                                            } else {
-                                                res.json({
-                                                    status: '4',
-                                                    msg: '试卷删除题目失败'
-                                                })
-                                            }
+                                            res.json({
+                                                status: '4',
+                                                msg: '试卷删除题目失败'
+                                            })
                                         }
-                                    })
-                                } else {
-                                    res.json({
-                                        status: '3',
-                                        msg: '没有该题目'
-                                    })
-                                }
+                                    }
+                                })
+                            } else {
+                                res.json({
+                                    status: '3',
+                                    msg: '没有该题目'
+                                })
                             }
-                        })
-                    } else {
-                        res.json({
-                            status: '2',
-                            msg: '没有该教师'
-                        })
-                    }
+                        }
+                    })
+                } else {
+                    res.json({
+                        status: '2',
+                        msg: '没有该教师'
+                    })
                 }
-            })
-        }
+            }
+        })
+
     } else { //不是批量删除的情况
         let questionId = data._id; //题目的_id
         let teacherId = data._teacher; //老师的_id
@@ -895,6 +896,56 @@ exports.tdelQuestion = function(req, res) { //tcomQuestionHub里面调用
                     res.json({
                         status: '2',
                         msg: '没有该教师'
+                    })
+                }
+            }
+        })
+    }
+
+}
+
+exports.tsearchQuestion = function(req, res) { //tcomQuestionHub里面调用
+    let content = req.body.content;
+    if (content == '') {
+        Question.find((err, doc) => {
+            if (err) {
+                res.json({
+                    status: '1',
+                    msg: err.message
+                })
+            } else {
+                if (doc) {
+                    res.json({
+                        status: '0',
+                        msg: 'success',
+                        result: doc
+                    })
+                } else {
+                    res.json({
+                        status: '2',
+                        msg: '暂未创建题目'
+                    })
+                }
+            }
+        })
+    } else {
+        Question.find({ "content": { $regex: content } }, (err, doc) => {
+            if (err) {
+                res.json({
+                    status: '1',
+                    msg: err.message
+                })
+            } else {
+                if (doc) {
+                    res.json({
+                        status: '0',
+                        msg: 'success',
+                        result: doc
+                    })
+                } else {
+                    res.json({
+                        status: '2',
+                        msg: '暂未创建题目'
                     })
                 }
             }

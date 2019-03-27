@@ -7,8 +7,8 @@
             <el-row>
               <el-col :span="20">
                     题目关键词：
-                <el-input placeholder="请输入题目关键词" v-model="test" clearable prefix-icon="el-icon-search"  size="small" style="width:30%">  </el-input>
-                <el-button type="primary" size="small">搜索</el-button>
+                <el-input placeholder="请输入题目关键词" v-model="searchTxt" clearable prefix-icon="el-icon-search"  size="small" style="width:30%">  </el-input>
+                <el-button type="primary" size="small" @click="search">搜索</el-button>
               </el-col>
               <el-col :span="4">
                 <el-row>
@@ -158,8 +158,7 @@ export default {
       content: "小明",
       myclass: 1,
       userId: "",
-      test: "",
-      questionData: [],
+      searchTxt: "", //搜索input的文本
       tableData: [],
       loading: true,
       selQuestion: [], //所有选中的题目
@@ -236,19 +235,8 @@ export default {
         .then(response => {
           let res = response.data;
           if (res.msg == "success" && res.status == "0") {
-            this.questionData = res.result;
-            if (this.questionData.length > 0) {
-              this.questionData.forEach(item => {
-                this.tableData.push({
-                  questionId: item._id, //用于编辑和删除
-                  type: item.type,
-                  content: item.content,
-                  score: item.score,
-                  answer: item.answer,
-                  selection: item.selection
-                });
-              });
-            } else {
+            this.tableData = res.result;
+            if (this.tableData.length === 0) {
               this.$message({
                 showClose: true,
                 message: "还没有创建题目！！！",
@@ -299,17 +287,14 @@ export default {
         type: "warning"
       })
         .then(() => {
-          this.tableData = this.tableData.filter(
-            item => item.questionId !== row.questionId
-          );
-          let data = this.questionData.filter(
-            item => item._id === row.questionId
-          );
           this.$axios
-            .post("/api/tdelQuestion", { questionData: data[0] })
+            .post("/api/tdelQuestion", { questionData: row })
             .then(response => {
               let res = response.data;
               if (res.msg == "success" && res.status == "0") {
+                this.tableData = this.tableData.filter(
+                  item => item._id !== row._id
+                );
                 this.$message({
                   showClose: true,
                   type: "success",
@@ -355,11 +340,8 @@ export default {
               let res = response.data;
               if (res.msg == "success" && res.status == "0") {
                 this.selQuestion.forEach(data => {
-                  this.questionData = this.questionData.filter(
-                    item => item._id !== data.questionId
-                  );
                   this.tableData = this.tableData.filter(
-                    item => item._id !== data.questionId
+                    item => item._id !== data._id
                   );
                 });
 
@@ -407,16 +389,17 @@ export default {
     quit() {
       //取消编辑题目
       this.dialogVisible = false;
-      this.myquestion.content = "";
-      this.myquestion.answer = "";
-      this.myquestion.score = "";
-      this.myquestion.selection.forEach(item => (item.value = ""));
+      this.myquestion = {};
     },
     sureEditQuestion() {
       //确认编辑题目
       this.$refs.myquestion.validate(valid => {
         if (valid) {
-          if (this.myquestion.type == "single"||this.myquestion.type == "judgement") {//确保单选和判断只选一个
+          if (
+            this.myquestion.type == "single" ||
+            this.myquestion.type == "judgement"
+          ) {
+            //确保单选和判断只选一个
             if (!/^[A-Z]*$/.test(this.myquestion.answer)) {
               this.$message({
                 showClose: true,
@@ -427,28 +410,27 @@ export default {
               return;
             }
           }
+          if (
+            this.myquestion.type == "apfill" ||
+            this.myquestion.type == "judgement" ||
+            this.myquestion.type == "Q&A"
+          ) {
+            //把选项置空
+            this.myquestion.selection = [
+              { value: "" },
+              { value: "" },
+              { value: "" },
+              { value: "" }
+            ];
+          }
           let questiondata = this.$deepCopy(this.myquestion); //深度克隆
-          for (let i = 0, len = this.tableData.length; i < len; i++) {
-            if (this.tableData[i].questionId === questiondata.questionId) {
-              this.tableData.splice(i, 1, questiondata); //替换表格的值
-              break;
+          this.tableData.forEach((item, index) => {
+            if (item._id == questiondata._id) {
+              this.$set(this.tableData, index, questiondata);
             }
-          }
-          for (let i = 0, len = this.questionData.length; i < len; i++) {
-            if (this.questionData[i]._id === questiondata.questionId) {
-              (this.questionData[i].type = questiondata.type),
-                (this.questionData[i].content = questiondata.content),
-                (this.questionData[i].score = questiondata.score),
-                (this.questionData[i].answer = questiondata.answer),
-                (this.questionData[i].selection = questiondata.selection);
-              break;
-            }
-          }
-          let data = this.questionData.filter(
-            item => item._id === questiondata.questionId
-          );
+          });
           this.$axios
-            .post("/api/tupdateQuestion", { questionData: data[0] })
+            .post("/api/tupdateQuestion", { questionData: questiondata })
             .then(response => {
               let res = response.data;
               if (res.msg == "success" && res.status == "0") {
@@ -485,8 +467,43 @@ export default {
           });
         }
       });
-    }
+    },
     // 弹窗相关
+
+    search() {
+      this.$axios
+        .post("/api/tsearchQuestion", { content: this.searchTxt })
+        .then(response => {
+          let res = response.data;
+          if (res.msg == "success" && res.status == "0") {
+            if (res.result.length === 0) {
+              this.$message({
+                showClose: true,
+                type: "warning",
+                message: "没有该题目!",
+                duration: 2000
+              });
+              return ;
+            }
+            this.tableData = res.result;
+          } else {
+            this.$message({
+              showClose: true,
+              message: "搜索失败",
+              type: "error",
+              duration: 2000
+            });
+          }
+        })
+        .catch(err => {
+          this.$message({
+            showClose: true,
+            message: "搜索失败",
+            type: "warning",
+            duration: 2000
+          });
+        });
+    }
   }
 };
 </script>
