@@ -5,8 +5,8 @@
           <span slot="label"><i class="el-icon-date"></i>考试记录</span>
           <div class="comBottom">
                     题目关键词：
-                <el-input placeholder="请输入题目关键词" v-model="test" clearable prefix-icon="el-icon-search"  size="small" style="width:30%">  </el-input>
-                <el-button type="primary" size="small">搜索</el-button>
+                <el-input placeholder="请输入题目关键词" v-model="searchTxt" clearable prefix-icon="el-icon-search"  size="small" style="width:30%">  </el-input>
+                <el-button type="primary" size="small" @click="search">搜索</el-button>
           </div>
           <el-table :data="tableData" v-loading="loading" height="420" border  style="width: 100%" :default-sort = "{prop: 'date', order: 'descending'}" @selection-change="handleSelectionChange">
             <el-table-column type="expand">
@@ -67,7 +67,8 @@ export default {
       test: "",
       tableData: [],
       questionData: [], //从数据库获取得来的题目数据
-      loading: true
+      loading: true,
+      searchTxt:''
     };
   },
   computed: {
@@ -157,6 +158,50 @@ export default {
     },
     handleSelectionChange(val) {
       this.multipleSelection = val;
+    },
+    search() {
+      this.$axios
+        .post("/api/tsearchAllQuestion", { content: this.searchTxt })
+        .then(response => {
+          let res = response.data;
+          if (res.msg == "success" && res.status == "0") {
+            if (res.result.length === 0) {
+              this.$message({
+                showClose: true,
+                type: "warning",
+                message: "没有该题目!",
+                duration: 2000
+              });
+              return ;
+            }
+            this.questionData = res.result;
+            this.tableData=[];
+              this.questionData.forEach(item => {
+                this.tableData.push({
+                  type: item.type,
+                  name: item.content,
+                  grade: item.score,
+                  answer: item.answer,
+                  selection: item.selection
+                });
+            })
+          } else {
+            this.$message({
+              showClose: true,
+              message: "搜索失败",
+              type: "error",
+              duration: 2000
+            });
+          }
+        })
+        .catch(err => {
+          this.$message({
+            showClose: true,
+            message: "搜索失败",
+            type: "warning",
+            duration: 2000
+          });
+        });
     }
   }
 };

@@ -245,9 +245,7 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                                             startTime: paperData.startTime,
                                             answers: studentQuestion
                                         }
-                                        Student.find({ //学生添加题目和试卷
-                                            class: paperData.examclass
-                                        }, (err3, doc3) => {
+                                        Student.updateMany({ "class": parseInt(paperData.examclass) }, { '$push': { 'exams': examData } }, (err3, doc3) => { //学生添加试卷和题目
                                             if (err3) {
                                                 res.json({
                                                     status: '1',
@@ -255,10 +253,6 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                                                 })
                                             } else {
                                                 if (doc3) {
-                                                    doc3.forEach(item => {
-                                                        item.exams.push(examData);
-                                                        item.save();
-                                                    })
                                                     res.json({
                                                         status: '0',
                                                         msg: 'success'
@@ -320,124 +314,6 @@ exports.tgetpapermsg = function(req, res) { //taddPaper里的init方法里调用
         }
     })
 }
-
-// exports.tupdatepaper = function(req, res) { // 修改试卷
-//     let paperId = req.body.paperId;
-//     let paperData = req.body.paperData;
-//     let delQuestion = req.body.delQuestion;
-//     let updateQuestion = [];
-//     let addQuestion = [];
-//     let teacherId = req.body.teacherId; //老师的_id
-//     let paperParams = {
-//         name: paperData.name,
-//         totalPoints: paperData.totalPoints,
-//         time: paperData.time,
-//         examclass: paperData.examclass,
-//         startTime: paperData.startTime
-//     }
-//     paperData._questions.forEach(item => {
-//         if (item._id) {
-//             updateQuestion.push(item);
-//         } else {
-//             addQuestion.push(item);
-//         }
-//     })
-//     if (delQuestion.length > 0) {
-//         // Paper.findOneAndUpdate({ _id: paperId }, paperParams, (err, doc) => {
-//         //     if (err) {
-//         //         res.json({
-//         //             status: '1',
-//         //             msg: err.message
-//         //         })
-//         //     } else {
-//         //         if (doc) {
-//         //             delQuestion.forEach(delitem => {
-//         //                 doc = doc._questions.filter(item => item !== delitem);
-//         //             })
-//         //             doc.save();
-//         //         }
-//         //     }
-//         // })
-//     }
-//     Paper.findOneAndUpdate({ _id: paperId }, paperParams, (err, doc) => {
-//         if (err) {
-//             res.json({
-//                 status: '1',
-//                 msg: err.message
-//             })
-//         } else {
-//             if (doc) {
-//                 updateQuestion.forEach((item, index) => {
-//                     Question.update({ "_id": item._id }, item, (err2, doc2) => {
-//                         if (err2) {
-//                             res.json({
-//                                 status: '1',
-//                                 msg: err2.message
-//                             })
-//                         } else {
-//                             if (doc2) {
-//                                 if (index == (updateQuestion.length - 1)) {
-//                                     if (addQuestion.length > 0) {
-//                                         addQuestion.forEach(item => {
-//                                             item._papers = [];
-//                                             item._papers.push(doc._id); //放入试卷_id
-//                                             item._teacher = teacherId;
-//                                         })
-//                                         Question.create(addQuestion, (err3, doc3) => {
-//                                             if (err3) {
-//                                                 res.json({
-//                                                     status: '1',
-//                                                     msg: err3.message
-//                                                 })
-//                                             } else {
-//                                                 if (doc3) {
-//                                                     doc3.forEach(item => {
-//                                                             doc._questions.push(item._id); //试卷存入新增题目_id
-//                                                         })
-//                                                         // if (delQuestion.length > 0) {
-//                                                         //     delQuestion.forEach(delitem => {
-//                                                         //         doc = doc._questions.filter(item => item !== delitem)
-//                                                         //     })
-//                                                         // }
-//                                                         // console.log(doc);
-//                                                     doc.save(); //试卷存入新增题目_id
-//                                                     res.json({
-//                                                         status: '0',
-//                                                         msg: 'success'
-//                                                     })
-//                                                 } else {
-//                                                     res.json({
-//                                                         status: '1',
-//                                                         msg: 'error'
-//                                                     })
-//                                                 }
-//                                             }
-//                                         })
-//                                     } else {
-//                                         res.json({
-//                                             status: '0',
-//                                             msg: 'success'
-//                                         })
-//                                     }
-//                                 }
-//                             } else {
-//                                 res.json({
-//                                     status: '1',
-//                                     msg: '没找到题目'
-//                                 })
-//                             }
-//                         }
-//                     })
-//                 })
-//             } else {
-//                 res.json({
-//                     status: '1',
-//                     msg: '没找到试卷'
-//                 })
-//             }
-//         }
-//     })
-// }
 
 exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
     let paperId = req.body.paperId;
@@ -687,71 +563,144 @@ exports.tgetallquestion = function(req, res) { //tcomQuestionHub里面调用
 }
 
 exports.tdelpaper = function(req, res) { //tmypaper里面调用
-    let paperId = req.body.paperId;
-    let userId = req.body.userId;
-    let myclass = parseInt(req.body.class);
-    Teacher.update({ "userId": userId }, { '$pull': { '_papers': { $in: paperId } } }, (err, doc) => {
-        if (err) {
-            res.json({
-                status: '1',
-                msg: err.message
-            })
-        } else {
-            if (doc) {
-                Paper.remove({ "_id": { $in: paperId } }, function(err1, doc1) {
-                    if (err1) {
-                        res.json({
-                            status: '1',
-                            msg: err1.message
-                        })
-                    } else {
-                        if (doc1) {
-                            Question.updateMany({ '_papers': { $in: paperId } }, { '$pull': { '_papers': { $in: paperId } } }, function(err2, doc2) {
-                                if (err2) {
-                                    res.json({
-                                        status: '1',
-                                        msg: err2.message
-                                    })
-                                } else {
-                                    if (doc2) {
-                                        Student.updateMany({ "class": myclass }, { '$pull': { 'exams': { "_paper": paperId } } }, (err3, doc3) => {
-                                            if (err3) {
-                                                res.json({
-                                                    status: '1',
-                                                    msg: err3.message
-                                                })
-                                            } else {
-                                                res.json({
-                                                    status: '0',
-                                                    msg: 'success'
-                                                })
-                                            }
-                                        })
-
-                                    } else {
-                                        res.json({
-                                            status: '4',
-                                            msg: '题目删除试卷失败'
-                                        })
-                                    }
-                                }
-                            })
-                        } else {
-                            res.json({
-                                status: '3',
-                                msg: '没有该试卷'
-                            })
-                        }
-                    }
+    if (Array.isArray(req.body.paperId)) {
+        let data = req.body.paperId; //随便用paperId或者class都行
+        let paperId = [];
+        let myclass = [];
+        let userId = req.body.userId;
+        data.forEach(item => {
+            paperId.push(item._id);
+            myclass.push(item.examclass);
+        })
+        Teacher.update({ "userId": userId }, { '$pull': { '_papers': { $in: paperId } } }, (err, doc) => {
+            if (err) {
+                res.json({
+                    status: '1',
+                    msg: err.message
                 })
             } else {
-                res.json({
-                    status: '2',
-                    msg: '没有该用户'
-                })
+                if (doc) {
+                    Paper.remove({ "_id": { $in: paperId } }, function(err1, doc1) {
+                        if (err1) {
+                            res.json({
+                                status: '1',
+                                msg: err1.message
+                            })
+                        } else {
+                            if (doc1) {
+                                Question.updateMany({ '_papers': { $in: paperId } }, { '$pull': { '_papers': { $in: paperId } } }, function(err2, doc2) {
+                                    if (err2) {
+                                        res.json({
+                                            status: '1',
+                                            msg: err2.message
+                                        })
+                                    } else {
+                                        if (doc2) {
+                                            Student.updateMany({ "class": { $in: myclass } }, { '$pull': { 'exams': { "_paper": { $in: paperId } } } }, (err3, doc3) => {
+                                                if (err3) {
+                                                    res.json({
+                                                        status: '1',
+                                                        msg: err3.message
+                                                    })
+                                                } else {
+                                                    res.json({
+                                                        status: '0',
+                                                        msg: 'success'
+                                                    })
+                                                }
+                                            })
+
+                                        } else {
+                                            res.json({
+                                                status: '4',
+                                                msg: '题目删除试卷失败'
+                                            })
+                                        }
+                                    }
+                                })
+                            } else {
+                                res.json({
+                                    status: '3',
+                                    msg: '没有该试卷'
+                                })
+                            }
+                        }
+                    })
+                } else {
+                    res.json({
+                        status: '2',
+                        msg: '没有该用户'
+                    })
+                }
             }
-        }
-    })
+        })
+    } else { //非批量删除
+        let userId = req.body.userId;
+        let paperId = req.body.paperId;
+        let myclass = parseInt(req.body.class);
+        Teacher.update({ "userId": userId }, { '$pull': { '_papers': { $in: paperId } } }, (err, doc) => {
+            if (err) {
+                res.json({
+                    status: '1',
+                    msg: err.message
+                })
+            } else {
+                if (doc) {
+                    Paper.remove({ "_id": { $in: paperId } }, function(err1, doc1) {
+                        if (err1) {
+                            res.json({
+                                status: '1',
+                                msg: err1.message
+                            })
+                        } else {
+                            if (doc1) {
+                                Question.updateMany({ '_papers': { $in: paperId } }, { '$pull': { '_papers': { $in: paperId } } }, function(err2, doc2) {
+                                    if (err2) {
+                                        res.json({
+                                            status: '1',
+                                            msg: err2.message
+                                        })
+                                    } else {
+                                        if (doc2) {
+                                            Student.updateMany({ "class": { $in: myclass } }, { '$pull': { 'exams': { "_paper": paperId } } }, (err3, doc3) => {
+                                                if (err3) {
+                                                    res.json({
+                                                        status: '1',
+                                                        msg: err3.message
+                                                    })
+                                                } else {
+                                                    res.json({
+                                                        status: '0',
+                                                        msg: 'success'
+                                                    })
+                                                }
+                                            })
+
+                                        } else {
+                                            res.json({
+                                                status: '4',
+                                                msg: '题目删除试卷失败'
+                                            })
+                                        }
+                                    }
+                                })
+                            } else {
+                                res.json({
+                                    status: '3',
+                                    msg: '没有该试卷'
+                                })
+                            }
+                        }
+                    })
+                } else {
+                    res.json({
+                        status: '2',
+                        msg: '没有该用户'
+                    })
+                }
+            }
+        })
+    }
 }
 
 
@@ -781,18 +730,13 @@ exports.tupdateQuestion = function(req, res) { //我的题库里面修改题目�
 
 exports.tdelQuestion = function(req, res) { //tquestionHub里面调用
     let data = req.body.questionData;
-    let teacherId = req.session.userId;
-    if (Array.isArray(data)) { //批量删除的情况----未完成,可以删除一个
-        let sum = -1;
+    if (Array.isArray(data)) { //批量删除的情况
         let len = data.length;
         let questionId = [];
-        let _questions = []; //教师删除，形如[{ '_questions':'gfdgf'},{ '_questions':'gfdgf'}]
         for (let i = 0; i < len; i++) {
-            questionId.push({ "_id": data[i]._id }); //题目的_id
-            _questions.push({ "_questions": data[i]._id });
+            questionId.push(data[i]._id); //题目的_id
         }
-        console.log(_questions);
-        Teacher.update({ "_id": data[0]._teacher }, { '$pull': { $or: _questions } }, (err, doc) => {
+        Teacher.update({ "_id": data[0]._teacher }, { '$pull': { "_questions": { $in: questionId } } }, (err, doc) => {
             if (err) {
                 res.json({
                     status: '11',
@@ -800,7 +744,7 @@ exports.tdelQuestion = function(req, res) { //tquestionHub里面调用
                 })
             } else {
                 if (doc) {
-                    Question.remove({ '$or': questionId, }, function(err1, doc1) {
+                    Question.remove({ "_id": { $in: questionId } }, function(err1, doc1) {
                         if (err1) {
                             res.json({
                                 status: '12',
@@ -808,7 +752,7 @@ exports.tdelQuestion = function(req, res) { //tquestionHub里面调用
                             })
                         } else {
                             if (doc1) {
-                                Paper.updateMany({ $or: _questions }, { '$pull': { $or: _questions } }, function(err2, doc2) {
+                                Paper.updateMany({ "_questions": { $in: questionId } }, { '$pull': { "_questions": { $in: questionId } } }, function(err2, doc2) {
                                     if (err2) {
                                         res.json({
                                             status: '13',
@@ -904,52 +848,79 @@ exports.tdelQuestion = function(req, res) { //tquestionHub里面调用
 
 }
 
-exports.tsearchQuestion = function(req, res) { //tcomQuestionHub里面调用
+exports.tsearchQuestion = function(req, res) { //tquestionHub里面调用,搜索我的题目
+    let teacherId = req.body.teacherId;
     let content = req.body.content;
-    if (content == '') {
-        Question.find((err, doc) => {
-            if (err) {
+    Question.find({ "_teacher": teacherId, "content": { $regex: content } }, (err, doc) => {
+        if (err) {
+            res.json({
+                status: '1',
+                msg: err.message
+            })
+        } else {
+            if (doc) {
                 res.json({
-                    status: '1',
-                    msg: err.message
+                    status: '0',
+                    msg: 'success',
+                    result: doc
                 })
             } else {
-                if (doc) {
-                    res.json({
-                        status: '0',
-                        msg: 'success',
-                        result: doc
-                    })
-                } else {
-                    res.json({
-                        status: '2',
-                        msg: '暂未创建题目'
-                    })
-                }
-            }
-        })
-    } else {
-        Question.find({ "content": { $regex: content } }, (err, doc) => {
-            if (err) {
                 res.json({
-                    status: '1',
-                    msg: err.message
+                    status: '2',
+                    msg: '暂未创建题目'
                 })
-            } else {
-                if (doc) {
-                    res.json({
-                        status: '0',
-                        msg: 'success',
-                        result: doc
-                    })
-                } else {
-                    res.json({
-                        status: '2',
-                        msg: '暂未创建题目'
-                    })
-                }
             }
-        })
-    }
+        }
+    })
+}
 
+exports.tsearchAllQuestion = function(req, res) { //tcomQuestionHub里面调用，搜索所有题目
+    let content = req.body.content;
+    Question.find({ "content": { $regex: content } }, (err, doc) => {
+        if (err) {
+            res.json({
+                status: '1',
+                msg: err.message
+            })
+        } else {
+            if (doc) {
+                res.json({
+                    status: '0',
+                    msg: 'success',
+                    result: doc
+                })
+            } else {
+                res.json({
+                    status: '2',
+                    msg: '暂未创建题目'
+                })
+            }
+        }
+    })
+}
+
+exports.tsearchPaper = function(req, res) { //tmypaper里面调用，搜索我的试卷
+    let teacherId = req.body.teacherId;
+    let name = req.body.name;
+    Paper.find({ "_teacher": teacherId, "name": { $regex: name } }, (err, doc) => {
+        if (err) {
+            res.json({
+                status: '1',
+                msg: err.message
+            })
+        } else {
+            if (doc) {
+                res.json({
+                    status: '0',
+                    msg: 'success',
+                    result: doc
+                })
+            } else {
+                res.json({
+                    status: '2',
+                    msg: '暂未创建题目'
+                })
+            }
+        }
+    })
 }

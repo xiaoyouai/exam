@@ -26,69 +26,72 @@
 
 <script>
 export default {
-  data () {
+  data() {
     return {
-      userId:'',
-      name:'',
-      password:'',
-      Npassword:''
-    }
+      userId: "",
+      name: "",
+      password: "",
+      Npassword: ""
+    };
   },
   mounted() {
     this.init();
   },
   methods: {
-    init(){
-         this.userId=this.$route.params.id;
+    init() {
+      this.userId = this.$route.params.id;
     },
-    submit(){//提交修改信息
-      if(!this.name||!this.password||!this.Npassword){
+    submit() {
+      //提交修改信息
+      if (!this.name || !this.password || !this.Npassword) {
         this.$message({
           showClose: true,
-          message: '请完整输入信息',
-          type: 'warning',
-          duration:2000
+          message: "请完整输入信息",
+          type: "warning",
+          duration: 2000
         });
-        return ;
+        return;
       }
-      this.$axios.post('/api/tchangeMsg',{
-        user:{
-          userName:this.name,
-          userId:this.userId,
-          password:this.Npassword,//新密码
-        },
-        password:this.password
-      }).then(response=>{
-        let res = response.data;
-        if(res.msg=='success'&&res.status=='0'){
-          this.$message({
-            showClose: true,
-            message: '修改成功',
-            type: 'success',
-            duration:2000
-          });
-        this.$mySessionStorage.set('currentUser',res.result,'json');
-        this.$router.go(0);
-        }else if(res.status=='2'){
-          this.$message({
-            showClose: true,
-            message: '原密码不正确，请正确输入',
-            type: 'error',
-            duration:2000
-          });
-        }
-      }).catch(err => {
-          this.$message({
-            showClose: true,
-            message: '修改失败，请稍后再试！',
-            type: 'warning',
-            duration:2000
-          });
+      this.$axios
+        .post("/api/tchangeMsg", {
+          user: {
+            userName: this.name,
+            userId: this.userId,
+            password: this.Npassword //新密码
+          },
+          password: this.password
         })
+        .then(response => {
+          let res = response.data;
+          if (res.msg == "success" && res.status == "0") {
+            this.$message({
+              showClose: true,
+              message: "修改成功",
+              type: "success",
+              duration: 2000
+            });
+            this.$mySessionStorage.set("currentUser", res.result, "json");
+            this.$router.go(0);
+          } else if (res.status == "2") {
+            this.$message({
+              showClose: true,
+              message: "原密码不正确，请正确输入",
+              type: "error",
+              duration: 2000
+            });
+          }
+        })
+        .catch(err => {
+          this.$message({
+            showClose: true,
+            message: "修改失败，请稍后再试！",
+            type: "warning",
+            duration: 2000
+          });
+        });
     }
   }
-}
-
+};
 </script>
 <style scoped>
 </style>
