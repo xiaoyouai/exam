@@ -212,7 +212,6 @@ export default {
         });
     },
     addToMyHub(index) {
-      console.log(index);
       //添加到我的题库
       this.$confirm("确认添加, 是否继续?", "提示", {
         confirmButtonText: "确定",
@@ -229,7 +228,7 @@ export default {
             return;
           }
           this.$axios
-            .post("/api/tAddQuestionToHub", {
+            .post("/api/taddQuestionToHub", {
               questionData: [this.questionData[index]._id],
               teacherId: this.teacherId
             })

@@ -24,20 +24,27 @@ module.exports = function(app) {
     app.post('/api/tmain', Teacher.tmain);
     app.post('/api/tchangeMsg', Teacher.tchangeMsg); //修改信息
     app.get('/api/tsignout', Teacher.tsignout); //教师退出系统
-    app.post('/api/taddpaper', Addpaper.taddpaper); //教师添加题目,代码太复杂所以抽到Addpaper
+
+    app.post('/api/taddpaper', Addpaper.taddpaper); //教师添加试卷,代码太复杂所以抽到Addpaper
     app.post('/api/tupdatepaper', Addpaper.tupdatepaper); //教师更新试卷，代码太复杂所以也抽到Addpaper
     app.post('/api/tgetAllpaper', Teacher.tgetAllpaper); //教师获取所有的试卷
-    app.post('/api/tgetmyquestion', Teacher.tgetmyquestion); //教师获取自己创造的题目
+    app.post('/api/tgetMyQuestion', Teacher.tgetMyQuestion); //教师获取自己创造的题目
     app.post('/api/tgetpapermsg', Teacher.tgetpapermsg); //教师修改试卷信息，一开始进入页面需要获取试卷信息
+    app.post('/api/tdelpaper', Teacher.tdelpaper); //删除试卷
 
     app.post('/api/tgetAllQuestion', Teacher.tgetAllQuestion); //公共题库获取所有题目
-    app.post('/api/tdelpaper', Teacher.tdelpaper); //删除试卷
     app.post('/api/tupdateQuestion', Teacher.tupdateQuestion); //修改我的题库中的题目
     app.post('/api/tdelQuestion', Teacher.tdelQuestion); //删除我的题库中的题目
+    app.post('/api/taddQuestion', Teacher.taddQuestion); //添加我的题库中的题目
+    app.post('/api/taddQuestionToHub', Teacher.taddQuestionToHub); //添加公共题库的题库中的题目到我的题库，出题老师不变
+
+
+
     app.post('/api/tsearchQuestion', Teacher.tsearchQuestion); //搜索我的题库中的题目
-    app.post('/api/tsearchPaper', Teacher.tsearchPaper); //搜索我的题库中的题目
+    app.post('/api/tsearchPaper', Teacher.tsearchPaper); //搜索我的题库中的试卷
     app.post('/api/tsearchAllQuestion', Teacher.tsearchAllQuestion); //搜索公共题库中的题目
-    // app.post('/api/taddquestion', addpaper); //
+
+
 
 
     /*----------------------学生用户----------------------*/

@@ -12,7 +12,7 @@
               </el-col>
               <el-col :span="4">
                 <el-row>
-                  <el-col :span="12"><el-button type="primary" size="small">新增题目</el-button></el-col>
+                  <el-col :span="12"><el-button type="primary" size="small" @click="addQuestion">新增题目</el-button></el-col>
                   <el-col :span="12"><el-button type="danger" size="small" @click="multiDel">批量删除</el-button></el-col>
                 </el-row>
               </el-col>
@@ -229,7 +229,7 @@ export default {
     init() {
       this.userId = this.$route.params.id;
       this.$axios
-        .post("/api/tgetmyquestion", {
+        .post("/api/tgetMyQuestion", {
           userId: this.userId
         })
         .then(response => {
@@ -388,7 +388,13 @@ export default {
     quit() {
       //取消编辑题目
       this.dialogVisible = false;
-      this.myquestion = {};
+      this.myquestion = {
+        content: "", //题目内容
+        type: "",
+        selection: [{ value: "" }, { value: "" }, { value: "" }, { value: "" }],
+        answer: "",
+        score: ""
+      };
     },
     sureEditQuestion() {
       //确认编辑题目
@@ -423,6 +429,11 @@ export default {
             ];
           }
           let questiondata = this.$deepCopy(this.myquestion); //深度克隆
+          if (!questiondata._id) {
+            //说明是新加的题目，进入添加操作
+            this.doAddQuestion(questiondata);
+            return;
+          }
           this.tableData.forEach((item, index) => {
             if (item._id == questiondata._id) {
               this.$set(this.tableData, index, questiondata);
@@ -469,9 +480,51 @@ export default {
     },
     // 弹窗相关
 
+    addQuestion() {
+      this.dialogVisible = true;
+      this.myquestion = {
+        content: "", //题目内容
+        type: "single",
+        selection: [{ value: "" }, { value: "" }, { value: "" }, { value: "" }],
+        answer: "",
+        score: ""
+      };
+    },
+    doAddQuestion(questiondata) {
+      this.$axios
+        .post("/api/taddQuestion", {
+          questionData: questiondata,
+          teacherId: this.$route.params.id
+        })
+        .then(response => {
+          let res = response.data;
+          if (res.msg == "success" && res.status == "0") {
+            this.tableData.push(res.result);
+          } else {
+            this.$message({
+              showClose: true,
+              message: "添加失败",
+              type: "error",
+              duration: 2000
+            });
+          }
+        })
+        .catch(err => {
+          this.$message({
+            showClose: true,
+            message: "添加失败",
+            type: "warning",
+            duration: 2000
+          });
+        });
+        this.quit();
+    },
     search() {
       this.$axios
-        .post("/api/tsearchQuestion", { content: this.searchTxt,teacherId:this.tableData[0]._teacher })
+        .post("/api/tsearchQuestion", {
+          content: this.searchTxt,
+          teacherId: this.tableData[0]._teacher
+        })
         .then(response => {
           let res = response.data;
           if (res.msg == "success" && res.status == "0") {
@@ -482,7 +535,7 @@ export default {
                 message: "没有该题目!",
                 duration: 2000
               });
-              return ;
+              return;
             }
             this.tableData = res.result;
           } else {

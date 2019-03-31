@@ -255,7 +255,7 @@ exports.tgetAllpaper = function(req, res) { //教师--我的试卷里获取所�
     })
 }
 
-exports.tgetmyquestion = function(req, res) { //tquestionHub里面调用
+exports.tgetMyQuestion = function(req, res) { //tquestionHub里面调用
     let userId = req.body.userId;
     Teacher.findOne({
         userId: userId
@@ -825,8 +825,10 @@ exports.tsearchPaper = function(req, res) { //tmypaper里面调用，搜索我�
     })
 }
 
-exports.tAddQuestionToHub = function(req, res) { //tcomQuestionHub里面调用，把题目添加到我的题库里面去，但是题目的出题人（_teacher）保持不变
+exports.taddQuestionToHub = function(req, res) { //tcomQuestionHub里面调用，把题目添加到我的题库里面去，但是题目的出题人（_teacher）保持不变
     let questionId = req.body.questionId;
+    let teacherId = req.body.teacherId;
+
     Teacher.update({
         "_teacher": teacherId,
     }, { "$addToSet": { $in: { "_questions": questionId } } }, (err, doc) => {
@@ -853,33 +855,50 @@ exports.tAddQuestionToHub = function(req, res) { //tcomQuestionHub里面调用�
 }
 
 
-exports.taddquestion = function(req, res) { //tquestionHub里面调用，添加新的题目
+exports.taddQuestion = function(req, res) { //tquestionHub里面调用，添加新的题目
     let teacherId = req.body.teacherId;
-    let name = req.body.name;
-    Paper.find({
-        "_teacher": teacherId,
-        "name": {
-            $regex: name
-        }
-    }, (err, doc) => {
-        if (err) {
+    let questionData = req.body.questionData;
+    questionData._papers = [];
+
+    Teacher.findOne({ "userId": teacherId, }, (err2, doc2) => {
+        if (err2) {
             res.json({
                 status: '1',
-                msg: err.message
+                msg: err2.message
             })
         } else {
-            if (doc) {
-                res.json({
-                    status: '0',
-                    msg: 'success',
-                    result: doc
+            if (doc2) {
+                questionData._teacher = doc2._id;
+                Question.create(questionData, function(err, doc) { //创造题目
+                    if (err) {
+                        res.json({
+                            status: '1',
+                            msg: err.message
+                        })
+                    } else {
+                        if (doc) {
+                            doc2._questions.push(doc._id);
+                            doc2.save();
+                            res.json({
+                                status: '0',
+                                msg: "success",
+                                result: doc
+                            })
+                        } else {
+                            res.json({
+                                status: '2',
+                                msg: "添加题目失败"
+                            })
+                        }
+                    }
                 })
             } else {
                 res.json({
                     status: '2',
-                    msg: '暂未创建题目'
+                    msg: "教师添加题目失败"
                 })
             }
         }
     })
+
 }
