@@ -224,12 +224,13 @@ export default {
       sumtime: "", //考试总时长
       grade: 100,
       myclass: "",
+      delQuestionId: [], //被初始化时已存在的后面被删除的题目
       dialogVisible: false,
       findQuestion: "", //从题库添加题目对应输入栏
       editIndex: -1, //编辑试卷题目时题目的位置
       paper: [], //试卷题目
       allQuestion: [], //题库所有的题目
-      timeout:null,//用于从题库搜搜题目的节流操作
+      timeout: null, //用于从题库搜搜题目的节流操作
       // 题目弹窗相关
       myquestion: {
         content: "", //题目内容
@@ -314,12 +315,13 @@ export default {
           let res = response.data;
           if (res.msg == "success" && res.status == "0") {
             this.allQuestion = res.result;
-            this.allQuestion=this.allQuestion.filter(item=>{//把该试卷的题目过滤掉防止重复添加
-              return item._papers.indexOf(this.paperId)===-1
-            })
-            this.allQuestion.forEach(item=>{
-              item.value=item.content;//因为input的显示必须要有value这一项
-            })
+            this.allQuestion = this.allQuestion.filter(item => {
+              //把该试卷的题目过滤掉防止重复添加
+              return item._papers.indexOf(this.paperId) === -1;
+            });
+            this.allQuestion.forEach(item => {
+              item.value = item.content; //因为input的显示必须要有value这一项
+            });
             if (this.allQuestion.length === 0) {
               this.$message({
                 showClose: true,
@@ -357,22 +359,23 @@ export default {
     // 从题库搜索出现结果
     querySearchAsync(queryString, cb) {
       let allQuestion = this.allQuestion;
-      let results=[];
-      if(queryString){
-        allQuestion.forEach(item=>{
-         if(item.value.indexOf(queryString)>-1){
-           results.push(item);
-         }
+      let results = [];
+      if (queryString) {
+        allQuestion.forEach(item => {
+          if (item.value.indexOf(queryString) > -1) {
+            results.push(item);
+          }
         });
-      }else{
-        results=allQuestion;
+      } else {
+        results = allQuestion;
       }
       clearTimeout(this.timeout);
       this.timeout = setTimeout(() => {
         cb(results);
       }, 3000 * Math.random());
     },
-    handleSelect(item) {// 编辑试卷中的题目
+    handleSelect(item) {
+      // 编辑试卷中的题目
       this.dialogVisible = true;
       this.myquestion = this.$deepCopy(item);
     },
@@ -410,15 +413,15 @@ export default {
     quit() {
       //取消添加题目
       this.dialogVisible = false;
-      this.myquestion= {
+      this.myquestion = {
         content: "", //题目内容
         type: "",
         selection: [{ value: "" }, { value: "" }, { value: "" }, { value: "" }],
         answer: "",
         score: ""
-      }
-      this.findQuestion='';
-      this.editIndex =-1;//这里考虑从题库加题时的情况
+      };
+      this.findQuestion = "";
+      this.editIndex = -1; //这里考虑从题库加题时的情况
     },
     addQuestion() {
       //添加题目
@@ -484,6 +487,12 @@ export default {
         type: "warning"
       })
         .then(() => {
+          if (
+            this.paper[index]._papers.indexOf(this.paperId) > -1
+          ) {
+            //新添加的题目不算
+            this.delQuestionId.push(this.paper[index]._id);
+          }
           this.paper.splice(index, 1);
           this.$message({
             type: "success",
@@ -657,7 +666,8 @@ export default {
               _questions: this.paper
             },
             paperId: this.paperId,
-            teacherId: this.teacherId
+            teacherId: this.teacherId,
+            delQuestionId:this.delQuestionId
           })
           .then(response => {
             let res = response.data;
