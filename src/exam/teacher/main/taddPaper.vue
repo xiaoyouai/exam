@@ -79,8 +79,8 @@
     <i class="el-icon-document"></i>&nbsp;&nbsp;试卷题目</h1>
   </div>
   <el-row class="comBottom" >
-    <el-col :span="9">
-      <span class="type"><i class="fa-icon 	fa fa-hand-o-right"></i>&nbsp;&nbsp;从题库添加题目：</span>
+    <el-col :span="10">
+      <span class="type"><i class="fa-icon 	fa fa-hand-o-right"></i>&nbsp;&nbsp;从我的题库添加题目：</span>
       <el-autocomplete
         v-model="findQuestion"
         :fetch-suggestions="querySearchAsync"
@@ -88,7 +88,7 @@
         @select="handleSelect"
       ></el-autocomplete>
     </el-col>
-    <el-col :span="14" :offset="1">
+    <el-col :span="14" >
       <div class="grid-content bg-purple-light">
          <span class="type"><i class="fa-icon 	fa fa-hand-o-right"></i>&nbsp;&nbsp;自主添加题目：</span>
         <el-button type="primary" size="medium" @click="single">单选题</el-button>
@@ -228,7 +228,8 @@ export default {
       findQuestion: "", //从题库添加题目对应输入栏
       editIndex: -1, //编辑试卷题目时题目的位置
       paper: [], //试卷题目
-
+      allQuestion: [], //题库所有的题目
+      timeout:null,//用于从题库搜搜题目的节流操作
       // 题目弹窗相关
       myquestion: {
         content: "", //题目内容
@@ -304,28 +305,76 @@ export default {
             });
           });
       }
+      //我的题库
+      this.$axios
+        .post("/api/tgetmyquestion", {
+          userId: this.userId
+        })
+        .then(response => {
+          let res = response.data;
+          if (res.msg == "success" && res.status == "0") {
+            this.allQuestion = res.result;
+            this.allQuestion=this.allQuestion.filter(item=>{//把该试卷的题目过滤掉防止重复添加
+              return item._papers.indexOf(this.paperId)===-1
+            })
+            this.allQuestion.forEach(item=>{
+              item.value=item.content;//因为input的显示必须要有value这一项
+            })
+            if (this.allQuestion.length === 0) {
+              this.$message({
+                showClose: true,
+                message: "题库还没有创建题目！！！",
+                type: "warning",
+                duration: 2000
+              });
+            }
+          } else if (res.status == "2") {
+            this.$message({
+              showClose: true,
+              message: "还没有创建题目！！！",
+              type: "warning",
+              duration: 2000
+            });
+          } else {
+            this.$message({
+              showClose: true,
+              message: "获取题目失败，请稍后再试！",
+              type: "error",
+              duration: 2000
+            });
+          }
+        })
+        .catch(err => {
+          console.log(err);
+          this.$message({
+            showClose: true,
+            message: "获取题目失败，请稍后再试！",
+            type: "error",
+            duration: 2000
+          });
+        });
     },
     // 从题库搜索出现结果
     querySearchAsync(queryString, cb) {
-      var findQuestion = this.findQuestion;
-      var results = queryString
-        ? findQuestion.filter(this.createStateFilter(queryString))
-        : findQuestion;
-
+      let allQuestion = this.allQuestion;
+      let results=[];
+      if(queryString){
+        allQuestion.forEach(item=>{
+         if(item.value.indexOf(queryString)>-1){
+           results.push(item);
+         }
+        });
+      }else{
+        results=allQuestion;
+      }
       clearTimeout(this.timeout);
       this.timeout = setTimeout(() => {
         cb(results);
       }, 3000 * Math.random());
     },
-    createStateFilter(queryString) {
-      return state => {
-        return (
-          state.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0
-        );
-      };
-    },
-    handleSelect(item) {
-      console.log(item);
+    handleSelect(item) {// 编辑试卷中的题目
+      this.dialogVisible = true;
+      this.myquestion = this.$deepCopy(item);
     },
     // 从题库搜索出现结果
 
@@ -361,16 +410,25 @@ export default {
     quit() {
       //取消添加题目
       this.dialogVisible = false;
-      this.myquestion.content = "";
-      this.myquestion.answer = "";
-      this.myquestion.score = "";
-      this.myquestion.selection.forEach(item => (item.value = ""));
+      this.myquestion= {
+        content: "", //题目内容
+        type: "",
+        selection: [{ value: "" }, { value: "" }, { value: "" }, { value: "" }],
+        answer: "",
+        score: ""
+      }
+      this.findQuestion='';
+      this.editIndex =-1;//这里考虑从题库加题时的情况
     },
     addQuestion() {
       //添加题目
       this.$refs.myquestion.validate(valid => {
         if (valid) {
-          if (this.myquestion.type == "single"||this.myquestion.type == "judgement") {//确保单选和判断只选一个
+          if (
+            this.myquestion.type == "single" ||
+            this.myquestion.type == "judgement"
+          ) {
+            //确保单选和判断只选一个
             if (!/^[A-Z]*$/.test(this.myquestion.answer)) {
               this.$message({
                 showClose: true,
@@ -398,7 +456,6 @@ export default {
           this.editIndex == -1
             ? this.paper.push(item)
             : this.paper.splice(this.editIndex, 1, item);
-          this.editIndex == -1;
           this.quit(); //并不是真的取消，只是这里要用到一样的代码
         } else {
           this.$message({
@@ -494,6 +551,17 @@ export default {
         this.$message({
           showClose: true,
           message: "请完善试卷题目",
+          type: "warning",
+          duration: 2000
+        });
+        return;
+      }
+
+      let now = new Date();
+      if (now - new Date(this.starttime) > 0) {
+        this.$message({
+          showClose: true,
+          message: "不可选择过去的时间,请重新选择时间",
           type: "warning",
           duration: 2000
         });

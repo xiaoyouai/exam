@@ -7,6 +7,7 @@
                     题目关键词：
                 <el-input placeholder="请输入题目关键词" v-model="searchTxt" clearable prefix-icon="el-icon-search"  size="small" style="width:30%">  </el-input>
                 <el-button type="primary" size="small" @click="search">搜索</el-button>
+                <!-- <el-button type="primary" size="small" class="multiAddBtn">批量添加</el-button> -->
           </div>
           <el-table :data="tableData" v-loading="loading" height="420" border  style="width: 100%" :default-sort = "{prop: 'date', order: 'descending'}" @selection-change="handleSelectionChange">
             <el-table-column type="expand">
@@ -48,6 +49,14 @@
               </template>
             </el-table-column>
             <el-table-column prop="grade" label="题目分值" > </el-table-column>
+                        <!-- <el-table-column label="操作">
+              <template slot-scope="scope">
+                <el-button
+                  size="mini"
+                  type="primary"
+                  @click="addToMyHub(scope.index,scope.row)">添加到我的题库</el-button>
+              </template>
+            </el-table-column> -->
         </el-table>
     </el-main>
   </el-container>
@@ -59,16 +68,11 @@
 export default {
   data() {
     return {
-      name: "小明",
-      password: "",
-      myclass: 1,
-      userId: 150920,
-      mygrade: 1,
-      test: "",
+      userId: '',
       tableData: [],
       questionData: [], //从数据库获取得来的题目数据
       loading: true,
-      searchTxt:''
+      searchTxt: ""
     };
   },
   computed: {
@@ -88,11 +92,12 @@ export default {
         }
       };
     },
-    transAnswer() {//用于在类型为判断题时显示对或者错或者该类型未保存答案
+    transAnswer() {
+      //用于在类型为判断题时显示对或者错或者该类型未保存答案
       return function(row) {
         if (row.type == "judgement") {
           return row.answer == "A" ? "对" : "错";
-        } else if (row.type == "apfill"||row.type == "Q&A") {
+        } else if (row.type == "apfill" || row.type == "Q&A") {
           return "该类型未保存答案";
         } else {
           return row.answer;
@@ -105,6 +110,7 @@ export default {
   },
   methods: {
     init() {
+    //   this.userId=parseInt(this.$route.params.id);
       this.$axios
         .post("/api/tgetallquestion")
         .then(response => {
@@ -172,11 +178,11 @@ export default {
                 message: "没有该题目!",
                 duration: 2000
               });
-              return ;
+              return;
             }
             this.questionData = res.result;
             this.tableData=[];
-              this.questionData.forEach(item => {
+            this.questionData.forEach(item => {
                 this.tableData.push({
                   type: item.type,
                   name: item.content,
@@ -184,7 +190,7 @@ export default {
                   answer: item.answer,
                   selection: item.selection
                 });
-            })
+              });
           } else {
             this.$message({
               showClose: true,
@@ -202,7 +208,50 @@ export default {
             duration: 2000
           });
         });
-    }
+    },
+    // addToMyHub(index, row) {----------先放这里，不知道要不要写
+    //   //添加到我的题库
+    //   this.$confirm("确认添加, 是否继续?", "提示", {
+    //     confirmButtonText: "确定",
+    //     cancelButtonText: "取消"
+    //   })
+    //     .then(() => {
+    //       this.$axios
+    //         .post("/api/taddQuestion", { questionData: row })
+    //         .then(response => {
+    //           let res = response.data;
+    //           if (res.msg == "success" && res.status == "0") {
+    //             this.$message({
+    //               showClose: true,
+    //               type: "success",
+    //               message: "添加成功!",
+    //               duration: 2000
+    //             });
+    //           } else {
+    //             this.$message({
+    //               showClose: true,
+    //               message: "添加失败",
+    //               type: "error",
+    //               duration: 2000
+    //             });
+    //           }
+    //         })
+    //         .catch(err => {
+    //           this.$message({
+    //             showClose: true,
+    //             message: "添加失败",
+    //             type: "warning",
+    //             duration: 2000
+    //           });
+    //         });
+    //     })
+    //     .catch(() => {
+    //       this.$message({
+    //         type: "info",
+    //         message: "已取消添加"
+    //       });
+    //     });
+    // }
   }
 };
 </script>
@@ -221,5 +270,11 @@ export default {
 }
 .demo-table-expand .el-form-item:last-child {
   width: 100%;
+}
+/* 批量添加按钮样式 */
+.multiAddBtn {
+  position: absolute;
+  top: 100px;
+  right: 100px;
 }
 </style>

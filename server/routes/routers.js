@@ -15,6 +15,7 @@
 
 let Student = require('./../Interface/student');
 let Teacher = require('./../Interface/teacher');
+let Addpaper = require("./../Interface/taddpaper")
 
 module.exports = function(app) {
     /*----------------------教师用户----------------------*/
@@ -23,8 +24,7 @@ module.exports = function(app) {
     app.post('/api/tmain', Teacher.tmain);
     app.post('/api/tchangeMsg', Teacher.tchangeMsg); //修改信息
     app.get('/api/tsignout', Teacher.tsignout); //教师退出系统
-    // app.get('/api/taddquestion', Teacher.taddquestion); //教师添加题目
-    app.post('/api/taddpaper', Teacher.taddpaper); //教师添加试卷
+    app.post('/api/taddpaper', Addpaper.taddpaper); //教师添加题目,代码太复杂所以抽成一个
     app.post('/api/tupdatepaper', Teacher.tupdatepaper); //教师更新试卷
     app.post('/api/tgetAllpaper', Teacher.tgetAllpaper); //教师获取所有的试卷
     app.post('/api/tgetmyquestion', Teacher.tgetmyquestion); //教师获取自己创造的题目
@@ -36,7 +36,7 @@ module.exports = function(app) {
     app.post('/api/tsearchQuestion', Teacher.tsearchQuestion); //搜索我的题库中的题目
     app.post('/api/tsearchPaper', Teacher.tsearchPaper); //搜索我的题库中的题目
     app.post('/api/tsearchAllQuestion', Teacher.tsearchAllQuestion); //搜索公共题库中的题目
-
+    // app.post('/api/taddquestion', addpaper); //
 
 
     /*----------------------学生用户----------------------*/

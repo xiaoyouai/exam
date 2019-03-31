@@ -4,8 +4,8 @@
         <el-row class="tac"
           <el-col>
             <!-- <h5>自定义颜色</h5> -->
+            <!-- :default-active="$route.path" -->
             <el-menu
-              :default-active="$route.path"
               router
               class="el-menu-vertical-demo"
               background-color="#355c7d"
