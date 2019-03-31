@@ -274,7 +274,7 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
 
 // tupdatepaper实现逻辑
 // 首先看有没有自主添加的题目，
-// ------有的话就添加题目，然后试卷把题目信息更新为发过来的题目信息，然后学生跟着把题目信息改为发过来的题目信息，然后题目进行修改，题库新增的题目就加上paperId,不是新增的题目也改成发过来的题目，然后看有没有删除的题目，有删除就题目删掉paperId然后返回去，没有删除就直接返回去
+// ------有的话就添加题目，然后老师添加题目，然后试卷把题目信息更新为发过来的题目信息，然后学生跟着把题目信息改为发过来的题目信息，然后题目进行修改，题库新增的题目就加上paperId,不是新增的题目也改成发过来的题目，然后看有没有删除的题目，有删除就题目删掉paperId然后返回去，没有删除就直接返回去
 // ------没有的话就试卷把题目信息更新为发过来的题目信息，然后学生跟着把题目信息改为发过来的题目信息，然后题目进行修改，题库新增的题目就加上paperId,不是新增的题目也改成发过来的题目，然后看有没有删除的题目，有删除就题目删掉paperId然后返回去，没有删除就直接返回去
 
 exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
@@ -307,76 +307,111 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
     })
 
     if (addQuestion.length > 0) { //如果有自主添加的新题目就新增题目，
-        Question.create(addQuestion, (err3, doc3) => {
-            if (err3) {
+        Teacher.findOne({ "_id": teacherId }, (err9, doc9) => {
+            if (err9) {
                 res.json({
                     status: '1',
-                    msg: err3.message
+                    msg: err9.message
                 })
             } else {
-                if (doc3) {
-                    doc3.forEach(item => {
-                        paperParams._questions.push(`${item._id}`); //试卷存入新增题目_id
-                    })
-                    Paper.findOneAndUpdate({
-                        _id: paperId
-                    }, paperParams, (err2, doc2) => { //写到这里是因为异步，不写这里上面的push操作不起作用
-                        if (err2) {
+                if (doc9) {
+                    Question.create(addQuestion, (err3, doc3) => {
+                        if (err3) {
                             res.json({
                                 status: '1',
-                                msg: err.message
+                                msg: err3.message
                             })
                         } else {
-                            if (doc2) {
-                                paperParams._questions.forEach(item => {
-                                    studentQuestion.push({ //学生填入题目信息
-                                        _question: item,
-                                        answer: ''
-                                    })
+                            if (doc3) {
+                                doc3.forEach(item => {
+                                    paperParams._questions.push(`${item._id}`); //试卷存入新增题目_id
+                                    doc9._questions.push(item); //老师放入新加的题目
                                 })
-                                Student.updateMany({ //学生添加题目,直接更新整个数组
-                                        'class': parseInt(paperData.examclass),
-                                        "exams._paper": paperId
-                                    }, { $set: { "exams.$.answers": studentQuestion } }, (err4, doc4) => {
-                                        if (err4) {
-                                            res.json({
-                                                status: '1',
-                                                msg: err4.message
+                                doc9.save(); //老师放入新加的题目
+                                Paper.findOneAndUpdate({
+                                    _id: paperId
+                                }, paperParams, (err2, doc2) => { //写到这里是因为异步，不写这里上面的push操作不起作用
+                                    if (err2) {
+                                        res.json({
+                                            status: '1',
+                                            msg: err.message
+                                        })
+                                    } else {
+                                        if (doc2) {
+                                            paperParams._questions.forEach(item => {
+                                                studentQuestion.push({ //学生填入题目信息
+                                                    _question: item,
+                                                    answer: ''
+                                                })
                                             })
-                                        } else {
-                                            if (doc4) {
-                                                let len = updateQuestion.length;
-                                                let sum = -1;
-                                                if (len > 0) {
-                                                    updateQuestion.forEach((item) => {
-                                                        if (item._papers.indexOf(paperId) === -1) {
-                                                            item._papers.push(paperId); //说明这是从题库新增的题目
-                                                        }
-                                                        Question.update({
-                                                            "_id": item._id
-                                                        }, item, (err, doc) => {
-                                                            if (err) {
-                                                                res.json({
-                                                                    status: '1',
-                                                                    msg: err2.message
+                                            Student.updateMany({ //学生添加题目,直接更新整个数组
+                                                    'class': parseInt(paperData.examclass),
+                                                    "exams._paper": paperId
+                                                }, { $set: { "exams.$.answers": studentQuestion } }, (err4, doc4) => {
+                                                    if (err4) {
+                                                        res.json({
+                                                            status: '1',
+                                                            msg: err4.message
+                                                        })
+                                                    } else {
+                                                        if (doc4) {
+                                                            let len = updateQuestion.length;
+                                                            let sum = -1;
+                                                            if (len > 0) {
+                                                                updateQuestion.forEach((item) => {
+                                                                    if (item._papers.indexOf(paperId) === -1) {
+                                                                        item._papers.push(paperId); //说明这是从题库新增的题目
+                                                                    }
+                                                                    Question.update({
+                                                                        "_id": item._id
+                                                                    }, item, (err, doc) => {
+                                                                        if (err) {
+                                                                            res.json({
+                                                                                status: '1',
+                                                                                msg: err2.message
+                                                                            })
+                                                                        } else {
+                                                                            if (doc) {
+                                                                                sum++;
+                                                                                if (sum === len - 1) {
+                                                                                    if (delQuestionId.length > 0) {
+                                                                                        Question.updateMany({ "_id": { $in: delQuestionId } }, { $pull: { "_papers": paperId } }, (err5, doc5) => {
+                                                                                            if (err5) {
+                                                                                                res.json({
+                                                                                                    status: '1',
+                                                                                                    msg: err2.message
+                                                                                                })
+                                                                                            } else {
+                                                                                                res.json({
+                                                                                                    status: '0',
+                                                                                                    msg: 'success'
+                                                                                                })
+                                                                                            }
+                                                                                        })
+                                                                                    } else {
+                                                                                        res.json({
+                                                                                            status: '0',
+                                                                                            msg: 'success'
+                                                                                        })
+                                                                                    }
+
+                                                                                }
+                                                                            } else {
+                                                                                res.json({
+                                                                                    status: '2',
+                                                                                    msg: '没找到题目'
+                                                                                })
+                                                                            }
+                                                                        }
+                                                                    })
                                                                 })
                                                             } else {
-                                                                if (doc) {
-                                                                    sum++;
-                                                                    if (sum === len - 1) {
-                                                                        if (delQuestionId.length > 0) {
-                                                                            Question.updateMany({ "_id": { $in: delQuestionId } }, { $pull: { "_papers": paperId } }, (err5, doc5) => {
-                                                                                if (err5) {
-                                                                                    res.json({
-                                                                                        status: '1',
-                                                                                        msg: err2.message
-                                                                                    })
-                                                                                } else {
-                                                                                    res.json({
-                                                                                        status: '0',
-                                                                                        msg: 'success'
-                                                                                    })
-                                                                                }
+                                                                if (delQuestionId.length > 0) {
+                                                                    Question.updateMany({ "_id": { $in: delQuestionId } }, { $pull: { "_papers": paperId } }, (err5, doc5) => {
+                                                                        if (err5) {
+                                                                            res.json({
+                                                                                status: '1',
+                                                                                msg: err2.message
                                                                             })
                                                                         } else {
                                                                             res.json({
@@ -384,65 +419,44 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
                                                                                 msg: 'success'
                                                                             })
                                                                         }
-
-                                                                    }
+                                                                    })
                                                                 } else {
                                                                     res.json({
-                                                                        status: '2',
-                                                                        msg: '没找到题目'
+                                                                        status: '0',
+                                                                        msg: 'success'
                                                                     })
                                                                 }
                                                             }
-                                                        })
-                                                    })
-                                                } else {
-                                                    if (delQuestionId.length > 0) {
-                                                        Question.updateMany({ "_id": { $in: delQuestionId } }, { $pull: { "_papers": paperId } }, (err5, doc5) => {
-                                                            if (err5) {
-                                                                res.json({
-                                                                    status: '1',
-                                                                    msg: err2.message
-                                                                })
-                                                            } else {
-                                                                res.json({
-                                                                    status: '0',
-                                                                    msg: 'success'
-                                                                })
-                                                            }
-                                                        })
-                                                    } else {
-                                                        res.json({
-                                                            status: '0',
-                                                            msg: 'success'
-                                                        })
+                                                        } else {
+                                                            res.json({
+                                                                status: '4',
+                                                                msg: '学生的考试信息添加题目失败'
+                                                            })
+                                                        }
                                                     }
-                                                }
-                                            } else {
-                                                res.json({
-                                                    status: '4',
-                                                    msg: '学生的考试信息添加题目失败'
-                                                })
-                                            }
+                                                }) //学生操作的终点
+
+
+                                        } else {
+                                            res.json({
+                                                status: '4',
+                                                msg: '修改试卷失败'
+                                            })
                                         }
-                                    }) //学生操作的终点
-
-
+                                    }
+                                })
                             } else {
                                 res.json({
-                                    status: '4',
-                                    msg: '修改试卷失败'
+                                    status: '3',
+                                    msg: '新添加题目失败'
                                 })
                             }
                         }
                     })
-                } else {
-                    res.json({
-                        status: '3',
-                        msg: '新添加题目失败'
-                    })
                 }
             }
         })
+
     } else { //没有添加题目就直接改试卷
         Paper.findOneAndUpdate({
             _id: paperId

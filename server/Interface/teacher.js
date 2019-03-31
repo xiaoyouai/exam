@@ -268,7 +268,7 @@ exports.tgetmyquestion = function(req, res) { //tquestionHub里面调用
         } else {
             if (doc) {
                 Question.find({
-                    _teacher: doc._id
+                    "_id": { $in: doc._questions }
                 }, (err2, doc2) => {
                     if (err2) {
                         res.json({
@@ -296,32 +296,48 @@ exports.tgetmyquestion = function(req, res) { //tquestionHub里面调用
 }
 
 
-exports.tgetallquestion = function(req, res) { //tcomQuestionHub里面调用
-    Question.find((err2, doc2) => {
-        if (err2) {
+exports.tgetAllQuestion = function(req, res) { //tcomQuestionHub里面调用
+    let userId = req.body.userId;
+    Teacher.findOne({ "userId": userId }, (err, doc) => {
+        if (err) {
             res.json({
                 status: '1',
                 msg: err2.message
             })
         } else {
-            if (doc2) {
-                res.json({
-                    status: '0',
-                    msg: 'success',
-                    result: doc2
-                })
-            } else {
-                res.json({
-                    status: '2',
-                    msg: '暂未创建题目'
+            if (doc) {
+                Question.find((err2, doc2) => {
+                    if (err2) {
+                        res.json({
+                            status: '1',
+                            msg: err2.message
+                        })
+                    } else {
+                        if (doc2) {
+                            res.json({
+                                status: '0',
+                                msg: 'success',
+                                result: {
+                                    questionData: doc2,
+                                    teacherId: doc._id
+                                }
+                            })
+                        } else {
+                            res.json({
+                                status: '2',
+                                msg: '暂未创建题目'
+                            })
+                        }
+                    }
                 })
             }
         }
     })
+
 }
 
 exports.tdelpaper = function(req, res) { //tmypaper里面调用
-    if (Array.isArray(req.body.paperId)) {
+    if (Array.isArray(req.body.paperId)) { //说明是批量删除
         let data = req.body.paperId; //随便用paperId或者class都行
         let paperId = [];
         let myclass = [];
@@ -809,7 +825,35 @@ exports.tsearchPaper = function(req, res) { //tmypaper里面调用，搜索我�
     })
 }
 
-exports.taddquestion = function(req, res) { //tmypaper里面调用，搜索我的试卷
+exports.tAddQuestionToHub = function(req, res) { //tcomQuestionHub里面调用，把题目添加到我的题库里面去，但是题目的出题人（_teacher）保持不变
+    let questionId = req.body.questionId;
+    Teacher.update({
+        "_teacher": teacherId,
+    }, { "$addToSet": { $in: { "_questions": questionId } } }, (err, doc) => {
+        if (err) {
+            res.json({
+                status: '1',
+                msg: err.message
+            })
+        } else {
+            if (doc) {
+                console.log(doc);
+                res.json({
+                    status: '0',
+                    msg: 'success'
+                })
+            } else {
+                res.json({
+                    status: '2',
+                    msg: '添加失败'
+                })
+            }
+        }
+    })
+}
+
+
+exports.taddquestion = function(req, res) { //tquestionHub里面调用，添加新的题目
     let teacherId = req.body.teacherId;
     let name = req.body.name;
     Paper.find({

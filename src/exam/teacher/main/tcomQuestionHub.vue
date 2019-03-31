@@ -7,7 +7,7 @@
                     题目关键词：
                 <el-input placeholder="请输入题目关键词" v-model="searchTxt" clearable prefix-icon="el-icon-search"  size="small" style="width:30%">  </el-input>
                 <el-button type="primary" size="small" @click="search">搜索</el-button>
-                <!-- <el-button type="primary" size="small" class="multiAddBtn">批量添加</el-button> -->
+                <el-button type="primary" size="small" class="multiAddBtn">批量添加</el-button>
           </div>
           <el-table :data="tableData" v-loading="loading" height="420" border  style="width: 100%" :default-sort = "{prop: 'date', order: 'descending'}" @selection-change="handleSelectionChange">
             <el-table-column type="expand">
@@ -49,14 +49,14 @@
               </template>
             </el-table-column>
             <el-table-column prop="grade" label="题目分值" > </el-table-column>
-                        <!-- <el-table-column label="操作">
+            <el-table-column label="操作">
               <template slot-scope="scope">
                 <el-button
                   size="mini"
                   type="primary"
-                  @click="addToMyHub(scope.index,scope.row)">添加到我的题库</el-button>
+                  @click="addToMyHub(scope.$index)">添加到我的题库</el-button>
               </template>
-            </el-table-column> -->
+            </el-table-column>
         </el-table>
     </el-main>
   </el-container>
@@ -68,7 +68,8 @@
 export default {
   data() {
     return {
-      userId: '',
+      userId: "",
+      teacherId: "", //老师的_id，用来判断题目是否是自己的题目
       tableData: [],
       questionData: [], //从数据库获取得来的题目数据
       loading: true,
@@ -110,13 +111,14 @@ export default {
   },
   methods: {
     init() {
-    //   this.userId=parseInt(this.$route.params.id);
+      this.userId = parseInt(this.$route.params.id);
       this.$axios
-        .post("/api/tgetallquestion")
+        .post("/api/tgetAllQuestion", { userId: this.userId })
         .then(response => {
           let res = response.data;
           if (res.msg == "success" && res.status == "0") {
-            this.questionData = res.result;
+            this.questionData = res.result.questionData;
+            this.teacherId = res.result.teacherId;
             if (this.questionData.length > 0) {
               this.questionData.forEach(item => {
                 this.tableData.push({
@@ -181,16 +183,16 @@ export default {
               return;
             }
             this.questionData = res.result;
-            this.tableData=[];
+            this.tableData = [];
             this.questionData.forEach(item => {
-                this.tableData.push({
-                  type: item.type,
-                  name: item.content,
-                  grade: item.score,
-                  answer: item.answer,
-                  selection: item.selection
-                });
+              this.tableData.push({
+                type: item.type,
+                name: item.content,
+                grade: item.score,
+                answer: item.answer,
+                selection: item.selection
               });
+            });
           } else {
             this.$message({
               showClose: true,
@@ -209,49 +211,63 @@ export default {
           });
         });
     },
-    // addToMyHub(index, row) {----------先放这里，不知道要不要写
-    //   //添加到我的题库
-    //   this.$confirm("确认添加, 是否继续?", "提示", {
-    //     confirmButtonText: "确定",
-    //     cancelButtonText: "取消"
-    //   })
-    //     .then(() => {
-    //       this.$axios
-    //         .post("/api/taddQuestion", { questionData: row })
-    //         .then(response => {
-    //           let res = response.data;
-    //           if (res.msg == "success" && res.status == "0") {
-    //             this.$message({
-    //               showClose: true,
-    //               type: "success",
-    //               message: "添加成功!",
-    //               duration: 2000
-    //             });
-    //           } else {
-    //             this.$message({
-    //               showClose: true,
-    //               message: "添加失败",
-    //               type: "error",
-    //               duration: 2000
-    //             });
-    //           }
-    //         })
-    //         .catch(err => {
-    //           this.$message({
-    //             showClose: true,
-    //             message: "添加失败",
-    //             type: "warning",
-    //             duration: 2000
-    //           });
-    //         });
-    //     })
-    //     .catch(() => {
-    //       this.$message({
-    //         type: "info",
-    //         message: "已取消添加"
-    //       });
-    //     });
-    // }
+    addToMyHub(index) {
+      console.log(index);
+      //添加到我的题库
+      this.$confirm("确认添加, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消"
+      })
+        .then(() => {
+          if (this.questionData[index]._teacher === this.teacherId) {
+            this.$message({
+              showClose: true,
+              type: "success",
+              message: "已经是你的题目了!",
+              duration: 2000
+            });
+            return;
+          }
+          this.$axios
+            .post("/api/tAddQuestionToHub", {
+              questionData: [this.questionData[index]._id],
+              teacherId: this.teacherId
+            })
+            .then(response => {
+              let res = response.data;
+              if (res.msg == "success" && res.status == "0") {
+                this.$message({
+                  showClose: true,
+                  type: "success",
+                  message: "添加成功!",
+                  duration: 2000
+                });
+              } else {
+                this.$message({
+                  showClose: true,
+                  message: "添加失败",
+                  type: "error",
+                  duration: 2000
+                });
+              }
+            })
+            .catch(err => {
+              this.$message({
+                showClose: true,
+                message: "添加失败",
+                type: "warning",
+                duration: 2000
+              });
+            });
+        })
+        .catch((err) => {
+          console.log(err);
+          this.$message({
+            type: "info",
+            message: "已取消添加"
+          });
+        });
+    }
   }
 };
 </script>

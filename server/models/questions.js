@@ -4,7 +4,7 @@ let questionSchema = new Schema({
     _teacher: {
         type: Schema.Types.ObjectId,
         ref: 'Teacher'
-    }, //所属老师
+    }, //出题老师
     _papers: [{
         type: Schema.Types.ObjectId,
         ref: 'Paper'
