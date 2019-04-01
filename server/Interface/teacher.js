@@ -280,7 +280,7 @@ exports.tgetMyQuestion = function(req, res) { //tquestionHub里面调用
                             res.json({
                                 status: '0',
                                 msg: 'success',
-                                result: doc2
+                                result: { question: doc2, teacher: doc._id }
                             })
                         } else {
                             res.json({
@@ -826,12 +826,12 @@ exports.tsearchPaper = function(req, res) { //tmypaper里面调用，搜索我�
 }
 
 exports.taddQuestionToHub = function(req, res) { //tcomQuestionHub里面调用，把题目添加到我的题库里面去，但是题目的出题人（_teacher）保持不变
-    let questionId = req.body.questionId;
+    let questionId = req.body.questionData;
     let teacherId = req.body.teacherId;
-
+    console.log(questionId);
     Teacher.update({
-        "_teacher": teacherId,
-    }, { "$addToSet": { $in: { "_questions": questionId } } }, (err, doc) => {
+        "_id": teacherId,
+    }, { "$addToSet": { "_questions": { "$each": questionId } } }, (err, doc) => {
         if (err) {
             res.json({
                 status: '1',
@@ -839,11 +839,18 @@ exports.taddQuestionToHub = function(req, res) { //tcomQuestionHub里面调用�
             })
         } else {
             if (doc) {
-                console.log(doc);
-                res.json({
-                    status: '0',
-                    msg: 'success'
-                })
+                if (doc.nModified === 0) {
+                    res.json({
+                        status: '3',
+                        msg: '已经在你的题库了'
+                    })
+                } else {
+                    res.json({
+                        status: '0',
+                        msg: 'success'
+                    })
+                }
+
             } else {
                 res.json({
                     status: '2',
@@ -854,6 +861,33 @@ exports.taddQuestionToHub = function(req, res) { //tcomQuestionHub里面调用�
     })
 }
 
+exports.tdelQuestionFromHub = function(req, res) { //tcomQuestionHub里面调用，把题目从我的题库中移出去
+    let questionId = req.body.questionId; //---格式固定为数组
+    let teacherId = req.body.teacherId;
+    console.log(questionId);
+    Teacher.update({
+        "_id": teacherId,
+    }, { "$pull": { "_questions": { "$in": questionId } } }, (err, doc) => {
+        if (err) {
+            res.json({
+                status: '1',
+                msg: err.message
+            })
+        } else {
+            if (doc) {
+                res.json({
+                    status: '0',
+                    msg: 'success'
+                })
+            } else {
+                res.json({
+                    status: '2',
+                    msg: '移出失败'
+                })
+            }
+        }
+    })
+}
 
 exports.taddQuestion = function(req, res) { //tquestionHub里面调用，添加新的题目
     let teacherId = req.body.teacherId;

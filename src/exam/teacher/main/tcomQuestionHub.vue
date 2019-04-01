@@ -7,7 +7,7 @@
                     题目关键词：
                 <el-input placeholder="请输入题目关键词" v-model="searchTxt" clearable prefix-icon="el-icon-search"  size="small" style="width:30%">  </el-input>
                 <el-button type="primary" size="small" @click="search">搜索</el-button>
-                <el-button type="primary" size="small" class="multiAddBtn">批量添加</el-button>
+                <el-button type="primary" size="small" class="multiAddBtn" @click="multiAdd">批量添加</el-button>
           </div>
           <el-table :data="tableData" v-loading="loading" height="420" border  style="width: 100%" :default-sort = "{prop: 'date', order: 'descending'}" @selection-change="handleSelectionChange">
             <el-table-column type="expand">
@@ -73,7 +73,8 @@ export default {
       tableData: [],
       questionData: [], //从数据库获取得来的题目数据
       loading: true,
-      searchTxt: ""
+      searchTxt: "",
+      multipleSelection: "" //批量选择时的选定项
     };
   },
   computed: {
@@ -122,11 +123,13 @@ export default {
             if (this.questionData.length > 0) {
               this.questionData.forEach(item => {
                 this.tableData.push({
+                  questionId: item._id, //用于添加到题库
                   type: item.type,
                   name: item.content,
                   grade: item.score,
                   answer: item.answer,
-                  selection: item.selection
+                  selection: item.selection,
+                  teacher: item._teacher //用于判断出题老师
                 });
               });
             } else {
@@ -186,11 +189,13 @@ export default {
             this.tableData = [];
             this.questionData.forEach(item => {
               this.tableData.push({
+                questionId: item._id,
                 type: item.type,
                 name: item.content,
                 grade: item.score,
                 answer: item.answer,
-                selection: item.selection
+                selection: item.selection,
+                teacher: item._teacher
               });
             });
           } else {
@@ -211,8 +216,48 @@ export default {
           });
         });
     },
+    doAdd(question) {//接口实现添加
+      this.$axios
+        .post("/api/taddQuestionToHub", {
+          questionData: question,
+          teacherId: this.teacherId
+        })
+        .then(response => {
+          let res = response.data;
+          if (res.msg == "success" && res.status == "0") {
+            this.$message({
+              showClose: true,
+              type: "success",
+              message: "添加成功!",
+              duration: 2000
+            });
+          } else if (res.status === "3") {
+            this.$message({
+              showClose: true,
+              type: "success",
+              message: "已经在你的题库了!",
+              duration: 2000
+            });
+          } else {
+            this.$message({
+              showClose: true,
+              message: "添加失败",
+              type: "error",
+              duration: 2000
+            });
+          }
+        })
+        .catch(err => {
+          this.$message({
+            showClose: true,
+            message: "添加失败",
+            type: "warning",
+            duration: 2000
+          });
+        });
+    },
     addToMyHub(index) {
-      //添加到我的题库
+      //单项添加到我的题库
       this.$confirm("确认添加, 是否继续?", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消"
@@ -227,39 +272,36 @@ export default {
             });
             return;
           }
-          this.$axios
-            .post("/api/taddQuestionToHub", {
-              questionData: [this.questionData[index]._id],
-              teacherId: this.teacherId
-            })
-            .then(response => {
-              let res = response.data;
-              if (res.msg == "success" && res.status == "0") {
-                this.$message({
-                  showClose: true,
-                  type: "success",
-                  message: "添加成功!",
-                  duration: 2000
-                });
-              } else {
-                this.$message({
-                  showClose: true,
-                  message: "添加失败",
-                  type: "error",
-                  duration: 2000
-                });
-              }
-            })
-            .catch(err => {
-              this.$message({
-                showClose: true,
-                message: "添加失败",
-                type: "warning",
-                duration: 2000
-              });
-            });
+          this.doAdd([this.questionData[index]._id]);
         })
-        .catch((err) => {
+        .catch(err => {
+          console.log(err);
+          this.$message({
+            type: "info",
+            message: "已取消添加"
+          });
+        });
+    },
+    multiAdd() {//批量添加
+      this.$confirm(
+        "确认添加, 是否继续?如果选中题目已经在您的题库中，则默认不添加",
+        "提示",
+        {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消"
+        }
+      )
+        .then(() => {
+          this.multipleSelection = this.multipleSelection.filter(
+            item => item.teacher !== this.teacherId
+          ); //把老师出的题目过滤掉
+          let data = [];
+          this.multipleSelection.forEach(item => {
+            data.push(item.questionId);
+          });
+          this.doAdd(data);
+        })
+        .catch(err => {
           console.log(err);
           this.$message({
             type: "info",

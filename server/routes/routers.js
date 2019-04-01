@@ -37,6 +37,8 @@ module.exports = function(app) {
     app.post('/api/tdelQuestion', Teacher.tdelQuestion); //删除我的题库中的题目
     app.post('/api/taddQuestion', Teacher.taddQuestion); //添加我的题库中的题目
     app.post('/api/taddQuestionToHub', Teacher.taddQuestionToHub); //添加公共题库的题库中的题目到我的题库，出题老师不变
+    app.post('/api/tdelQuestionFromHub', Teacher.tdelQuestionFromHub); //移出我的题库中的不是我出的题目
+
 
 
 

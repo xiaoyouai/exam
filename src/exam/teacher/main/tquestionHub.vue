@@ -156,7 +156,7 @@ export default {
     }; // 弹窗验证规则
     return {
       content: "小明",
-      myclass: 1,
+      teacherId: "", //老师的_id,可用于编辑和删除时判断是不是自己出的题目
       userId: "",
       searchTxt: "", //搜索input的文本
       tableData: [],
@@ -235,7 +235,8 @@ export default {
         .then(response => {
           let res = response.data;
           if (res.msg == "success" && res.status == "0") {
-            this.tableData = res.result;
+            this.tableData = res.result.question;
+            this.teacherId = res.result.teacher;
             if (this.tableData.length === 0) {
               this.$message({
                 showClose: true,
@@ -277,71 +278,129 @@ export default {
       this.selQuestion = val;
     },
     handleEdit(row) {
+      if (row._teacher !== this.teacherId) {
+        this.$message({
+          showClose: true,
+          type: "warning",
+          message: "该题目不是您出的，您无法编辑和删除，只能将题目移出题库!",
+          duration: 2000
+        });
+        return;
+      }
       this.dialogVisible = true; //唤起弹窗
       this.myquestion = this.$deepCopy(row); //给数据
     },
     handleDelete(row) {
-      this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning"
-      })
-        .then(() => {
-          this.$axios
-            .post("/api/tdelQuestion", { questionData: row })
-            .then(response => {
-              let res = response.data;
-              if (res.msg == "success" && res.status == "0") {
-                this.tableData = this.tableData.filter(
-                  item => item._id !== row._id
-                );
-                this.$message({
-                  showClose: true,
-                  type: "success",
-                  message: "删除成功!",
-                  duration: 2000
-                });
-              } else {
+      if (row._teacher !== this.teacherId) {
+        this.$confirm("该题目不是您出的，仅能将它移出题库，是否继续?", "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning"
+        })
+          .then(() => {
+            this.doRemoveQuestionFromHub([row._id]);
+          })
+          .catch(() => {
+            this.$message({
+              type: "info",
+              message: "已取消删除"
+            });
+          });
+      } else {
+        this.doDelQuestion([row]);
+        this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning"
+        })
+          .then(() => {
+            this.$axios
+              .post("/api/tdelQuestion", { questionData: row })
+              .then(response => {
+                let res = response.data;
+                if (res.msg == "success" && res.status == "0") {
+                  this.tableData = this.tableData.filter(
+                    item => item._id !== row._id
+                  );
+                  this.$message({
+                    showClose: true,
+                    type: "success",
+                    message: "删除成功!",
+                    duration: 2000
+                  });
+                } else {
+                  this.$message({
+                    showClose: true,
+                    message: "修改失败",
+                    type: "error",
+                    duration: 2000
+                  });
+                }
+              })
+              .catch(err => {
                 this.$message({
                   showClose: true,
                   message: "修改失败",
-                  type: "error",
+                  type: "warning",
                   duration: 2000
                 });
-              }
-            })
-            .catch(err => {
-              this.$message({
-                showClose: true,
-                message: "修改失败",
-                type: "warning",
-                duration: 2000
               });
+          })
+          .catch(() => {
+            this.$message({
+              type: "info",
+              message: "已取消删除"
             });
+          });
+      }
+    },
+    doRemoveQuestionFromHub(data) {
+      //调用接口把题目从题库移出，multiDel和handleDelete中调用
+      this.$axios
+        .post("/api/tdelQuestionFromHub", {
+          questionId: data,
+          teacherId: this.teacherId
         })
-        .catch(() => {
+        .then(response => {
+          let res = response.data;
+          if (res.msg == "success" && res.status == "0") {
+            data.forEach(ids => {
+              this.tableData = this.tableData.filter(item => item._id !== ids);
+            });
+
+            this.$message({
+              showClose: true,
+              type: "success",
+              message: "移除成功!",
+              duration: 2000
+            });
+          } else {
+            this.$message({
+              showClose: true,
+              message: "移除失败",
+              type: "error",
+              duration: 2000
+            });
+          }
+        })
+        .catch(err => {
           this.$message({
-            type: "info",
-            message: "已取消删除"
+            showClose: true,
+            message: "移除失败",
+            type: "warning",
+            duration: 2000
           });
         });
     },
-    multiDel() {
-      //批量删除
-      this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning"
-      })
-        .then(() => {
+    doDelQuestion(data){      //调用接口删除题目，multiDel和handleDelete中调用
           this.$axios
-            .post("/api/tdelQuestion", { questionData: this.selQuestion })
+            .post("/api/tdelQuestion", { questionData: data })
             .then(response => {
               let res = response.data;
               if (res.msg == "success" && res.status == "0") {
-                this.selQuestion.forEach(data => {
+                data.forEach(datas => {
                   this.tableData = this.tableData.filter(
-                    item => item._id !== data._id
+                    item => item._id !== datas._id
                   );
                 });
                 this.$message({
@@ -367,6 +426,36 @@ export default {
                 duration: 2000
               });
             });
+    },
+    multiDel() {
+      //批量删除
+      this.$confirm(
+        "此操作将永久删除该文件,或者将题目移出题库,是否继续?",
+        "提示",
+        {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning"
+        }
+      )
+        .then(() => {
+          let removeData = [];
+          let removeArr = this.selQuestion.filter(
+            item => item._teacher !== this.teacherId
+          );
+          if (removeArr.length > 0) {
+            removeArr.forEach(item => {
+              removeData.push(item._id);
+            });
+            this.doRemoveQuestionFromHub(removeData);//移除题目
+          }
+
+          this.selQuestion = this.selQuestion.filter(
+            item => item._teacher === this.teacherId
+          );
+          if(this.selQuestion.length>0){
+          this.doDelQuestion(this.selQuestion);//删除题目
+          }
         })
         .catch(err => {
           console.log(err);
@@ -481,6 +570,7 @@ export default {
     // 弹窗相关
 
     addQuestion() {
+      //点击新增题目按钮
       this.dialogVisible = true;
       this.myquestion = {
         content: "", //题目内容
@@ -491,6 +581,7 @@ export default {
       };
     },
     doAddQuestion(questiondata) {
+      //实现新增题目，在sureEditQuestion里调用
       this.$axios
         .post("/api/taddQuestion", {
           questionData: questiondata,
@@ -517,7 +608,7 @@ export default {
             duration: 2000
           });
         });
-        this.quit();
+      this.quit();
     },
     search() {
       this.$axios
