@@ -303,48 +303,17 @@ export default {
           .catch(() => {
             this.$message({
               type: "info",
-              message: "已取消删除"
+              message: "已取消移除"
             });
           });
       } else {
-        this.doDelQuestion([row]);
         this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
           confirmButtonText: "确定",
           cancelButtonText: "取消",
           type: "warning"
         })
           .then(() => {
-            this.$axios
-              .post("/api/tdelQuestion", { questionData: row })
-              .then(response => {
-                let res = response.data;
-                if (res.msg == "success" && res.status == "0") {
-                  this.tableData = this.tableData.filter(
-                    item => item._id !== row._id
-                  );
-                  this.$message({
-                    showClose: true,
-                    type: "success",
-                    message: "删除成功!",
-                    duration: 2000
-                  });
-                } else {
-                  this.$message({
-                    showClose: true,
-                    message: "修改失败",
-                    type: "error",
-                    duration: 2000
-                  });
-                }
-              })
-              .catch(err => {
-                this.$message({
-                  showClose: true,
-                  message: "修改失败",
-                  type: "warning",
-                  duration: 2000
-                });
-              });
+            this.doDelQuestion([row]);
           })
           .catch(() => {
             this.$message({
@@ -614,7 +583,7 @@ export default {
       this.$axios
         .post("/api/tsearchQuestion", {
           content: this.searchTxt,
-          teacherId: this.tableData[0]._teacher
+          teacherId: this.teacherId
         })
         .then(response => {
           let res = response.data;

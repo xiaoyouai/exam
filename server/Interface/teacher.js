@@ -737,32 +737,46 @@ exports.tdelQuestion = function(req, res) { //tquestionHub里面调用
 exports.tsearchQuestion = function(req, res) { //tquestionHub里面调用,搜索我的题目
     let teacherId = req.body.teacherId;
     let content = req.body.content;
-    Question.find({
-        "_teacher": teacherId,
-        "content": {
-            $regex: content
-        }
-    }, (err, doc) => {
-        if (err) {
+
+
+    Teacher.findOne({ "_id": teacherId, }, (err2, doc2) => {
+        if (err2) {
             res.json({
                 status: '1',
-                msg: err.message
+                msg: err2.message
             })
         } else {
-            if (doc) {
-                res.json({
-                    status: '0',
-                    msg: 'success',
-                    result: doc
-                })
-            } else {
-                res.json({
-                    status: '2',
-                    msg: '暂未创建题目'
+            if (doc2) {
+                Question.find({
+                    "_id": { $in: doc2._questions },
+                    "content": {
+                        $regex: content
+                    }
+                }, (err, doc) => {
+                    if (err) {
+                        res.json({
+                            status: '1',
+                            msg: err.message
+                        })
+                    } else {
+                        if (doc) {
+                            res.json({
+                                status: '0',
+                                msg: 'success',
+                                result: doc
+                            })
+                        } else {
+                            res.json({
+                                status: '2',
+                                msg: '暂未创建题目'
+                            })
+                        }
+                    }
                 })
             }
         }
     })
+
 }
 
 exports.tsearchAllQuestion = function(req, res) { //tcomQuestionHub里面调用，搜索所有题目
@@ -828,7 +842,6 @@ exports.tsearchPaper = function(req, res) { //tmypaper里面调用，搜索我�
 exports.taddQuestionToHub = function(req, res) { //tcomQuestionHub里面调用，把题目添加到我的题库里面去，但是题目的出题人（_teacher）保持不变
     let questionId = req.body.questionData;
     let teacherId = req.body.teacherId;
-    console.log(questionId);
     Teacher.update({
         "_id": teacherId,
     }, { "$addToSet": { "_questions": { "$each": questionId } } }, (err, doc) => {
@@ -864,7 +877,6 @@ exports.taddQuestionToHub = function(req, res) { //tcomQuestionHub里面调用�
 exports.tdelQuestionFromHub = function(req, res) { //tcomQuestionHub里面调用，把题目从我的题库中移出去
     let questionId = req.body.questionId; //---格式固定为数组
     let teacherId = req.body.teacherId;
-    console.log(questionId);
     Teacher.update({
         "_id": teacherId,
     }, { "$pull": { "_questions": { "$in": questionId } } }, (err, doc) => {
