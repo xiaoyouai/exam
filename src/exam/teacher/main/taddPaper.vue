@@ -308,13 +308,13 @@ export default {
       }
       //我的题库
       this.$axios
-        .post("/api/tgetmyquestion", {
+        .post("/api/tgetMyQuestion", {
           userId: this.userId
         })
         .then(response => {
           let res = response.data;
           if (res.msg == "success" && res.status == "0") {
-            this.allQuestion = res.result;
+            this.allQuestion = res.result.question;
             this.allQuestion = this.allQuestion.filter(item => {
               //把该试卷的题目过滤掉防止重复添加
               return item._papers.indexOf(this.paperId) === -1;
