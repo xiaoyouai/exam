@@ -9,28 +9,6 @@ function md5(str) {
     return obj.digest('hex');
 }
 
-exports.look = function(req, res) {
-    Student.find({}, (err, doc) => {
-        if (err) {
-            res.json({
-                status: '1',
-                msg: err.message
-            })
-        } else {
-            if (doc) {
-                res.json({
-                    status: '0',
-                    msg: '',
-                    result: {
-                        count: doc.length,
-                        list: doc
-                    }
-                })
-            }
-        }
-    })
-}
-
 exports.sregister = function(req, res) {
     let user = req.body.user;
     Student.findOne({ userId: user.userId }, (err, doc) => {
@@ -117,22 +95,87 @@ exports.slogin = function(req, res) {
 // 获取考试记录
 exports.smain = function(req, res) { //smsgCenter里面的init方法里调用
     let userId = req.body.userId;
-    Student.findOne({ userId: userId }, (err, doc) => {
-        if (err) {
-            res.json({
-                status: '1',
-                msg: err.message
-            })
-        } else {
-            if (doc) {
+    let txt = req.body.txt;
+    let reg = new RegExp(txt, 'i'); // 在nodejs中，必须要使用RegExp，来构建正则表达式对象。
+    Student.findOne({ "userId": userId }).populate({
+            path: 'exams._paper',
+            select: 'name',
+            match: { name: reg }
+        }).exec((err1, doc1) => {
+            if (err1) {
                 res.json({
-                    status: '0',
-                    msg: '',
-                    result: doc.exams
+                    status: '1',
+                    msg: err.message
                 })
+            } else {
+                if (doc1) {
+                    res.json({
+                        status: '0',
+                        msg: 'success',
+                        result: doc1.exams
+                    })
+                } else {
+                    res.json({
+                        status: '2',
+                        msg: '没有该试卷'
+                    })
+                }
             }
-        }
-    })
+        })
+        // Student.findOne({ userId: userId }, (err, doc) => {
+        //     if (err) {
+        //         res.json({
+        //             status: '1',
+        //             msg: err.message
+        //         })
+        //     } else {
+        //         if (doc && doc.exams.length > 0) {
+        //             let sum = -1;
+        //             let len = doc.exams;
+        //             doc.exams.forEach((item) => {
+        //                 sum++;
+        //                 Paper.findOne({ "_id": item._paper }, (err2, doc2) => {
+        //                     if (err2) {
+        //                         res.json({
+        //                             status: '1',
+        //                             msg: err2.message
+        //                         })
+        //                     } else {
+        //                         if (doc2) {
+        //                             paperName.push(doc2.name);
+        //                             if (sum === len - 1) {
+        //                                 res.json({
+        //                                     status: '0',
+        //                                     msg: 'success',
+        //                                     result: {
+        //                                         exams: doc,
+        //                                         examName: paperName
+        //                                     }
+        //                                 })
+        //                             }
+        //                         } else {
+        //                             res.json({
+        //                                 status: '2',
+        //                                 msg: 'success',
+        //                                 result: {
+        //                                     exams: doc,
+        //                                     examName: paperName
+        //                                 }
+        //                             })
+        //                         }
+        //                     }
+        //                 })
+        //             })
+
+    //         } else {
+    //             res.json({
+    //                 status: '0',
+    //                 msg: 'success',
+    //                 result: []
+    //             })
+    //         }
+    //     }
+    // })
 }
 
 exports.schangeMsg = function(req, res) { //smsgCenter里面的submit方法里调用

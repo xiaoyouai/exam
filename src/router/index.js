@@ -5,7 +5,8 @@ import Router from 'vue-router'
 import slogin from './../exam/student/slogin'
 import smsgCenter from './../exam/student/smsgCenter'
 import sregister from './../exam/student/sregister'
-import sexam from './../exam/student/sexam'
+import sexamCenter from './../exam/student/sexamCenter'
+import sdoExam from './../exam/student/sdoExam'
 
 
 // 老师
@@ -39,13 +40,17 @@ export default new Router({
             name: 'sregister',
             component: sregister
         }, {
-            path: '/sexam',
-            name: 'sexam',
-            component: sexam
+            path: '/sexamCenter',
+            name: 'sexamCenter',
+            component: sexamCenter
         }, {
             path: '/smsgCenter',
             name: 'smsgCenter',
             component: smsgCenter
+        }, {
+            path: '/sdoExam/:id', //进行考试
+            name: 'sdoExam',
+            component: sdoExam
         },
 
 

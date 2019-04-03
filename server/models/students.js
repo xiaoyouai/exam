@@ -11,7 +11,7 @@ let studentSchema = new Schema({
         date: Number, //考试总时长
         isSure: Boolean,
         score: Number, //考试分数
-        startTime: Date,
+        startTime: String,
         answers: [{
             _question: { type: Schema.Types.ObjectId, ref: 'Question' },
             answer: String

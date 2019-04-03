@@ -121,10 +121,11 @@ export default {
         });
         return;
       }
-      if (now - new Date(row.startTime))
+      if (now - new Date(row.startTime)){
         this.$router.push({
           path: "/tmain/taddpaper/" + row._id + "/" + this.userId
         });
+      }
     },
     handleDelete(row) {
       this.$confirm("确认删除?", "提示", {

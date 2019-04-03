@@ -50,7 +50,6 @@ module.exports = function(app) {
 
 
     /*----------------------学生用户----------------------*/
-    app.get('/api/look', Student.look);
     app.post('/api/slogin', Student.slogin);
     app.post('/api/sregister', Student.sregister);
     app.post('/api/smain', Student.smain); //学生个人中心--获取考试记录
