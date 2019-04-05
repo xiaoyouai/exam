@@ -1,8 +1,7 @@
 <template>
   <div>
    <el-container>
-    <el-header class="comBottom">
-     <p>欢迎来到考试系统</p>
+    <el-header class="comBottom header">
      <el-row>
       <el-col :span="8">
        <div class="grid-content bg-purple">
@@ -36,14 +35,14 @@
          <el-row>
           <el-col :span="8">
            <div class="grid-content bg-purple">
-            <router-link to="/sexam" class="href">
+            <router-link to="/sexamCenter" class="href height"  :class="{red:activeTest}">
              考试中心
             </router-link>
            </div>
           </el-col>
           <el-col :span="8">
            <div class="grid-content bg-purple">
-            <router-link to="/smsgCenter" class="href">
+            <router-link to="/smsgCenter" class="href height"  :class="{red:activeMsg}">
              个人中心
             </router-link>
            </div>
@@ -67,20 +66,33 @@
 
 <script>
 export default {
-  props:['userData'],
-  data () {
+  props: ["userData", "active"],
+  data() {
     return {
-    }
+      activeTest: this.active === "examCenter",
+      activeMsg: this.active === "msgCenter"
+    };
   },
 
   methods: {
-    out(){
-      this.$emit('signout');
+    out() {
+      this.$emit("signout");
     }
   }
-}
-
+};
 </script>
 <style scoped>
-
+.header {
+  height: 28px !important;
+  padding-top: 20px;
+}
+.red {
+  color: #409eff;
+  border: 1px solid #409eff;
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+.height {
+  line-height: 27.64px;
+}
 </style>

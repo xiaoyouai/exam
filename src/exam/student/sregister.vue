@@ -137,14 +137,14 @@ export default {
                   showClose: true,
                   message: "注册失败,用户已存在",
                   type: "error",
-                  duration: 2000
+                  duration: 1000
                 });
               } else {
                 this.$message({
                   showClose: true,
                   message: "注册失败,请检查格式",
                   type: "error",
-                  duration: 2000
+                  duration: 1000
                 });
               }
             })
@@ -153,7 +153,7 @@ export default {
                 showClose: true,
                 message: "注册失败，请稍后再试！",
                 type: "warning",
-                duration: 2000
+                duration: 1000
               });
             });
         } else {
@@ -161,7 +161,7 @@ export default {
             showClose: true,
             message: "请将正确填写信息！",
             type: "warning",
-            duration: 2000
+            duration: 1000
           });
         }
       });

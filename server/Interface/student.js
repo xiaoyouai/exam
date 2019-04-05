@@ -11,7 +11,9 @@ function md5(str) {
 
 exports.sregister = function(req, res) {
     let user = req.body.user;
-    Student.findOne({ userId: user.userId }, (err, doc) => {
+    Student.findOne({
+        userId: user.userId
+    }, (err, doc) => {
         if (err) {
             res.json({
                 status: '1',
@@ -54,7 +56,9 @@ exports.sregister = function(req, res) {
 exports.slogin = function(req, res) {
     let id = req.body.userId;
     let pwd = req.body.password;
-    Student.findOne({ userId: id }, (err, doc) => {
+    Student.findOne({
+        userId: id
+    }, (err, doc) => {
         if (err) {
             res.json({
                 status: '1',
@@ -92,97 +96,13 @@ exports.slogin = function(req, res) {
     })
 }
 
-// 获取考试记录
-exports.smain = function(req, res) { //smsgCenter里面的init方法里调用
-    let userId = req.body.userId;
-    let txt = req.body.txt;
-    let reg = new RegExp(txt, 'i'); // 在nodejs中，必须要使用RegExp，来构建正则表达式对象。
-    Student.findOne({ "userId": userId }).populate({
-            path: 'exams._paper',
-            select: 'name',
-            match: { name: reg }
-        }).exec((err1, doc1) => {
-            if (err1) {
-                res.json({
-                    status: '1',
-                    msg: err.message
-                })
-            } else {
-                if (doc1) {
-                    res.json({
-                        status: '0',
-                        msg: 'success',
-                        result: doc1.exams
-                    })
-                } else {
-                    res.json({
-                        status: '2',
-                        msg: '没有该试卷'
-                    })
-                }
-            }
-        })
-        // Student.findOne({ userId: userId }, (err, doc) => {
-        //     if (err) {
-        //         res.json({
-        //             status: '1',
-        //             msg: err.message
-        //         })
-        //     } else {
-        //         if (doc && doc.exams.length > 0) {
-        //             let sum = -1;
-        //             let len = doc.exams;
-        //             doc.exams.forEach((item) => {
-        //                 sum++;
-        //                 Paper.findOne({ "_id": item._paper }, (err2, doc2) => {
-        //                     if (err2) {
-        //                         res.json({
-        //                             status: '1',
-        //                             msg: err2.message
-        //                         })
-        //                     } else {
-        //                         if (doc2) {
-        //                             paperName.push(doc2.name);
-        //                             if (sum === len - 1) {
-        //                                 res.json({
-        //                                     status: '0',
-        //                                     msg: 'success',
-        //                                     result: {
-        //                                         exams: doc,
-        //                                         examName: paperName
-        //                                     }
-        //                                 })
-        //                             }
-        //                         } else {
-        //                             res.json({
-        //                                 status: '2',
-        //                                 msg: 'success',
-        //                                 result: {
-        //                                     exams: doc,
-        //                                     examName: paperName
-        //                                 }
-        //                             })
-        //                         }
-        //                     }
-        //                 })
-        //             })
-
-    //         } else {
-    //             res.json({
-    //                 status: '0',
-    //                 msg: 'success',
-    //                 result: []
-    //             })
-    //         }
-    //     }
-    // })
-}
-
 exports.schangeMsg = function(req, res) { //smsgCenter里面的submit方法里调用
     let user = req.body.user;
     let password = md5(req.body.password); //原密码
     user.password = md5(user.password); //新密码
-    Student.findOne({ userId: user.userId }, (err, doc) => {
+    Student.findOne({
+        userId: user.userId
+    }, (err, doc) => {
         if (err) {
             res.json({
                 status: '1',
@@ -191,7 +111,9 @@ exports.schangeMsg = function(req, res) { //smsgCenter里面的submit方法里�
         } else {
             if (doc) {
                 if (doc.password == password) {
-                    Student.update({ "userId": user.userId }, user, (err2, doc2) => {
+                    Student.update({
+                        "userId": user.userId
+                    }, user, (err2, doc2) => {
                         if (err2) {
                             res.json({
                                 status: '1',
@@ -223,5 +145,119 @@ exports.ssignout = function(req, res) { //smsgCenter里面调用
     res.json({
         status: '0',
         msg: 'success',
+    })
+}
+
+
+// 获取考试记录
+exports.sexamLogs = function(req, res) { //smsgCenter里面的getExamData方法里调用
+    let userId = req.param("userId");
+
+    let pageSize = parseInt(req.param("pageSize")); //每页条数
+    let pageNumber = parseInt(req.param("pageNumber")); //第几页
+    let skip = (pageNumber - 1) * pageSize; // 跳过几条
+
+    let txt = req.param("txt");
+    let reg = new RegExp(txt, 'i'); // 在nodejs中，必须要使用RegExp，来构建正则表达式对象。
+    Student.findOne({
+        "userId": userId
+    }, {
+        "exams": {
+            $slice: [skip, pageSize]
+        }
+    }).populate({
+        path: 'exams._paper',
+        select: 'name',
+        match: {
+            name: reg
+        }
+    }).exec((err1, doc1) => {
+        if (err1) {
+            res.json({
+                status: '1',
+                msg: err1.message
+            })
+        } else {
+            if (doc1) {
+                res.json({
+                    status: '0',
+                    msg: 'success',
+                    result: doc1.exams,
+                    total: doc1.exams.length
+                })
+            } else {
+                res.json({
+                    status: '2',
+                    msg: '没有该试卷'
+                })
+            }
+        }
+    })
+}
+
+// exports.sexamTotal = function(req, res) { //获取符合条件的考试的总条数,smsgCenter里面的getExamTotal方法里调用
+//     let userId = req.param("userId");
+//     let txt = req.param("txt");
+//     let reg = new RegExp(txt, 'i'); // 在nodejs中，必须要使用RegExp，来构建正则表达式对象。
+
+//     Student.findOne({
+//         "userId": userId
+//     }).populate({
+//         path: 'exams._paper',
+//         select: 'name',
+//         match: {
+//             name: reg
+//         }
+//     }).exec((err1, doc1) => {
+//         if (err1) {
+//             res.json({
+//                 status: '1',
+//                 msg: err1.message
+//             })
+//         } else {
+//             if (doc1) {
+//                 console.log(doc1);
+//                 res.json({
+//                     status: '0',
+//                     msg: 'success',
+//                     result: doc1.exams.length,
+//                 })
+//             } else {
+//                 res.json({
+//                     status: '2',
+//                     msg: '没有该试卷'
+//                 })
+//             }
+//         }
+//     })
+// }
+
+exports.sgetExamInfo = function(req, res) { //获取考试题目等数据,sdoExam的init方法里面调用
+    let paperId = req.param('paperId');
+    let questionData = [];
+    Paper.findOne({
+        '_id': paperId
+    }).populate({
+        path: '_questions'
+    }).exec((err1, doc1) => {
+        if (err1) {
+            res.json({
+                status: '1',
+                msg: err.message
+            })
+        } else {
+            if (doc1) {
+                res.json({
+                    status: '0',
+                    msg: 'success',
+                    result: doc1
+                })
+            } else {
+                res.json({
+                    status: '2',
+                    msg: '没有该试卷'
+                })
+            }
+        }
     })
 }

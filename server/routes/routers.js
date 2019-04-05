@@ -27,12 +27,13 @@ module.exports = function(app) {
 
     app.post('/api/taddpaper', Addpaper.taddpaper); //教师添加试卷,代码太复杂所以抽到Addpaper
     app.post('/api/tupdatepaper', Addpaper.tupdatepaper); //教师更新试卷，代码太复杂所以也抽到Addpaper
-    app.post('/api/tgetAllpaper', Teacher.tgetAllpaper); //教师获取所有的试卷
-    app.post('/api/tgetMyQuestion', Teacher.tgetMyQuestion); //教师获取自己创造的题目
+    app.get('/api/tgetAllpaper', Teacher.tgetAllpaper); //教师获取所有的试卷,搜索我的题库中的试卷也在这里实现
+    app.get('/api/tgetMyQuestion', Teacher.tgetMyQuestion); //教师获取自己题库的题目,包含了搜索操作
     app.post('/api/tgetpapermsg', Teacher.tgetpapermsg); //教师修改试卷信息，一开始进入页面需要获取试卷信息
     app.post('/api/tdelpaper', Teacher.tdelpaper); //删除试卷
 
-    app.post('/api/tgetAllQuestion', Teacher.tgetAllQuestion); //公共题库获取所有题目
+    app.get('/api/tgetAllQuestion', Teacher.tgetAllQuestion); //公共题库获取所有题目,包括了搜索操作
+
     app.post('/api/tupdateQuestion', Teacher.tupdateQuestion); //修改我的题库中的题目
     app.post('/api/tdelQuestion', Teacher.tdelQuestion); //删除我的题库中的题目
     app.post('/api/taddQuestion', Teacher.taddQuestion); //添加我的题库中的题目
@@ -41,21 +42,14 @@ module.exports = function(app) {
 
 
 
-
-    app.post('/api/tsearchQuestion', Teacher.tsearchQuestion); //搜索我的题库中的题目
-    app.post('/api/tsearchPaper', Teacher.tsearchPaper); //搜索我的题库中的试卷
-    app.post('/api/tsearchAllQuestion', Teacher.tsearchAllQuestion); //搜索公共题库中的题目
-
-
-
-
     /*----------------------学生用户----------------------*/
     app.post('/api/slogin', Student.slogin);
     app.post('/api/sregister', Student.sregister);
-    app.post('/api/smain', Student.smain); //学生个人中心--获取考试记录
-    // app.post('/api/stest', Student.stest); //学生考试中心
+    app.get('/api/sexamLogs', Student.sexamLogs); //学生个人中心--获取考试记录
+    // app.get('/api/sexamTotal', Student.sexamTotal); //获取学生考试记录总数目
     app.post('/api/schangeMsg', Student.schangeMsg); //学生修改个人信息
     app.get('/api/ssignout', Student.ssignout); //学生退出系统
+    app.get('/api/sgetExamInfo', Student.sgetExamInfo); //学生进入考试，获取考试信息
 
 
 

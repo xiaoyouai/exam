@@ -48,7 +48,7 @@ export default {
           showClose: true,
           message: "请完整输入信息",
           type: "warning",
-          duration: 2000
+          duration: 1000
         });
         return;
       }
@@ -68,7 +68,7 @@ export default {
               showClose: true,
               message: "修改成功",
               type: "success",
-              duration: 2000
+              duration: 1000
             });
             this.$mySessionStorage.set("currentUser", res.result, "json");
             this.$router.go(0);
@@ -77,7 +77,7 @@ export default {
               showClose: true,
               message: "原密码不正确，请正确输入",
               type: "error",
-              duration: 2000
+              duration: 1000
             });
           }
         })
@@ -86,7 +86,7 @@ export default {
             showClose: true,
             message: "修改失败，请稍后再试！",
             type: "warning",
-            duration: 2000
+            duration: 1000
           });
         });
     }

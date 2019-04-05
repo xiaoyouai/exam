@@ -37,9 +37,9 @@
       <el-col :span="8">
         <div class="grid-content bg-purple">
           <el-form-item label="考试班级：">
-            <el-tooltip class="item" content="请认真填写班级，一经保存无法修改" placement="top-start" style="color:red" v-if="paperId=='-1'">
+            <el-tooltip class="item" content="请认真填写班级，一经保存无法修改" placement="top-start"  v-if="paperId=='-1'">
               <el-input v-model.trim="myclass" clearable  placeholder="请输入数字" >
-                <template slot="append">班</template>
+                <template slot="append" >班</template>
               </el-input>
             </el-tooltip>
             <span v-if="paperId!=='-1'">{{myclass}}</span>
@@ -231,6 +231,7 @@ export default {
       paper: [], //试卷题目
       allQuestion: [], //题库所有的题目
       timeout: null, //用于从题库搜搜题目的节流操作
+      isAddFromHub: true, //是否是从题库添加题目，
       // 题目弹窗相关
       myquestion: {
         content: "", //题目内容
@@ -286,14 +287,14 @@ export default {
                 showClose: true,
                 message: "没有该试卷",
                 type: "error",
-                duration: 2000
+                duration: 1000
               });
             } else {
               this.$message({
                 showClose: true,
                 message: "获取试卷信息失败，请返回重试",
                 type: "error",
-                duration: 2000
+                duration: 1000
               });
             }
           })
@@ -302,14 +303,17 @@ export default {
               showClose: true,
               message: "获取试卷信息失败，请返回重试",
               type: "warning",
-              duration: 2000
+              duration: 1000
             });
           });
       }
       //我的题库
       this.$axios
-        .post("/api/tgetMyQuestion", {
-          userId: this.userId
+        .get("/api/tgetMyQuestion", {
+          params: {
+            userId: this.userId,
+            content: ""
+          }
         })
         .then(response => {
           let res = response.data;
@@ -327,7 +331,7 @@ export default {
                 showClose: true,
                 message: "题库还没有创建题目！！！",
                 type: "warning",
-                duration: 2000
+                duration: 1000
               });
             }
           } else if (res.status == "2") {
@@ -335,14 +339,14 @@ export default {
               showClose: true,
               message: "还没有创建题目！！！",
               type: "warning",
-              duration: 2000
+              duration: 1000
             });
           } else {
             this.$message({
               showClose: true,
               message: "获取题目失败，请稍后再试！",
               type: "error",
-              duration: 2000
+              duration: 1000
             });
           }
         })
@@ -352,7 +356,7 @@ export default {
             showClose: true,
             message: "获取题目失败，请稍后再试！",
             type: "error",
-            duration: 2000
+            duration: 1000
           });
         });
     },
@@ -377,6 +381,7 @@ export default {
     handleSelect(item) {
       // 编辑试卷中的题目
       this.dialogVisible = true;
+      this.isAddFromHub = true;
       this.myquestion = this.$deepCopy(item);
     },
     // 从题库搜索出现结果
@@ -413,6 +418,12 @@ export default {
     quit() {
       //取消添加题目
       this.dialogVisible = false;
+      if (this.isAddFromHub) {
+        this.allQuestion = this.allQuestion.filter(
+          item => item._id !== this.myquestion._id
+        ); //过滤已经加入的题目
+        this.isAddFromHub = false;
+      }
       this.myquestion = {
         content: "", //题目内容
         type: "",
@@ -420,8 +431,9 @@ export default {
         answer: "",
         score: ""
       };
-      this.findQuestion = "";
-      this.editIndex = -1; //这里考虑从题库加题时的情况
+      this.findQuestion = ""; //这里考虑从题库加题时的情况
+
+      this.editIndex = -1;
     },
     addQuestion() {
       //添加题目
@@ -437,7 +449,7 @@ export default {
                 showClose: true,
                 message: "该题目只有一个答案",
                 type: "warning",
-                duration: 2000
+                duration: 1000
               });
               return;
             }
@@ -465,7 +477,7 @@ export default {
             showClose: true,
             message: "请将正确填写信息！",
             type: "warning",
-            duration: 2000
+            duration: 1000
           });
         }
       });
@@ -487,11 +499,11 @@ export default {
         type: "warning"
       })
         .then(() => {
-          if (
-            this.paper[index]._papers.indexOf(this.paperId) > -1
-          ) {
+          if (this.paper[index]._papers.indexOf(this.paperId) > -1) {
             //新添加的题目不算
             this.delQuestionId.push(this.paper[index]._id);
+          } else {
+            this.allQuestion.push(this.paper[index]); //把从题库添加的题目再添加回去
           }
           this.paper.splice(index, 1);
           this.$message({
@@ -552,7 +564,7 @@ export default {
           showClose: true,
           message: "请完整并正确的输入试卷信息",
           type: "warning",
-          duration: 2000
+          duration: 1000
         });
         return;
       }
@@ -561,7 +573,7 @@ export default {
           showClose: true,
           message: "请完善试卷题目",
           type: "warning",
-          duration: 2000
+          duration: 1000
         });
         return;
       }
@@ -572,17 +584,22 @@ export default {
           showClose: true,
           message: "不可选择过去的时间,请重新选择时间",
           type: "warning",
-          duration: 2000
+          duration: 1000
         });
         return;
       }
 
       if (this.paperId == "-1") {
-        this.$confirm("确定新增试卷吗？请确认已正确选择班级信息", "提示", {
-          confirmButtonText: "确定",
-          cancelButtonText: "取消",
-          type: "warning"
-        })
+        this.$confirm(
+          `确定新增试卷吗？请确认已正确选择班级信息`,
+          `您选择的班级是--${this.myclass}--班`,
+          {
+            confirmButtonText: "确定",
+            cancelButtonText: "取消",
+            type: "warning",
+            center: true
+          }
+        )
           .then(() => {
             this.$axios
               .post("/api/taddpaper", {
@@ -603,7 +620,7 @@ export default {
                     showClose: true,
                     message: "保存成功",
                     type: "success",
-                    duration: 2000
+                    duration: 1000
                   });
                   this.$router.push({
                     path: "/tmain/tmypaper/" + parseInt(this.$route.params.id)
@@ -613,28 +630,28 @@ export default {
                     showClose: true,
                     message: "创造题目失败，请稍后再试！",
                     type: "error",
-                    duration: 2000
+                    duration: 1000
                   });
                 } else if (res.status == "3") {
                   this.$message({
                     showClose: true,
                     message: "创造试卷失败，请稍后再试！",
                     type: "error",
-                    duration: 2000
+                    duration: 1000
                   });
                 } else if (res.status == "4") {
                   this.$message({
                     showClose: true,
                     message: "未查询到教师信息，请登陆重试！",
                     type: "error",
-                    duration: 2000
+                    duration: 1000
                   });
                 } else {
                   this.$message({
                     showClose: true,
                     message: "保存失败，请稍后再试！",
                     type: "error",
-                    duration: 2000
+                    duration: 1000
                   });
                 }
               })
@@ -643,7 +660,7 @@ export default {
                   showClose: true,
                   message: "保存失败，请稍后再试！",
                   type: "warning",
-                  duration: 2000
+                  duration: 1000
                 });
               });
           })
@@ -667,7 +684,7 @@ export default {
             },
             paperId: this.paperId,
             teacherId: this.teacherId,
-            delQuestionId:this.delQuestionId
+            delQuestionId: this.delQuestionId
           })
           .then(response => {
             let res = response.data;
@@ -676,7 +693,7 @@ export default {
                 showClose: true,
                 message: "修改成功",
                 type: "success",
-                duration: 2000
+                duration: 1000
               });
               this.$router.push({
                 path: "/tmain/tmypaper/" + parseInt(this.$route.params.id)
@@ -686,21 +703,21 @@ export default {
                 showClose: true,
                 message: "没找到题目",
                 type: "error",
-                duration: 2000
+                duration: 1000
               });
             } else if (res.status == "3") {
               this.$message({
                 showClose: true,
                 message: "新添加题目失败",
                 type: "error",
-                duration: 2000
+                duration: 1000
               });
             } else {
               this.$message({
                 showClose: true,
                 message: "修改失败，请稍后重试",
                 type: "error",
-                duration: 2000
+                duration: 1000
               });
             }
           })
@@ -709,7 +726,7 @@ export default {
               showClose: true,
               message: "修改失败，请稍后重试",
               type: "warning",
-              duration: 2000
+              duration: 1000
             });
           });
       }

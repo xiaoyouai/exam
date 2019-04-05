@@ -1,6 +1,6 @@
 <template>
 <div>
-  <s-header :userData="userData" @signout="signout"></s-header>
+  <s-header :userData="userData" @signout="signout" :active="activeItem"></s-header>
   <el-container>
     <el-main>
       <el-tabs type="border-card">
@@ -8,10 +8,10 @@
           <span slot="label"><i class="el-icon-date"></i>考试记录</span>
           <div class="comBottom">
             试卷名称：
-            <el-input placeholder="请输入试卷名" v-model="searchTxt" clearable prefix-icon="el-icon-search"  size="small" style="width:30%">  </el-input>
+            <el-input placeholder="请输入试卷名" v-model="searchTxt" clearable prefix-icon="el-icon-search"  size="small" style="width:30%" @click="search">  </el-input>
              <el-button type="primary" size="small" @click="search">搜索</el-button>
           </div>
-          <el-table :data="tableData" height="360" border  style="width: 100%" :default-sort = "{prop: 'startTime', order: 'descending'}">
+          <el-table :data="tableData" border v-loading="loading" height="370" style="width: 80%;margin:0 auto 20px;" :default-sort = "{prop: 'startTime', order: 'descending'}">
             <el-table-column prop="_paper.name" label="试卷名称" > </el-table-column>
             <el-table-column prop="startTime" label="考试日期" sortable> </el-table-column>
             <el-table-column prop="date" label="考试时长" sortable> </el-table-column>
@@ -25,6 +25,17 @@
               </template>
             </el-table-column>
           </el-table>
+          <div class="block">
+            <el-pagination
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
+              :current-page="currentPage"
+              :page-sizes="[pageTotal,6, 12, 20, 30]"
+              :page-size="pageSize"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="pageTotal">
+            </el-pagination>
+          </div>
         </el-tab-pane>
         <!-- 修改信息-->
         <el-tab-pane label="修改信息">
@@ -68,41 +79,93 @@ export default {
     sHeader
   },
   mounted() {
+    // this.getExamTotal();
     this.getExamData();
   },
   data() {
     return {
+      activeItem: "msgCenter", //目前是处在哪一项
       password: "",
       Npassword: "", //新密
       userData: "",
       searchTxt: "",
       tableData: [],
+      loading: true,
+
+      currentPage: 1, //当前页码
+      pageSize: 10000, //每页条数,初始化为10000
+      pageTotal: 0 //总条数
     };
   },
 
   methods: {
+    /**
+     *  获取总页数
+     */
     getExamData() {
+      this.loading = true;
       this.userData = this.$getUserData();
       this.$axios
-        .post("/api/smain", { userId: this.userData.userId,txt:this.searchTxt })
+        .get("/api/sexamLogs", {
+          params: {
+            userId: this.userData.userId,
+            txt: this.searchTxt,
+            pageNumber: this.currentPage,
+            pageSize: this.pageSize
+          }
+        })
         .then(response => {
           let res = response.data;
+          this.pageSize = this.pageSize === 10000 ? res.total : this.pageSize;
+          this.pageTotal = this.pageTotal === 0 ? res.total : this.pageTotal;
+
           if (res.msg == "success" && res.status == "0") {
-            this.tableData = res.result.filter(item=>item._paper);
-            // this.tableData.forEach((element,index) => {
-            //   element.name=res.result.examName[i];
-            // });
+            // if (
+            //   res.result.filter(item => item._paper).length === 0 &&
+            //   this.tableData.length > 0
+            // ) {
+            //   this.$message({
+            //     showClose: true,
+            //     message: "未查询到该试卷！",
+            //     type: "warning",
+            //     duration: 1000
+            //   });
+            //   this.loading = false;
+            //   return;
+            // }
+
+            this.tableData = res.result.filter(item => item._paper);
           }
-        }).catch(err => {
+          this.loading = false;
+        })
+        .catch(err => {
           this.$message({
             showClose: true,
-            message: '获取考试记录失败，请稍后再试！',
-            type: 'warning',
-            duration:2000
+            message: "获取考试记录失败，请稍后再试！",
+            type: "warning",
+            duration: 1000
           });
-        })
+          this.loading = false;
+        });
     },
-    search(){
+    /**
+     * 搜索试卷，需要考虑搜索时的分页情况
+     */
+    search() {
+      this.currentPage = 1; //当前页码
+      this.pageSize = 10000; //每页条数
+      this.pageTotal = 0; //总条数
+      this.getExamData();
+    },
+    /**
+     * 分页
+     */
+    handleSizeChange(val) {
+      this.pageSize = val;
+      this.getExamData();
+    },
+    handleCurrentChange(val) {
+      this.currentPage = val;
       this.getExamData();
     },
     submit() {
@@ -120,7 +183,7 @@ export default {
           showClose: true,
           message: "请正确输入信息",
           type: "warning",
-          duration: 2000
+          duration: 1000
         });
         return;
       }
@@ -142,7 +205,7 @@ export default {
               showClose: true,
               message: "修改成功",
               type: "success",
-              duration: 2000
+              duration: 1000
             });
             this.$mySessionStorage.set("currentUser", this.userData, "json");
           } else if (res.status == "2") {
@@ -150,7 +213,7 @@ export default {
               showClose: true,
               message: "原密码不正确，请正确输入",
               type: "error",
-              duration: 2000
+              duration: 1000
             });
           }
         })
@@ -159,7 +222,7 @@ export default {
             showClose: true,
             message: "修改失败，请稍后再试！",
             type: "warning",
-            duration: 2000
+            duration: 1000
           });
         });
     },

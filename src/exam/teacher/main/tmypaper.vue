@@ -20,7 +20,7 @@
             </el-row>
 
           </div>
-          <el-table :data="tableData" height="420" border v-loading="loading" style="width: 100%" :default-sort = "{prop: 'date', order: 'descending'}" @selection-change="handleSelectionChange">
+          <el-table :data="tableData" height="420" border v-loading="loading" style="width: 100%;margin-bottom:10px;" :default-sort = "{prop: 'date', order: 'descending'}" @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="56"> </el-table-column>
             <el-table-column prop="startTime" label="考试时间" sortable> </el-table-column>
             <el-table-column prop="examclass" label="考试班级"> </el-table-column>
@@ -39,6 +39,17 @@
               </template>
             </el-table-column>
           </el-table>
+          <div class="block">
+            <el-pagination
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
+              :current-page="currentPage"
+              :page-sizes="[pageTotal,7, 14, 20, 30]"
+              :page-size="pageSize"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="pageTotal">
+            </el-pagination>
+          </div>
     </el-main>
   </el-container>
 
@@ -54,6 +65,10 @@ export default {
       tableData: [],
       loading: true,
       selPaper: [], //所有选中的试卷
+
+      currentPage: 1, //当前页码
+      pageSize: 10000, //每页条数,初始化为10000
+      pageTotal: 0 //总条数
     };
   },
   mounted() {
@@ -62,20 +77,38 @@ export default {
   methods: {
     init() {
       this.userId = this.$route.params.id;
+      this.loading = true;
       this.$axios
-        .post("/api/tgetAllpaper", {
-          userId: this.userId
+        .get("/api/tgetAllpaper", {
+          params: {
+            userId: this.userId,
+            name: this.papername,
+            pageNumber: this.currentPage,
+            pageSize: this.pageSize
+          }
         })
         .then(response => {
           let res = response.data;
+          this.pageSize = this.pageSize === 10000 ? res.total : this.pageSize;
+          this.pageTotal = this.pageTotal === 0 ? res.total : this.pageTotal;
           if (res.msg == "success" && res.status == "0") {
-            this.tableData=res.result;
-            if (this.tableData.length ===0) {
+            // if (res.result.length === 0 && this.tableData.length > 0) {
+            //   this.$message({
+            //     showClose: true,
+            //     message: "未搜到该试卷！！！",
+            //     type: "warning",
+            //     duration: 1000
+            //   });
+            //   this.loading = false;
+            //   return;
+            // }
+            this.tableData = res.result;
+            if (this.tableData.length === 0) {
               this.$message({
                 showClose: true,
                 message: "还没有创建试卷！！！",
                 type: "warning",
-                duration: 2000
+                duration: 1000
               });
             }
           } else if (res.status == "2") {
@@ -83,14 +116,14 @@ export default {
               showClose: true,
               message: "还没有创建试卷！！！",
               type: "error",
-              duration: 2000
+              duration: 1000
             });
           } else {
             this.$message({
               showClose: true,
               message: "获取试卷失败，请稍后再试！",
               type: "error",
-              duration: 2000
+              duration: 1000
             });
           }
           this.loading = false;
@@ -102,7 +135,7 @@ export default {
             showClose: true,
             message: "获取试卷失败，请稍后再试！",
             type: "warning",
-            duration: 2000
+            duration: 1000
           });
         });
     },
@@ -117,11 +150,11 @@ export default {
           showClose: true,
           message: "已开考或正在考试，无法修改",
           type: "warning",
-          duration: 2000
+          duration: 1000
         });
         return;
       }
-      if (now - new Date(row.startTime)){
+      if (now - new Date(row.startTime)) {
         this.$router.push({
           path: "/tmain/taddpaper/" + row._id + "/" + this.userId
         });
@@ -137,8 +170,7 @@ export default {
           this.$axios
             .post("/api/tdelpaper", {
               userId: this.userId,
-              paperId: row._id,
-              class: row.examclass
+              paperId: [row]
             })
             .then(response => {
               let res = response.data;
@@ -152,26 +184,27 @@ export default {
                   showClose: true,
                   duration: 1000
                 });
+                this.init();
               } else if (res.status == "3") {
                 this.$message({
                   showClose: true,
                   message: "没有该试卷",
                   type: "error",
-                  duration: 2000
+                  duration: 1000
                 });
               } else if (res.status == "4") {
                 this.$message({
                   showClose: true,
                   message: "题目删除试卷失败",
                   type: "error",
-                  duration: 2000
+                  duration: 1000
                 });
               } else {
                 this.$message({
                   showClose: true,
                   message: "删除失败，请稍后再试！",
                   type: "error",
-                  duration: 2000
+                  duration: 1000
                 });
               }
             });
@@ -196,8 +229,7 @@ export default {
           this.$axios
             .post("/api/tdelpaper", {
               userId: this.userId,
-              paperId: this.selPaper,//整个放过去，后台解析
-              class: this.selPaper//整个放过去，后台解析
+              paperId: this.selPaper //整个放过去，后台解析
             })
             .then(response => {
               let res = response.data;
@@ -211,14 +243,15 @@ export default {
                   showClose: true,
                   type: "success",
                   message: "删除成功!",
-                  duration: 2000
+                  duration: 1000
                 });
+                this.init();
               } else {
                 this.$message({
                   showClose: true,
                   message: "删除失败",
                   type: "error",
-                  duration: 2000
+                  duration: 1000
                 });
               }
             })
@@ -227,7 +260,7 @@ export default {
                 showClose: true,
                 message: "删除失败",
                 type: "warning",
-                duration: 2000
+                duration: 1000
               });
             });
         })
@@ -239,39 +272,22 @@ export default {
           });
         });
     },
-    search(){
-        this.$axios
-        .post("/api/tsearchPaper", { name: this.papername,teacherId:this.tableData[0]._teacher })
-        .then(response => {
-          let res = response.data;
-          if (res.msg == "success" && res.status == "0") {
-            if (res.result.length === 0) {
-              this.$message({
-                showClose: true,
-                type: "warning",
-                message: "没有该试卷!",
-                duration: 2000
-              });
-              return ;
-            }
-            this.tableData = res.result;
-          } else {
-            this.$message({
-              showClose: true,
-              message: "搜索失败",
-              type: "error",
-              duration: 2000
-            });
-          }
-        })
-        .catch(err => {
-          this.$message({
-            showClose: true,
-            message: "搜索失败",
-            type: "warning",
-            duration: 2000
-          });
-        });
+    search() {
+      this.currentPage = 1; //当前页码
+      this.pageSize = 10000; //每页条数
+      this.pageTotal = 0; //总条数
+      this.init();
+    },
+    /**
+     * 分页
+     */
+    handleSizeChange(val) {
+      this.pageSize = val;
+      this.init();
+    },
+    handleCurrentChange(val) {
+      this.currentPage = val;
+      this.init();
     }
   }
 };

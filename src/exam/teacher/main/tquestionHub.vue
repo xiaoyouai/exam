@@ -18,7 +18,7 @@
               </el-col>
             </el-row>
           </div>
-          <el-table v-loading="loading" :data="tableData" height="420" border  style="width: 100%" :default-sort = "{prop: 'date', order: 'descending'}" @selection-change="handleSelectionChange">
+          <el-table v-loading="loading" :data="tableData" height="410" border  style="width: 100%;margin-bottom:10px;" :default-sort = "{prop: 'date', order: 'descending'}" @selection-change="handleSelectionChange">
             <el-table-column type="expand">
                 <template slot-scope="props">
                   <el-form label-position="left" inline class="demo-table-expand">
@@ -70,6 +70,17 @@
               </template>
             </el-table-column>
         </el-table>
+        <div class="block">
+          <el-pagination
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page="currentPage"
+            :page-sizes="[pageTotal,7, 14, 20, 30]"
+            :page-size="pageSize"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="pageTotal">
+          </el-pagination>
+        </div>
     </el-main>
   </el-container>
 
@@ -188,8 +199,12 @@ export default {
           { validator: checkScore, trigger: "blur", required: true },
           { pattern: /^[0-9]+$/, message: "分值必须为数字值" }
         ]
-      }
+      },
       // 弹窗相关数据
+
+      currentPage: 1, //当前页码
+      pageSize: 10000, //每页条数,初始化为10000
+      pageTotal: 0 //总条数
     };
   },
   computed: {
@@ -228,13 +243,33 @@ export default {
   methods: {
     init() {
       this.userId = this.$route.params.id;
+      this.loading = true;
       this.$axios
-        .post("/api/tgetMyQuestion", {
-          userId: this.userId
+        .get("/api/tgetMyQuestion", {
+          params: {
+            userId: this.userId,
+            content: this.searchTxt,
+            pageNumber: this.currentPage,
+            pageSize: this.pageSize
+          }
         })
         .then(response => {
           let res = response.data;
+          this.pageSize =
+            this.pageSize === 10000 ? res.result.total : this.pageSize;
+          this.pageTotal =
+            this.pageTotal === 0 ? res.result.total : this.pageTotal;
           if (res.msg == "success" && res.status == "0") {
+            // if (res.result.question.length === 0 && this.tableData.length > 0) {
+            //   this.$message({
+            //     showClose: true,
+            //     message: "未搜到该题目！！！",
+            //     type: "warning",
+            //     duration: 1000
+            //   });
+            //   this.loading = false;
+            //   return;
+            // }
             this.tableData = res.result.question;
             this.teacherId = res.result.teacher;
             if (this.tableData.length === 0) {
@@ -242,7 +277,7 @@ export default {
                 showClose: true,
                 message: "还没有创建题目！！！",
                 type: "warning",
-                duration: 2000
+                duration: 1000
               });
             }
           } else if (res.status == "2") {
@@ -250,14 +285,14 @@ export default {
               showClose: true,
               message: "还没有创建题目！！！",
               type: "warning",
-              duration: 2000
+              duration: 1000
             });
           } else {
             this.$message({
               showClose: true,
               message: "获取题目失败，请稍后再试！",
               type: "error",
-              duration: 2000
+              duration: 1000
             });
           }
           this.loading = false;
@@ -269,7 +304,7 @@ export default {
             showClose: true,
             message: "获取题目失败，请稍后再试！",
             type: "warning",
-            duration: 2000
+            duration: 1000
           });
         });
     },
@@ -283,7 +318,7 @@ export default {
           showClose: true,
           type: "warning",
           message: "该题目不是您出的，您无法编辑和删除，只能将题目移出题库!",
-          duration: 2000
+          duration: 1000
         });
         return;
       }
@@ -341,14 +376,14 @@ export default {
               showClose: true,
               type: "success",
               message: "移除成功!",
-              duration: 2000
+              duration: 1000
             });
           } else {
             this.$message({
               showClose: true,
               message: "移除失败",
               type: "error",
-              duration: 2000
+              duration: 1000
             });
           }
         })
@@ -357,44 +392,46 @@ export default {
             showClose: true,
             message: "移除失败",
             type: "warning",
-            duration: 2000
+            duration: 1000
           });
         });
     },
-    doDelQuestion(data){      //调用接口删除题目，multiDel和handleDelete中调用
-          this.$axios
-            .post("/api/tdelQuestion", { questionData: data })
-            .then(response => {
-              let res = response.data;
-              if (res.msg == "success" && res.status == "0") {
-                data.forEach(datas => {
-                  this.tableData = this.tableData.filter(
-                    item => item._id !== datas._id
-                  );
-                });
-                this.$message({
-                  showClose: true,
-                  type: "success",
-                  message: "删除成功!",
-                  duration: 2000
-                });
-              } else {
-                this.$message({
-                  showClose: true,
-                  message: "删除失败",
-                  type: "error",
-                  duration: 2000
-                });
-              }
-            })
-            .catch(err => {
-              this.$message({
-                showClose: true,
-                message: "删除失败",
-                type: "warning",
-                duration: 2000
-              });
+    doDelQuestion(data) {
+      //调用接口删除题目，multiDel和handleDelete中调用
+      this.$axios
+        .post("/api/tdelQuestion", { questionData: data })
+        .then(response => {
+          let res = response.data;
+          if (res.msg == "success" && res.status == "0") {
+            data.forEach(datas => {
+              this.tableData = this.tableData.filter(
+                item => item._id !== datas._id
+              );
             });
+            this.$message({
+              showClose: true,
+              type: "success",
+              message: "删除成功!",
+              duration: 1000
+            });
+            this.init();
+          } else {
+            this.$message({
+              showClose: true,
+              message: "删除失败",
+              type: "error",
+              duration: 1000
+            });
+          }
+        })
+        .catch(err => {
+          this.$message({
+            showClose: true,
+            message: "删除失败",
+            type: "warning",
+            duration: 1000
+          });
+        });
     },
     multiDel() {
       //批量删除
@@ -416,14 +453,14 @@ export default {
             removeArr.forEach(item => {
               removeData.push(item._id);
             });
-            this.doRemoveQuestionFromHub(removeData);//移除题目
+            this.doRemoveQuestionFromHub(removeData); //移除题目
           }
 
           this.selQuestion = this.selQuestion.filter(
             item => item._teacher === this.teacherId
           );
-          if(this.selQuestion.length>0){
-          this.doDelQuestion(this.selQuestion);//删除题目
+          if (this.selQuestion.length > 0) {
+            this.doDelQuestion(this.selQuestion); //删除题目
           }
         })
         .catch(err => {
@@ -468,7 +505,7 @@ export default {
                 showClose: true,
                 message: "该题目只有一个答案",
                 type: "warning",
-                duration: 2000
+                duration: 1000
               });
               return;
             }
@@ -506,14 +543,14 @@ export default {
                   showClose: true,
                   type: "success",
                   message: "修改成功!",
-                  duration: 2000
+                  duration: 1000
                 });
               } else {
                 this.$message({
                   showClose: true,
                   message: "修改失败",
                   type: "error",
-                  duration: 2000
+                  duration: 1000
                 });
               }
             })
@@ -522,7 +559,7 @@ export default {
                 showClose: true,
                 message: "修改失败",
                 type: "warning",
-                duration: 2000
+                duration: 1000
               });
             });
           this.quit(); //并不是真的取消，只是这里要用到一样的代码
@@ -531,7 +568,7 @@ export default {
             showClose: true,
             message: "请将正确填写信息！",
             type: "warning",
-            duration: 2000
+            duration: 1000
           });
         }
       });
@@ -559,13 +596,22 @@ export default {
         .then(response => {
           let res = response.data;
           if (res.msg == "success" && res.status == "0") {
-            this.tableData.push(res.result);
+            this.$message({
+              showClose: true,
+              message: "添加成功,可前往最后一页查看",
+              type: "success",
+              duration: 2000
+            });
+            this.currentPage = 1; //当前页码
+            this.pageSize = 10000; //每页条数
+            this.pageTotal = 0; //总条数
+            this.init();
           } else {
             this.$message({
               showClose: true,
               message: "添加失败",
               type: "error",
-              duration: 2000
+              duration: 1000
             });
           }
         })
@@ -574,47 +620,27 @@ export default {
             showClose: true,
             message: "添加失败",
             type: "warning",
-            duration: 2000
+            duration: 1000
           });
         });
       this.quit();
     },
     search() {
-      this.$axios
-        .post("/api/tsearchQuestion", {
-          content: this.searchTxt,
-          teacherId: this.teacherId
-        })
-        .then(response => {
-          let res = response.data;
-          if (res.msg == "success" && res.status == "0") {
-            if (res.result.length === 0) {
-              this.$message({
-                showClose: true,
-                type: "warning",
-                message: "没有该题目!",
-                duration: 2000
-              });
-              return;
-            }
-            this.tableData = res.result;
-          } else {
-            this.$message({
-              showClose: true,
-              message: "搜索失败",
-              type: "error",
-              duration: 2000
-            });
-          }
-        })
-        .catch(err => {
-          this.$message({
-            showClose: true,
-            message: "搜索失败",
-            type: "warning",
-            duration: 2000
-          });
-        });
+      this.currentPage = 1; //当前页码
+      this.pageSize = 10000; //每页条数
+      this.pageTotal = 0; //总条数
+      this.init();
+    },
+    /**
+     * 分页
+     */
+    handleSizeChange(val) {
+      this.pageSize = val;
+      this.init();
+    },
+    handleCurrentChange(val) {
+      this.currentPage = val;
+      this.init();
     }
   }
 };

@@ -98,7 +98,7 @@
 export default {
   data() {
     return {
-      id: "",
+      paperId: "",
       dialogVisible: false,
       paperData: {
         name: "",
@@ -161,8 +161,7 @@ export default {
   },
   mounted() {
     this.nowTime = new Date();
-    this.id = this.$route.params.id;
-    // this.startTime = new Date();
+    this.paperId = this.$route.params.id;
     this.init();
     window.addEventListener("scroll", this.handleScroll);
   },
@@ -174,53 +173,48 @@ export default {
      * 初始化
      */
     init() {
-      if (this.id == "" || !this.id) {
-        this.$router.push({ path: "forntexamindex" });
-        return;
-      } else {
-        this.$axios
-          .get("/api/getExamInfo", {
-            params: {
-              id: this.id
+      this.$axios
+        .get("/api/sgetExamInfo", {
+          params: {
+            paperId: this.paperId
+          }
+        })
+        .then(response => {
+          let res = response.data;
+          if (res.status == "0") {
+            for (let key in this.paperData) {
+              this.paperData[key] = res.result[key];
             }
-          })
-          .then(response => {
-            let res = response.data;
-            if (res.status == "0") {
-              for (let key in this.paperData) {
-                this.paperData[key] = res.result[key];
-              }
-              this.startTime = res.result.startTime;
-              this.examTime =
-                this.paperData.time * 60 -
-                (this.nowTime - new Date(this.startTime)) / 1000;
-              if (this.examTime <= 0) {
-                this.$message.error("考试时间已过!");
-                this.$router.go(-1);
-              }
-              this.getCode();
-              // this.timeOut();
-              res.result._questions.forEach(item => {
-                if (item.type == "single") {
-                  item.sanswer = "";
-                  this.singleQuestions.push(item);
-                } else if (item.type == "multi") {
-                  item.sanswer = [];
-                  this.multiQuestions.push(item);
-                } else if (item.type == "Q&A") {
-                  item.sanswer = "";
-                  this.QAQuestions.push(item);
-                } else if (item.type == "judgement") {
-                  item.sanswer = "";
-                  this.judgeQuestions.push(item);
-                }
-              });
+            this.startTime = res.result.startTime;
+            this.examTime =
+              this.paperData.time * 60 -
+              (this.nowTime - new Date(this.startTime)) / 1000;
+            if (this.examTime <= 0) {
+              this.$message.error("考试时间已过!");
+              this.$router.go(-1);
             }
-          })
-          .catch(err => {
-            this.$message.error(err);
-          });
-      }
+            this.getCode();
+            // this.timeOut();
+            res.result._questions.forEach(item => {
+              if (item.type == "single") {
+                item.sanswer = "";
+                this.singleQuestions.push(item);
+              } else if (item.type == "multi") {
+                item.sanswer = [];
+                this.multiQuestions.push(item);
+              } else if (item.type == "Q&A") {
+                item.sanswer = "";
+                this.QAQuestions.push(item);
+              } else if (item.type == "judgement") {
+                item.sanswer = "";
+                this.judgeQuestions.push(item);
+              }
+            });
+          }
+        })
+        .catch(err => {
+          this.$message.error(err);
+        });
     },
     /**
      * 回到顶部

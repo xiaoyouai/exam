@@ -9,7 +9,7 @@
                 <el-button type="primary" size="small" @click="search">搜索</el-button>
                 <el-button type="primary" size="small" class="multiAddBtn" @click="multiAdd">批量添加</el-button>
           </div>
-          <el-table :data="tableData" v-loading="loading" height="420" border  style="width: 100%" :default-sort = "{prop: 'date', order: 'descending'}" @selection-change="handleSelectionChange">
+          <el-table :data="tableData" v-loading="loading" height="410" border  style="width: 100%;margin-bottom:10px;" :default-sort = "{prop: 'date', order: 'descending'}" @selection-change="handleSelectionChange">
             <el-table-column type="expand">
                 <template slot-scope="props">
                   <el-form label-position="left" inline class="demo-table-expand">
@@ -58,6 +58,17 @@
               </template>
             </el-table-column>
         </el-table>
+          <div class="block">
+            <el-pagination
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
+              :current-page="currentPage"
+              :page-sizes="[pageTotal,7, 14, 20, 30]"
+              :page-size="pageSize"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="pageTotal">
+            </el-pagination>
+          </div>
     </el-main>
   </el-container>
 
@@ -74,7 +85,11 @@ export default {
       questionData: [], //从数据库获取得来的题目数据
       loading: true,
       searchTxt: "",
-      multipleSelection: "" //批量选择时的选定项
+      multipleSelection: "", //批量选择时的选定项
+
+      currentPage: 1, //当前页码
+      pageSize: 10000, //每页条数,初始化为10000
+      pageTotal: 0 //总条数
     };
   },
   computed: {
@@ -113,12 +128,25 @@ export default {
   methods: {
     init() {
       this.userId = parseInt(this.$route.params.id);
+      this.loading = true;
       this.$axios
-        .post("/api/tgetAllQuestion", { userId: this.userId })
+        .get("/api/tgetAllQuestion", {
+          params: {
+            userId: this.userId,
+            content: this.searchTxt,
+            pageNumber: this.currentPage,
+            pageSize: this.pageSize
+          }
+        })
         .then(response => {
           let res = response.data;
+          this.pageSize =
+            this.pageSize === 10000 ? res.result.total : this.pageSize;
+          this.pageTotal =
+            this.pageTotal === 0 ? res.result.total : this.pageTotal;
           if (res.msg == "success" && res.status == "0") {
             this.questionData = res.result.questionData;
+            this.tableData = [];
             this.teacherId = res.result.teacherId;
             if (this.questionData.length > 0) {
               this.questionData.forEach(item => {
@@ -137,7 +165,7 @@ export default {
                 showClose: true,
                 message: "还没有创建题目！！！",
                 type: "warning",
-                duration: 2000
+                duration: 1000
               });
             }
           } else if (res.status == "2") {
@@ -145,14 +173,14 @@ export default {
               showClose: true,
               message: "还没有创建题目！！！",
               type: "warning",
-              duration: 2000
+              duration: 1000
             });
           } else {
             this.$message({
               showClose: true,
               message: "获取题目失败，请稍后再试！",
               type: "error",
-              duration: 2000
+              duration: 1000
             });
           }
           this.loading = false;
@@ -163,7 +191,7 @@ export default {
             showClose: true,
             message: "获取题目失败，请稍后再试！",
             type: "error",
-            duration: 2000
+            duration: 1000
           });
         });
     },
@@ -171,52 +199,24 @@ export default {
       this.multipleSelection = val;
     },
     search() {
-      this.$axios
-        .post("/api/tsearchAllQuestion", { content: this.searchTxt })
-        .then(response => {
-          let res = response.data;
-          if (res.msg == "success" && res.status == "0") {
-            if (res.result.length === 0) {
-              this.$message({
-                showClose: true,
-                type: "warning",
-                message: "没有该题目!",
-                duration: 2000
-              });
-              return;
-            }
-            this.questionData = res.result;
-            this.tableData = [];
-            this.questionData.forEach(item => {
-              this.tableData.push({
-                questionId: item._id,
-                type: item.type,
-                name: item.content,
-                grade: item.score,
-                answer: item.answer,
-                selection: item.selection,
-                teacher: item._teacher
-              });
-            });
-          } else {
-            this.$message({
-              showClose: true,
-              message: "搜索失败",
-              type: "error",
-              duration: 2000
-            });
-          }
-        })
-        .catch(err => {
-          this.$message({
-            showClose: true,
-            message: "搜索失败",
-            type: "warning",
-            duration: 2000
-          });
-        });
+      this.currentPage = 1; //当前页码
+      this.pageSize = 10000; //每页条数
+      this.pageTotal = 0; //总条数
+      this.init();
     },
-    doAdd(question) {//接口实现添加
+    /**
+     * 分页
+     */
+    handleSizeChange(val) {
+      this.pageSize = val;
+      this.init();
+    },
+    handleCurrentChange(val) {
+      this.currentPage = val;
+      this.init();
+    },
+    doAdd(question) {
+      //接口实现添加
       this.$axios
         .post("/api/taddQuestionToHub", {
           questionData: question,
@@ -229,21 +229,21 @@ export default {
               showClose: true,
               type: "success",
               message: "添加成功!",
-              duration: 2000
+              duration: 1000
             });
           } else if (res.status === "3") {
             this.$message({
               showClose: true,
               type: "success",
               message: "已经在你的题库了!",
-              duration: 2000
+              duration: 1000
             });
           } else {
             this.$message({
               showClose: true,
               message: "添加失败",
               type: "error",
-              duration: 2000
+              duration: 1000
             });
           }
         })
@@ -252,7 +252,7 @@ export default {
             showClose: true,
             message: "添加失败",
             type: "warning",
-            duration: 2000
+            duration: 1000
           });
         });
     },
@@ -268,7 +268,7 @@ export default {
               showClose: true,
               type: "success",
               message: "已经是你的题目了!",
-              duration: 2000
+              duration: 1000
             });
             return;
           }
@@ -282,7 +282,8 @@ export default {
           });
         });
     },
-    multiAdd() {//批量添加
+    multiAdd() {
+      //批量添加
       this.$confirm(
         "确认添加, 是否继续?如果选中题目已经在您的题库中，则默认不添加",
         "提示",
