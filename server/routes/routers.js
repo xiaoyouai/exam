@@ -50,6 +50,7 @@ module.exports = function(app) {
     app.post('/api/schangeMsg', Student.schangeMsg); //学生修改个人信息
     app.get('/api/ssignout', Student.ssignout); //学生退出系统
     app.get('/api/sgetExamInfo', Student.sgetExamInfo); //学生进入考试，获取考试信息
+    app.post('/api/sSubmitExam', Student.sSubmitExam); //学生提交考试答案
 
 
 

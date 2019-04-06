@@ -195,42 +195,6 @@ exports.sexamLogs = function(req, res) { //smsgCenter里面的getExamData方法�
     })
 }
 
-// exports.sexamTotal = function(req, res) { //获取符合条件的考试的总条数,smsgCenter里面的getExamTotal方法里调用
-//     let userId = req.param("userId");
-//     let txt = req.param("txt");
-//     let reg = new RegExp(txt, 'i'); // 在nodejs中，必须要使用RegExp，来构建正则表达式对象。
-
-//     Student.findOne({
-//         "userId": userId
-//     }).populate({
-//         path: 'exams._paper',
-//         select: 'name',
-//         match: {
-//             name: reg
-//         }
-//     }).exec((err1, doc1) => {
-//         if (err1) {
-//             res.json({
-//                 status: '1',
-//                 msg: err1.message
-//             })
-//         } else {
-//             if (doc1) {
-//                 console.log(doc1);
-//                 res.json({
-//                     status: '0',
-//                     msg: 'success',
-//                     result: doc1.exams.length,
-//                 })
-//             } else {
-//                 res.json({
-//                     status: '2',
-//                     msg: '没有该试卷'
-//                 })
-//             }
-//         }
-//     })
-// }
 
 exports.sgetExamInfo = function(req, res) { //获取考试题目等数据,sdoExam的init方法里面调用
     let paperId = req.param('paperId');
@@ -256,6 +220,85 @@ exports.sgetExamInfo = function(req, res) { //获取考试题目等数据,sdoExa
                 res.json({
                     status: '2',
                     msg: '没有该试卷'
+                })
+            }
+        }
+    })
+}
+
+// 提交考试
+exports.sSubmitExam = function(req, res) {
+    let userId = req.body.userId;
+    let paperId = req.body.paperId; //paper的_id
+    let score = req.body.score;
+    let startTime = req.body.startTime;
+    let answers = req.body.answers;
+    console.log(score);
+    Student.update({ //学生添加题目,直接更新整个数组
+        'userId': userId,
+        "exams._paper": paperId
+    }, {
+        $set: {
+            "exams.$.answers": answers,
+            "exams.$.score": score
+        }
+    }, (err, doc) => {
+        if (err) {
+            res.json({
+                status: '1',
+                msg: err.message
+            })
+        } else {
+            if (doc.nModified === 1) {
+                // if (paperId === '' || score === '') {
+                //     res.json({
+                //         status: '2',
+                //         msg: '参数错误'
+                //     })
+                //     return
+                // }
+                // doc.exams.push({
+                //     _paper: id,
+                //     date: new Date(),
+                //     isSure: !answers.length > 0,
+                //     score: score,
+                //     answers: answers,
+                //     startTime: startTime
+                // })
+                // doc.save();
+                res.json({
+                        status: '0',
+                        msg: 'success'
+                    })
+                    // Paper.findOne({
+                    //     '_id': paperId
+                    // }, (err1, doc1) => {
+                    //     if (err1) {
+                    //         res.json({
+                    //             status: '1',
+                    //             msg: err1.message
+                    //         })
+                    //     } else {
+                    //         if (doc1) {
+                    //             // doc1.examnum += 1;
+                    //             // doc1.save();
+                    //             res.json({
+                    //                 status: '0',
+                    //                 msg: 'success'
+                    //             })
+                    //         } else {
+                    //             res.json({
+                    //                 status: '1',
+                    //                 msg: '没有找到该试卷'
+                    //             })
+                    //         }
+                    //     }
+                    // })
+
+            } else {
+                res.json({
+                    status: '1',
+                    msg: '没找到当前用户!'
                 })
             }
         }

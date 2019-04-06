@@ -40,6 +40,31 @@ var deepCopy = function(p, c) {
 }
 Vue.prototype.$deepCopy = deepCopy;
 
+/**
+ * 判断两个数组中的元素是否相同（元素顺序无关）
+ * @param  {[type]} array [description]
+ * @return {[type]}       [description]
+ */
+Array.prototype.equals = function(array) {
+    // if the other array is a falsy value, return
+    if (!array)
+        return false;
+    // compare lengths - can save a lot of time
+    if (this.length != array.length)
+        return false;
+    for (var i = 0, l = this.length; i < l; i++) {
+        // Check if we have nested arrays
+        if (this[i] instanceof Array && array[i] instanceof Array) {
+            // recurse into the nested arrays
+            if (!this[i].equals(array[i]))
+                return false;
+        } else if (!(array.indexOf(this[i]) >= 0)) {
+            // Warning - two different object instances will never be equal: {x:20} != {x:20}
+            return false;
+        }
+    }
+    return true;
+}
 
 Vue.prototype.$axios = axios; //设置全局使用axios方法，不然的话每个组件都要引入axios
 
@@ -62,9 +87,13 @@ router.beforeEach((to, from, next) => {
         if (!userdata.userName) {
             ElementUI.Message.error('抱歉，您还没有登录！');
             if (to.path.indexOf('s') > 0) {
-                router.push({ path: '/' });
+                router.push({
+                    path: '/'
+                });
             } else {
-                router.push({ path: '/tlogin' });
+                router.push({
+                    path: '/tlogin'
+                });
             }
         } else {
             next();
@@ -82,6 +111,8 @@ Vue.config.productionTip = false
 new Vue({
     el: '#app',
     router,
-    components: { App },
+    components: {
+        App
+    },
     template: '<App/>'
 })

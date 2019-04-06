@@ -116,25 +116,13 @@ export default {
         })
         .then(response => {
           let res = response.data;
-          this.pageSize = this.pageSize === 10000 ? res.total : this.pageSize;
-          this.pageTotal = this.pageTotal === 0 ? res.total : this.pageTotal;
 
           if (res.msg == "success" && res.status == "0") {
-            // if (
-            //   res.result.filter(item => item._paper).length === 0 &&
-            //   this.tableData.length > 0
-            // ) {
-            //   this.$message({
-            //     showClose: true,
-            //     message: "未查询到该试卷！",
-            //     type: "warning",
-            //     duration: 1000
-            //   });
-            //   this.loading = false;
-            //   return;
-            // }
-
             this.tableData = res.result.filter(item => item._paper);
+            this.pageSize =
+              this.pageSize === 10000 ? this.tableData.length : this.pageSize;
+            this.pageTotal =
+              this.pageTotal === 0 ? this.tableData.length : this.pageTotal;
           }
           this.loading = false;
         })

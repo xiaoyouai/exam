@@ -30,7 +30,7 @@
               @size-change="handleSizeChange"
               @current-change="handleCurrentChange"
               :current-page="currentPage"
-              :page-sizes="[6, 12, 20, 30]"
+              :page-sizes="[pageTotal,6, 12, 20, 30]"
               :page-size="pageSize"
               layout="total, sizes, prev, pager, next, jumper"
               :total="pageTotal">
@@ -65,6 +65,9 @@ export default {
     this.getExamData();
   },
   methods: {
+    /**
+     *  获取总页数
+     */
     getExamData() {
       this.loading = true;
       this.userData = this.$getUserData();
@@ -79,8 +82,6 @@ export default {
         })
         .then(response => {
           let res = response.data;
-          this.pageSize = this.pageSize === 10000 ? res.total : this.pageSize;
-          this.pageTotal = this.pageTotal === 0 ? res.total : this.pageTotal;
 
           if (res.msg == "success" && res.status == "0") {
             // if (
@@ -98,6 +99,11 @@ export default {
             // }
 
             this.tableData = res.result.filter(item => item._paper);
+            this.tableData = res.result.filter(item => item._paper);
+            this.pageSize =
+              this.pageSize === 10000 ? this.tableData.length : this.pageSize;
+            this.pageTotal =
+              this.pageTotal === 0 ? this.tableData.length : this.pageTotal;
           }
           this.loading = false;
         })

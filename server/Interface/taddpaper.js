@@ -110,7 +110,7 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                                                                         _paper: doc1._id, //试卷
                                                                         date: paperData.time, //考试时间
                                                                         isSure: false,
-                                                                        score: paperData.totalPoints, //考试分数
+                                                                        score: 0, //考试分数
                                                                         startTime: paperData.startTime,
                                                                         answers: studentQuestion
                                                                     }
@@ -151,7 +151,7 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                                                     _paper: doc1._id, //试卷
                                                     date: paperData.time, //考试时间
                                                     isSure: false,
-                                                    score: paperData.totalPoints, //考试分数
+                                                    score: 0, //考试分数
                                                     startTime: paperData.startTime,
                                                     answers: studentQuestion
                                                 }
@@ -307,7 +307,9 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
     })
 
     if (addQuestion.length > 0) { //如果有自主添加的新题目就新增题目，
-        Teacher.findOne({ "_id": teacherId }, (err9, doc9) => {
+        Teacher.findOne({
+            "_id": teacherId
+        }, (err9, doc9) => {
             if (err9) {
                 res.json({
                     status: '1',
@@ -347,7 +349,11 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
                                             Student.updateMany({ //学生添加题目,直接更新整个数组
                                                     'class': parseInt(paperData.examclass),
                                                     "exams._paper": paperId
-                                                }, { $set: { "exams.$.answers": studentQuestion } }, (err4, doc4) => {
+                                                }, {
+                                                    $set: {
+                                                        "exams.$.answers": studentQuestion
+                                                    }
+                                                }, (err4, doc4) => {
                                                     if (err4) {
                                                         res.json({
                                                             status: '1',
@@ -375,7 +381,15 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
                                                                                 sum++;
                                                                                 if (sum === len - 1) {
                                                                                     if (delQuestionId.length > 0) {
-                                                                                        Question.updateMany({ "_id": { $in: delQuestionId } }, { $pull: { "_papers": paperId } }, (err5, doc5) => {
+                                                                                        Question.updateMany({
+                                                                                            "_id": {
+                                                                                                $in: delQuestionId
+                                                                                            }
+                                                                                        }, {
+                                                                                            $pull: {
+                                                                                                "_papers": paperId
+                                                                                            }
+                                                                                        }, (err5, doc5) => {
                                                                                             if (err5) {
                                                                                                 res.json({
                                                                                                     status: '1',
@@ -407,7 +421,15 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
                                                                 })
                                                             } else {
                                                                 if (delQuestionId.length > 0) {
-                                                                    Question.updateMany({ "_id": { $in: delQuestionId } }, { $pull: { "_papers": paperId } }, (err5, doc5) => {
+                                                                    Question.updateMany({
+                                                                        "_id": {
+                                                                            $in: delQuestionId
+                                                                        }
+                                                                    }, {
+                                                                        $pull: {
+                                                                            "_papers": paperId
+                                                                        }
+                                                                    }, (err5, doc5) => {
                                                                         if (err5) {
                                                                             res.json({
                                                                                 status: '1',
@@ -477,7 +499,11 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
                     Student.updateMany({ //学生添加题目,直接更新整个数组
                             'class': parseInt(paperData.examclass),
                             "exams._paper": paperId
-                        }, { $set: { "exams.$.answers": studentQuestion } }, (err4, doc4) => {
+                        }, {
+                            $set: {
+                                "exams.$.answers": studentQuestion
+                            }
+                        }, (err4, doc4) => {
                             if (err4) {
                                 res.json({
                                     status: '1',
@@ -505,7 +531,15 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
                                                         sum++;
                                                         if (sum === len - 1) {
                                                             if (delQuestionId.length > 0) {
-                                                                Question.updateMany({ "_id": { $in: delQuestionId } }, { $pull: { "_papers": paperId } }, (err5, doc5) => {
+                                                                Question.updateMany({
+                                                                    "_id": {
+                                                                        $in: delQuestionId
+                                                                    }
+                                                                }, {
+                                                                    $pull: {
+                                                                        "_papers": paperId
+                                                                    }
+                                                                }, (err5, doc5) => {
                                                                     if (err5) {
                                                                         res.json({
                                                                             status: '1',
@@ -536,7 +570,15 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
                                         })
                                     } else {
                                         if (delQuestionId.length > 0) {
-                                            Question.updateMany({ "_id": { $in: delQuestionId } }, { $pull: { "_papers": paperId } }, (err5, doc5) => {
+                                            Question.updateMany({
+                                                "_id": {
+                                                    $in: delQuestionId
+                                                }
+                                            }, {
+                                                $pull: {
+                                                    "_papers": paperId
+                                                }
+                                            }, (err5, doc5) => {
                                                 if (err5) {
                                                     res.json({
                                                         status: '1',
