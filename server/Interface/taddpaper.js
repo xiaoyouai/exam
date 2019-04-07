@@ -109,7 +109,7 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                                                                     let examData = {
                                                                         _paper: doc1._id, //试卷
                                                                         date: paperData.time, //考试时间
-                                                                        isSure: false,
+                                                                        isSure: 0,
                                                                         score: 0, //考试分数
                                                                         startTime: paperData.startTime,
                                                                         answers: studentQuestion
@@ -150,7 +150,7 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                                                 let examData = {
                                                     _paper: doc1._id, //试卷
                                                     date: paperData.time, //考试时间
-                                                    isSure: false,
+                                                    isSure: 0,
                                                     score: 0, //考试分数
                                                     startTime: paperData.startTime,
                                                     answers: studentQuestion
@@ -215,7 +215,7 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                                                     let examData = {
                                                         _paper: doc1._id, //试卷
                                                         date: paperData.time, //考试时间
-                                                        isSure: false,
+                                                        isSure: 0,
                                                         score: paperData.totalPoints, //考试分数
                                                         startTime: paperData.startTime,
                                                         answers: studentQuestion
@@ -351,7 +351,11 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
                                                     "exams._paper": paperId
                                                 }, {
                                                     $set: {
-                                                        "exams.$.answers": studentQuestion
+                                                        "exams.$.answers": studentQuestion,
+                                                        "exams.$.date": paperData.time,
+                                                        "exams.$.score": paperData.examclass,
+                                                        "exams.$.startTime": paperData.startTime,
+                                                        "exams.$.isSure": 0,
                                                     }
                                                 }, (err4, doc4) => {
                                                     if (err4) {
@@ -501,7 +505,11 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
                             "exams._paper": paperId
                         }, {
                             $set: {
-                                "exams.$.answers": studentQuestion
+                                "exams.$.answers": studentQuestion,
+                                "exams.$.date": paperData.time,
+                                "exams.$.score": paperData.examclass,
+                                "exams.$.startTime": paperData.startTime,
+                                "exams.$.isSure": 0,
                             }
                         }, (err4, doc4) => {
                             if (err4) {

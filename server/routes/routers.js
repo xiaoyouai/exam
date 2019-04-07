@@ -27,7 +27,9 @@ module.exports = function(app) {
 
     app.post('/api/taddpaper', Addpaper.taddpaper); //教师添加试卷,代码太复杂所以抽到Addpaper
     app.post('/api/tupdatepaper', Addpaper.tupdatepaper); //教师更新试卷，代码太复杂所以也抽到Addpaper
+
     app.get('/api/tgetAllpaper', Teacher.tgetAllpaper); //教师获取所有的试卷,搜索我的题库中的试卷也在这里实现
+
     app.get('/api/tgetMyQuestion', Teacher.tgetMyQuestion); //教师获取自己题库的题目,包含了搜索操作
     app.post('/api/tgetpapermsg', Teacher.tgetpapermsg); //教师修改试卷信息，一开始进入页面需要获取试卷信息
     app.post('/api/tdelpaper', Teacher.tdelpaper); //删除试卷
@@ -40,6 +42,9 @@ module.exports = function(app) {
     app.post('/api/taddQuestionToHub', Teacher.taddQuestionToHub); //添加公共题库的题库中的题目到我的题库，出题老师不变
     app.post('/api/tdelQuestionFromHub', Teacher.tdelQuestionFromHub); //移出我的题库中的不是我出的题目
 
+    app.get('/api/tgetCheckPaperList', Teacher.tgetCheckPaperList); //获取需要打分的学生信息
+    app.post('/api/tsubmitCheckPapers', Teacher.tsubmitCheckPapers); //提交打分
+
 
 
     /*----------------------学生用户----------------------*/
@@ -51,7 +56,6 @@ module.exports = function(app) {
     app.get('/api/ssignout', Student.ssignout); //学生退出系统
     app.get('/api/sgetExamInfo', Student.sgetExamInfo); //学生进入考试，获取考试信息
     app.post('/api/sSubmitExam', Student.sSubmitExam); //学生提交考试答案
-
 
 
 }

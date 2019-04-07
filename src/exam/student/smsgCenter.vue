@@ -13,7 +13,11 @@
           </div>
           <el-table :data="tableData" border v-loading="loading" height="370" style="width: 80%;margin:0 auto 20px;" :default-sort = "{prop: 'startTime', order: 'descending'}">
             <el-table-column prop="_paper.name" label="试卷名称" > </el-table-column>
-            <el-table-column prop="startTime" label="考试日期" sortable> </el-table-column>
+            <el-table-column prop="startTime"  label="考试日期" sortable>
+              <template slot-scope="props">
+                <span>{{ new Date(props.row.startTime).toLocaleString()}}</span>
+              </template>
+            </el-table-column>
             <el-table-column prop="date" label="考试时长" sortable> </el-table-column>
             <el-table-column prop="score" label="考试成绩" sortable> </el-table-column>
             <el-table-column label="操作">
@@ -100,7 +104,7 @@ export default {
 
   methods: {
     /**
-     *  获取总页数
+     *  获取数据
      */
     getExamData() {
       this.loading = true;
@@ -118,7 +122,9 @@ export default {
           let res = response.data;
 
           if (res.msg == "success" && res.status == "0") {
-            this.tableData = res.result.filter(item => item._paper);
+            this.tableData = res.result.filter(
+              item => item._paper && item.isSure === 2
+            );
             this.pageSize =
               this.pageSize === 10000 ? this.tableData.length : this.pageSize;
             this.pageTotal =

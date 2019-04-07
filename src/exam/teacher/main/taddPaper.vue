@@ -276,7 +276,7 @@ export default {
             if (res.msg == "success" && res.status == "0") {
               let data = res.result;
               this.name = data.name;
-              this.starttime = data.startTime; //考试开始时间
+              this.starttime = new Date(data.startTime); //考试开始时间
               this.sumtime = data.time; //考试总时长
               this.grade = data.totalPoints;
               this.myclass = data.examclass;

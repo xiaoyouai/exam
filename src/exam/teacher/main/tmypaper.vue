@@ -5,10 +5,15 @@
           <span slot="label"><i class="el-icon-date"></i>考试记录</span>
           <div class="comBottom">
             <el-row>
-              <el-col :span="20">
-                    试卷名称：
-                <el-input placeholder="请输入试卷名" v-model="papername" clearable prefix-icon="el-icon-search"  size="small" style="width:30%">  </el-input>
-                <el-button type="primary" size="small" @click="search">搜索</el-button>
+              <el-col :span="10">
+                    按试卷名称搜索：
+                <el-input placeholder="请输入试卷名" v-model="papername" clearable prefix-icon="el-icon-search"  size="small" style="width:33%">  </el-input>
+                <el-button type="primary" size="small" @click="searchByPaper">搜索</el-button>
+              </el-col>
+              <el-col :span="10">
+                    按班级搜索：
+                <el-input placeholder="请输入数字" v-model.number="paperclass" clearable prefix-icon="el-icon-search"  size="small" style="width:33%">  </el-input>
+                <el-button type="primary" size="small" @click="searchByClass">搜索</el-button>
               </el-col>
               <el-col :span="4">
                 <el-row>
@@ -22,7 +27,9 @@
           </div>
           <el-table :data="tableData" height="420" border v-loading="loading" style="width: 100%;margin-bottom:10px;" :default-sort = "{prop: 'date', order: 'descending'}" @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="56"> </el-table-column>
-            <el-table-column prop="startTime" label="考试时间" sortable> </el-table-column>
+            <el-table-column prop="startTime" label="考试时间" sortable><template slot-scope="props">
+                <span>{{ new Date(props.row.startTime).toLocaleString()}}</span>
+              </template></el-table-column>
             <el-table-column prop="examclass" label="考试班级"> </el-table-column>
             <el-table-column prop="name" label="试卷名称" > </el-table-column>
             <el-table-column prop="totalPoints" label="试卷总分"> </el-table-column>
@@ -61,6 +68,7 @@ export default {
   data() {
     return {
       papername: "", //搜索的试卷名
+      paperclass: "", //搜索的班级名
       userId: "",
       tableData: [],
       loading: true,
@@ -84,7 +92,8 @@ export default {
             userId: this.userId,
             name: this.papername,
             pageNumber: this.currentPage,
-            pageSize: this.pageSize
+            pageSize: this.pageSize,
+            class: this.paperclass
           }
         })
         .then(response => {
@@ -272,7 +281,13 @@ export default {
           });
         });
     },
-    search() {
+    searchByPaper() {
+      this.currentPage = 1; //当前页码
+      this.pageSize = 10000; //每页条数
+      this.pageTotal = 0; //总条数
+      this.init();
+    },
+    searchByClass() {
       this.currentPage = 1; //当前页码
       this.pageSize = 10000; //每页条数
       this.pageTotal = 0; //总条数

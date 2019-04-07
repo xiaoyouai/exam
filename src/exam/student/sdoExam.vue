@@ -448,16 +448,20 @@ export default {
           paperId: this.paperId,
           score: score,
           answers: answers,
-          startTime: this.startTime
+          startTime: this.startTime,
+          isSure:
+            this.apfillQuestions.length == 0 && this.QAQuestions.length == 0
+              ? 2
+              : 1
         })
         .then(response => {
           let res = response.data;
           if (res.status == "0") {
             this.$message({
               showClose: true,
-              message: "提交成功!",
+              message: "您的试卷提交成功!",
               type: "success",
-              duration: 1000
+              duration: 3000
             });
             this.$router.push({ path: "/smsgCenter" });
           }

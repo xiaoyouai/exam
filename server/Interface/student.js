@@ -152,7 +152,6 @@ exports.ssignout = function(req, res) { //smsgCenter里面调用
 // 获取考试记录
 exports.sexamLogs = function(req, res) { //smsgCenter里面的getExamData方法里调用
     let userId = req.param("userId");
-
     let pageSize = parseInt(req.param("pageSize")); //每页条数
     let pageNumber = parseInt(req.param("pageNumber")); //第几页
     let skip = (pageNumber - 1) * pageSize; // 跳过几条
@@ -160,7 +159,7 @@ exports.sexamLogs = function(req, res) { //smsgCenter里面的getExamData方法�
     let txt = req.param("txt");
     let reg = new RegExp(txt, 'i'); // 在nodejs中，必须要使用RegExp，来构建正则表达式对象。
     Student.findOne({
-        "userId": userId
+        "userId": userId,
     }, {
         "exams": {
             $slice: [skip, pageSize]
@@ -232,15 +231,16 @@ exports.sSubmitExam = function(req, res) {
     let paperId = req.body.paperId; //paper的_id
     let score = req.body.score;
     let startTime = req.body.startTime;
+    let isSure = req.body.isSure;
     let answers = req.body.answers;
-    console.log(score);
     Student.update({ //学生添加题目,直接更新整个数组
         'userId': userId,
         "exams._paper": paperId
     }, {
         $set: {
             "exams.$.answers": answers,
-            "exams.$.score": score
+            "exams.$.score": score,
+            "exams.$.isSure": isSure,
         }
     }, (err, doc) => {
         if (err) {

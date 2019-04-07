@@ -7,13 +7,19 @@ let studentSchema = new Schema({
     grade: Number, //年级
     class: Number, //班级
     exams: [{ //参加的考试
-        _paper: { type: Schema.Types.ObjectId, ref: 'Paper' }, //试卷
+        _paper: {
+            type: Schema.Types.ObjectId,
+            ref: 'Paper'
+        }, //试卷
         date: Number, //考试总时长
-        isSure: Boolean,
+        isSure: Number, //0表示没开考，1表示开考了没阅卷，2表示阅卷了
         score: Number, //考试分数
-        startTime: String,
+        startTime: Date,
         answers: [{
-            _question: { type: Schema.Types.ObjectId, ref: 'Question' },
+            _question: {
+                type: Schema.Types.ObjectId,
+                ref: 'Question'
+            },
             answer: String
         }]
     }]

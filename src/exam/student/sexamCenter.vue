@@ -17,7 +17,11 @@
             :default-sort="{prop: 'startTime', order: 'descending'}"
           >
             <el-table-column prop="_paper.name" label="试卷名称"></el-table-column>
-            <el-table-column prop="startTime" label="考试时间" sortable><i class="el-icon-time"></i></el-table-column>
+            <el-table-column prop="startTime"  label="考试日期" sortable>
+              <template slot-scope="props">
+                <span>{{ new Date(props.row.startTime).toLocaleString()}}</span>
+              </template>
+            </el-table-column>
             <el-table-column prop="date" label="考试总时长" sortable></el-table-column>
             <el-table-column label="操作">
               <template slot-scope="scope">
@@ -98,8 +102,12 @@ export default {
             //   return;
             // }
 
-            this.tableData = res.result.filter(item => item._paper);
-            this.tableData = res.result.filter(item => item._paper);
+            this.tableData = res.result.filter(
+              item =>
+                item._paper &&
+                this.isTimeOk(item.startTime, item.date) &&
+                item.isSure === 0
+            ); //时间设置为考试前一天或者开考后的考试总时长内
             this.pageSize =
               this.pageSize === 10000 ? this.tableData.length : this.pageSize;
             this.pageTotal =
@@ -116,6 +124,21 @@ export default {
           });
           this.loading = false;
         });
+    },
+    isTimeOk(time, totalTime) {
+      let ok = false;
+      if (
+        (new Date(time) - new Date()) / 60000 > 0 &&
+        (new Date(time) - new Date()) / 60000 <= 1440
+      ) {
+        ok = true; //时间设置为考试前一天0-24小时
+      } else if (
+        (new Date() - new Date(time)) / 60000 >= 0 &&
+        (new Date() - new Date(time)) / 60000 <= totalTime
+      ) {
+        ok = true; //时间设置为开考后的考试总时长内0-考试时间内
+      }
+      return ok;
     },
     /**
      * 搜索试卷，需要考虑搜索时的分页情况
@@ -138,9 +161,18 @@ export default {
       this.getExamData();
     },
     doExam(row) {
-      this.$router.push({
-        path: "/sdoExam/" + row._paper._id
-      });
+      if ((new Date() - new Date(row.startTime)) / 60000 >= 0) {
+        this.$router.push({
+          path: "/sdoExam/" + row._paper._id
+        });
+      } else {
+        this.$message({
+          showClose: true,
+          message: "未到考试时间，无法进入考试",
+          type: "error",
+          duration: 1000
+        });
+      }
     },
 
     signout() {
