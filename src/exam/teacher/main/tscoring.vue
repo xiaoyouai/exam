@@ -4,14 +4,8 @@
     <el-main>
           <span slot="label"><i class="el-icon-date"></i>考试记录</span>
           <div class="comBottom">
-                    考试时间：
-                <el-date-picker
-                  v-model="date"
-                  size="small"
-                  type="datetime"
-                  value-format="yyyy-MM-dd HH:mm" format="yyyy-MM-dd HH:mm"
-                  placeholder="选择考试时间">
-                </el-date-picker>
+                    学生学号：
+                <el-input placeholder="请输入学号" v-model.number="studentId" clearable prefix-icon="el-icon-search"  size="small" style="width:33%">  </el-input>
             <el-button type="primary" size="small" @click="search">搜索</el-button>
           </div>
           <el-table v-loading="loading" :data="tableData" height="420" border  style="width: 100%;margin-bottom:10px;">
@@ -21,7 +15,7 @@
             <el-table-column prop="userId" label="学生学号"> </el-table-column>
             <el-table-column  label="阅卷">
               <template slot-scope="props">
-                <span v-if="props.row.exams[0].isSure===2">{{props.row.exams[0].score}}--已阅卷</span>
+                <span v-if="props.row.exams[0].isSure===2">{{props.row.exams[0].score}}分--已阅卷</span>
                 <el-button
                   size="mini"
                   type="primary"
@@ -68,10 +62,11 @@ export default {
     return {
       userId: "",
       mygrade: 1,
-      date: "", //搜索框对应的输入的考试日期
+      studentId: "", //搜索框对应的输入的学生学号
       tableData: [],
       loading: false,
       paperName: "", //试卷名
+      paperId: "", //试卷的_id
 
       currentPage: 1, //当前页码
       pageSize: 10000, //每页条数,初始化为10000
@@ -85,15 +80,18 @@ export default {
       currentCheckIndex: -1 //目前被阅卷的学生在表格中的index
     };
   },
+  mounted() {
+    this.getData();
+  },
   methods: {
     getData() {
       this.userId = this.$route.params.id;
+      this.paperId = this.$route.params.paperId;
       this.loading = true;
       this.$axios
         .get("/api/tgetCheckPaperList", {
           params: {
-            userId: this.userId,
-            date: this.date,
+            paperId: this.paperId,
             pageNumber: this.currentPage,
             pageSize: this.pageSize
           }
@@ -103,16 +101,10 @@ export default {
           this.pageSize = this.pageSize === 10000 ? res.total : this.pageSize;
           this.pageTotal = this.pageTotal === 0 ? res.total : this.pageTotal;
           if (res.msg == "success" && res.status == "0") {
-            this.tableData = res.result;
+            this.$set(this.$data, "tableData", res.result);
+            console.log(this.tableData);
+            // this.tableData = res.result;
             this.paperName = res.paperName;
-            if (this.tableData.length == 0) {
-              this.$message({
-                showClose: true,
-                message: "这一时间没有需要打分的试卷！！！",
-                type: "error",
-                duration: 3000
-              });
-            }
           } else if (res.status == "2") {
             this.$message({
               showClose: true,
@@ -244,6 +236,7 @@ export default {
               newData.exams[0].score = newScore;
               this.tableData.splice(this.currentCheckIndex, 1, newData);
 
+              this.hasScoreAll();
               this.quitCheck();
             } else {
               this.$message({
@@ -261,6 +254,42 @@ export default {
               message: "修改失败，稍后再试",
               type: "error",
               duration: 1000
+            });
+          });
+      }
+    },
+    /**
+     * 已阅卷完毕
+     */
+    hasScoreAll() {
+      let data = this.tableData.filter(item => item.exams[0].isSure !== 2);
+      if (data.length === 0) {
+        this.$axios
+          .post("/api/tupdatePaperStatus", { paperId: this.paperId })
+          .then(response => {
+            let res = response.data;
+            if (res.msg == "success" && res.status == "0") {
+              this.$message({
+                showClose: true,
+                message: "您已阅卷完毕",
+                type: "success",
+                duration: 2000
+              });
+            } else {
+              this.$message({
+                showClose: true,
+                message: "出现错误，请刷新",
+                type: "error",
+                duration: 2000
+              });
+            }
+          })
+          .catch(err => {
+            this.$message({
+              showClose: true,
+              message: "出现错误，请刷新",
+              type: "warning",
+              duration: 2000
             });
           });
       }

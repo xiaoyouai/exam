@@ -6,6 +6,7 @@ let paperSchema = new Schema({
     time: Number, //考试总时长
     startTime: Date, //考试开始时间
     examclass: Number, //考试班级
+    status: Number, //状态，0表示没开考，1表示开考了但是没阅卷，2表示已阅卷
     _teacher: {
         type: Schema.Types.ObjectId,
         ref: 'Teacher'

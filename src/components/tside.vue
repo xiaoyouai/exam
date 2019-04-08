@@ -15,13 +15,13 @@
                 <i class="fa-icon fa 	fa fa-folder-o"></i>&nbsp;&nbsp;
                 <span slot="title">我的试卷</span>
               </el-menu-item>
-              <el-menu-item :index="'/tmain/tscoring/'+id">
+              <el-menu-item :index="'/tmain/tscoreList/'+id">
                 <i class="el-icon-edit-outline"></i>
                 <span slot="title">试卷打分</span>
               </el-menu-item>
               <el-menu-item :index="'/tmain/tgardeMan/'+id">
                 <i class="fa-icon fa 	fa-gear"></i>&nbsp;&nbsp;
-                <span slot="title">成绩管理</span>
+                <span slot="title">成绩查看</span>
               </el-menu-item>
               <el-menu-item :index="'/tmain/tquestionHub/'+id">
                 <i class="fa-icon fa fa-tag"></i>&nbsp;&nbsp;
@@ -44,17 +44,13 @@
 
 <script>
 export default {
-  props:["id"],
-  data () {
-    return {
-
-    }
+  props: ["id"],
+  data() {
+    return {};
   },
 
-  methods: {
-    }
-}
-
+  methods: {}
+};
 </script>
 <style scoped>
 </style>

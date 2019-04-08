@@ -25,7 +25,7 @@
             </el-row>
 
           </div>
-          <el-table :data="tableData" height="420" border v-loading="loading" style="width: 100%;margin-bottom:10px;" :default-sort = "{prop: 'date', order: 'descending'}" @selection-change="handleSelectionChange">
+          <el-table :data="tableData" height="420" border v-loading="loading" style="width: 100%;margin-bottom:10px;" :default-sort = "{prop: 'startTime', order: 'descending'}" @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="56"> </el-table-column>
             <el-table-column prop="startTime" label="考试时间" sortable><template slot-scope="props">
                 <span>{{ new Date(props.row.startTime).toLocaleString()}}</span>

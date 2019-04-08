@@ -43,6 +43,7 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                     time: paperData.time,
                     examclass: paperData.examclass,
                     startTime: paperData.startTime,
+                    status: 0,
                     _teacher: doc._id,
                     _questions: []
                 }
@@ -216,7 +217,7 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                                                         _paper: doc1._id, //试卷
                                                         date: paperData.time, //考试时间
                                                         isSure: 0,
-                                                        score: paperData.totalPoints, //考试分数
+                                                        score: 0, //考试分数
                                                         startTime: paperData.startTime,
                                                         answers: studentQuestion
                                                     }
@@ -293,6 +294,7 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
         time: paperData.time,
         examclass: paperData.examclass,
         startTime: paperData.startTime,
+        status: 0,
         _questions: []
     }
     paperData._questions.forEach((item) => {
@@ -353,7 +355,7 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
                                                     $set: {
                                                         "exams.$.answers": studentQuestion,
                                                         "exams.$.date": paperData.time,
-                                                        "exams.$.score": paperData.examclass,
+                                                        "exams.$.score": 0,
                                                         "exams.$.startTime": paperData.startTime,
                                                         "exams.$.isSure": 0,
                                                     }
@@ -507,7 +509,7 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
                             $set: {
                                 "exams.$.answers": studentQuestion,
                                 "exams.$.date": paperData.time,
-                                "exams.$.score": paperData.examclass,
+                                "exams.$.score": 0,
                                 "exams.$.startTime": paperData.startTime,
                                 "exams.$.isSure": 0,
                             }

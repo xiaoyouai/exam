@@ -44,7 +44,11 @@ module.exports = function(app) {
 
     app.get('/api/tgetCheckPaperList', Teacher.tgetCheckPaperList); //获取需要打分的学生信息
     app.post('/api/tsubmitCheckPapers', Teacher.tsubmitCheckPapers); //提交打分
+    app.post('/api/tupdatePaperStatus', Teacher.tupdatePaperStatus); //阅卷完毕，将试卷的status改为2(已阅卷)
 
+
+    app.get('/api/tgetScorePaper', Teacher.tgetScorePaper); //获取需要打分的试卷和已经打分的试卷
+    app.get('/api/tgetStudentScore', Teacher.tgetStudentScore); //查看成绩---获取学生成绩
 
 
     /*----------------------学生用户----------------------*/

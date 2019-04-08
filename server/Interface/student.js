@@ -250,50 +250,32 @@ exports.sSubmitExam = function(req, res) {
             })
         } else {
             if (doc.nModified === 1) {
-                // if (paperId === '' || score === '') {
-                //     res.json({
-                //         status: '2',
-                //         msg: '参数错误'
-                //     })
-                //     return
-                // }
-                // doc.exams.push({
-                //     _paper: id,
-                //     date: new Date(),
-                //     isSure: !answers.length > 0,
-                //     score: score,
-                //     answers: answers,
-                //     startTime: startTime
-                // })
-                // doc.save();
-                res.json({
-                        status: '0',
-                        msg: 'success'
-                    })
-                    // Paper.findOne({
-                    //     '_id': paperId
-                    // }, (err1, doc1) => {
-                    //     if (err1) {
-                    //         res.json({
-                    //             status: '1',
-                    //             msg: err1.message
-                    //         })
-                    //     } else {
-                    //         if (doc1) {
-                    //             // doc1.examnum += 1;
-                    //             // doc1.save();
-                    //             res.json({
-                    //                 status: '0',
-                    //                 msg: 'success'
-                    //             })
-                    //         } else {
-                    //             res.json({
-                    //                 status: '1',
-                    //                 msg: '没有找到该试卷'
-                    //             })
-                    //         }
-                    //     }
-                    // })
+                Paper.update({
+                    '_id': paperId
+                }, {
+                    '$set': {
+                        'status': isSure
+                    }
+                }, (err1, doc1) => {
+                    if (err1) {
+                        res.json({
+                            status: '1',
+                            msg: err1.message
+                        })
+                    } else {
+                        if (doc1) {
+                            res.json({
+                                status: '0',
+                                msg: 'success'
+                            })
+                        } else {
+                            res.json({
+                                status: '1',
+                                msg: '没有找到该试卷'
+                            })
+                        }
+                    }
+                })
 
             } else {
                 res.json({

@@ -15,6 +15,7 @@ import tmain from './../exam/teacher/tmain'
 import tregister from './../exam/teacher/tregister'
 
 import tmypaper from './../exam/teacher/main/tmypaper'
+import tscoreList from './../exam/teacher/main/tscoreList'
 import tscoring from './../exam/teacher/main/tscoring'
 import tgardeMan from './../exam/teacher/main/tgardeMan'
 import tmodifyMsg from './../exam/teacher/main/tmodifyMsg'
@@ -74,9 +75,13 @@ export default new Router({
                     name: 'tmypaper',
                     component: tmypaper
                 }, {
-                    path: 'tscoring/:id', //打分
+                    path: 'tscoring/:paperId/:id', //打分
                     name: 'tscoring',
                     component: tscoring
+                }, {
+                    path: 'tscoreList/:id', //需要打分的成绩列表
+                    name: 'tscoreList',
+                    component: tscoreList
                 }, {
                     path: 'tgardeMan/:id', //成绩管理
                     name: 'tgardeMan',

@@ -31,7 +31,7 @@
                 <el-button
                   size="mini"
                   type="primary"
-                  @click="handleLook(scope.row)">查看成绩</el-button>
+                  @click="goScoring(scope.row)">去阅卷</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -49,15 +49,6 @@
     </el-main>
   </el-container>
 
-<el-dialog title="考试成绩" :visible.sync="dialogTableVisible">
-  <el-table :data="gradeTable" stripe :default-sort = "{prop: 'exams[0].score', order: 'descending'}" v-loading="gradeLoading" >
-    <el-table-column type="index">
-    </el-table-column>
-    <el-table-column property="userName" label="姓名"></el-table-column>
-    <el-table-column property="exams[0].score" sortable label="成绩"></el-table-column>
-  </el-table>
-</el-dialog>
-
 </div>
 </template>
 
@@ -73,11 +64,7 @@ export default {
 
       currentPage: 1, //当前页码
       pageSize: 10000, //每页条数,初始化为10000
-      pageTotal: 0, //总条数
-
-      dialogTableVisible: false,
-      gradeTable: [],
-      gradeLoading: false
+      pageTotal: 0 //总条数
     };
   },
   mounted() {
@@ -95,7 +82,7 @@ export default {
             pageNumber: this.currentPage,
             pageSize: this.pageSize,
             class: this.paperclass,
-            status: 2
+            status: 1
           }
         })
         .then(response => {
@@ -107,9 +94,9 @@ export default {
             if (this.tableData.length === 0) {
               this.$message({
                 showClose: true,
-                message: "还没有创建试卷！！！",
+                message: "没有需要打分的试卷！！！",
                 type: "warning",
-                duration: 1000
+                duration: 3000
               });
             }
           } else if (res.status == "2") {
@@ -141,51 +128,12 @@ export default {
         });
     },
     /**
-     * 查看成绩
+     * 去打分
      */
-    handleLook(row) {
-      this.dialogTableVisible = true;
-      this.gradeTable = [];
-      this.gradeLoading = true;
-      this.$axios
-        .get("/api/tgetStudentScore", {
-          params: {
-            paperId: row._id,
-            class: row.examclass
-          }
-        })
-        .then(response => {
-          let res = response.data;
-          if (res.msg == "success" && res.status == "0") {
-            this.gradeTable = res.result;
-            if (this.gradeTable.length === 0) {
-              this.$message({
-                showClose: true,
-                message: "没找到学生成绩！！！",
-                type: "warning",
-                duration: 1000
-              });
-            }
-          } else {
-            this.$message({
-              showClose: true,
-              message: "获取成绩失败，请稍后再试！",
-              type: "error",
-              duration: 1000
-            });
-          }
-          this.gradeLoading = false;
-        })
-        .catch(err => {
-          console.log(err);
-          this.gradeLoading = false;
-          this.$message({
-            showClose: true,
-            message: "获取成绩失败，请稍后再试！",
-            type: "warning",
-            duration: 1000
-          });
-        });
+    goScoring(row) {
+      this.$router.push({
+        path: "/tmain/tscoring/" + row._id + "/" + this.userId
+      });
     },
     searchByPaper() {
       this.currentPage = 1; //当前页码
