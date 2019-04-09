@@ -25,7 +25,7 @@
                 <el-button
                   type="primary"
                   size="mini"
-                  @click="handleEdit(scope.row)">查看该考试</el-button>
+                  @click="lookExam(scope.row)">查看该考试</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -161,6 +161,11 @@ export default {
     handleCurrentChange(val) {
       this.currentPage = val;
       this.getExamData();
+    },
+    lookExam(row) {
+      this.$router.push({
+        path: "/sexamRecord/" + row._paper._id
+      });
     },
     submit() {
       //提交修改信息

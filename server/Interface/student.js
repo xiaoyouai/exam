@@ -197,7 +197,6 @@ exports.sexamLogs = function(req, res) { //smsgCenter里面的getExamData方法�
 
 exports.sgetExamInfo = function(req, res) { //获取考试题目等数据,sdoExam的init方法里面调用
     let paperId = req.param('paperId');
-    let questionData = [];
     Paper.findOne({
         '_id': paperId
     }).populate({
@@ -281,6 +280,63 @@ exports.sSubmitExam = function(req, res) {
                 res.json({
                     status: '1',
                     msg: '没找到当前用户!'
+                })
+            }
+        }
+    })
+}
+
+
+
+exports.sgetExamedInfo = function(req, res) { //获取考试题目等数据,sdoExam的init方法里面调用
+    let paperId = req.param('paperId');
+    let userId = req.param('userId');
+
+    Paper.findOne({
+        '_id': paperId
+    }).populate({
+        path: '_questions'
+    }).exec((err1, doc1) => {
+        if (err1) {
+            res.json({
+                status: '1',
+                msg: err1.message
+            })
+        } else {
+            if (doc1) {
+                Student.findOne({
+                    "userId": userId
+                }, (err2, doc2) => {
+                    if (err2) {
+                        res.json({
+                            status: '1',
+                            msg: err2.message
+                        })
+                    } else {
+                        if (doc2) {
+                            doc2.exams = doc2.exams.filter(item1 => JSON.stringify(item1._paper) === JSON.stringify(paperId));
+                            res.json({
+                                status: '0',
+                                msg: 'success',
+                                result: {
+                                    paperData: doc1,
+                                    studentAnswer: doc2.exams[0].answers,
+                                    score: doc2.exams[0].score,
+                                }
+                            })
+
+                        } else {
+                            res.json({
+                                status: '2',
+                                msg: '没有该学生'
+                            })
+                        }
+                    }
+                })
+            } else {
+                res.json({
+                    status: '2',
+                    msg: '没有该试卷'
                 })
             }
         }

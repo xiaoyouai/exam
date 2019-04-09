@@ -61,5 +61,7 @@ module.exports = function(app) {
     app.get('/api/sgetExamInfo', Student.sgetExamInfo); //学生进入考试，获取考试信息
     app.post('/api/sSubmitExam', Student.sSubmitExam); //学生提交考试答案
 
+    app.get('/api/sgetExamedInfo', Student.sgetExamedInfo); //学生查看考试记录，获取某一场考试的信息
+
 
 }

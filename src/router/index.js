@@ -7,6 +7,8 @@ import smsgCenter from './../exam/student/smsgCenter'
 import sregister from './../exam/student/sregister'
 import sexamCenter from './../exam/student/sexamCenter'
 import sdoExam from './../exam/student/sdoExam'
+import sexamRecord from './../exam/student/sexamRecord'
+
 
 
 // 老师
@@ -52,6 +54,10 @@ export default new Router({
             path: '/sdoExam/:id', //进行考试
             name: 'sdoExam',
             component: sdoExam
+        }, {
+            path: '/sexamRecord/:paperId', //查看某一场考试
+            name: 'sexamRecord',
+            component: sexamRecord
         },
 
 
