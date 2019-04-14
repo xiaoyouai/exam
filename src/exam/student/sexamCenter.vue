@@ -12,6 +12,7 @@
           <el-table
             :data="tableData"
             v-loading="loading"
+            element-loading-text="数据加载中，请稍等"
             border
             height="370" style="width: 80%;margin:0 auto 20px;"
             :default-sort="{prop: 'startTime', order: 'descending'}"

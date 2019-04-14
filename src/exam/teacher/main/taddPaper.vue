@@ -269,6 +269,12 @@ export default {
       //初始化
       this.paperId = this.$route.params.paperId;
       if (this.paperId !== "-1") {
+        const loading = this.$loading({
+          lock: true,
+          text: "数据加载中，请稍等",
+          spinner: "el-icon-loading",
+          background: "rgba(0, 0, 0, 0.7)"
+        });
         this.$axios
           .post("/api/tgetpapermsg", { paperId: this.paperId })
           .then(response => {
@@ -297,8 +303,10 @@ export default {
                 duration: 1000
               });
             }
+            loading.close();
           })
           .catch(err => {
+            loading.close();
             this.$message({
               showClose: true,
               message: "获取试卷信息失败，请返回重试",
@@ -589,6 +597,12 @@ export default {
         return;
       }
 
+      const loading = this.$loading({
+        lock: true,
+        text: "数据提交中",
+        spinner: "el-icon-loading",
+        background: "rgba(0, 0, 0, 0.7)"
+      });
       if (this.paperId == "-1") {
         this.$confirm(
           `确定新增试卷吗？请确认已正确选择班级信息`,
@@ -654,6 +668,7 @@ export default {
                     duration: 1000
                   });
                 }
+                loading.close();
               })
               .catch(err => {
                 this.$message({
@@ -662,6 +677,7 @@ export default {
                   type: "warning",
                   duration: 1000
                 });
+                loading.close();
               });
           })
           .catch(() => {
@@ -720,6 +736,7 @@ export default {
                 duration: 1000
               });
             }
+            loading.close();
           })
           .catch(err => {
             this.$message({
@@ -728,6 +745,7 @@ export default {
               type: "warning",
               duration: 1000
             });
+            loading.close();
           });
       }
     }

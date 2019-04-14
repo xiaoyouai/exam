@@ -8,7 +8,7 @@
                 <el-input placeholder="请输入学号" v-model.number="studentId" clearable prefix-icon="el-icon-search"  size="small" style="width:33%">  </el-input>
             <el-button type="primary" size="small" @click="search">搜索</el-button>
           </div>
-          <el-table v-loading="loading" :data="tableData" height="420" border  style="width: 100%;margin-bottom:10px;">
+          <el-table v-loading="loading" element-loading-text="数据加载中，请稍等" :data="tableData" height="420" border  style="width: 100%;margin-bottom:10px;">
             <el-table-column label="考试时长"><template slot-scope="props"><span>{{props.row.exams[0].date}}分钟</span></template></el-table-column>
             <el-table-column label="试卷名称" ><template slot-scope="props"><span>{{paperName}}</span></template></el-table-column>
             <el-table-column prop="class" label="考试班级"> </el-table-column>

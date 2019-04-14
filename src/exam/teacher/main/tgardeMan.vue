@@ -18,7 +18,7 @@
             </el-row>
 
           </div>
-          <el-table :data="tableData" height="420" border v-loading="loading" style="width: 100%;margin-bottom:10px;" :default-sort = "{prop: 'startTime', order: 'descending'}">
+          <el-table :data="tableData" height="420" border v-loading="loading" element-loading-text="数据加载中，请稍等" style="width: 100%;margin-bottom:10px;" :default-sort = "{prop: 'startTime', order: 'descending'}">
             <el-table-column prop="startTime" label="考试时间" sortable><template slot-scope="props">
                 <span>{{ new Date(props.row.startTime).toLocaleString()}}</span>
               </template></el-table-column>
@@ -50,7 +50,7 @@
   </el-container>
 
 <el-dialog title="考试成绩" :visible.sync="dialogTableVisible">
-  <el-table :data="gradeTable" stripe :default-sort = "{prop: 'exams[0].score', order: 'descending'}" v-loading="gradeLoading" >
+  <el-table :data="gradeTable" stripe :default-sort = "{prop: 'exams[0].score', order: 'descending'}" element-loading-text="数据加载中，请稍等" v-loading="gradeLoading" >
     <el-table-column type="index">
     </el-table-column>
     <el-table-column property="userName" label="姓名"></el-table-column>

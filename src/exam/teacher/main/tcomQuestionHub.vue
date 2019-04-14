@@ -9,7 +9,7 @@
                 <el-button type="primary" size="small" @click="search">搜索</el-button>
                 <el-button type="primary" size="small" class="multiAddBtn" @click="multiAdd">批量添加</el-button>
           </div>
-          <el-table :data="tableData" v-loading="loading" height="410" border  style="width: 100%;margin-bottom:10px;"  @selection-change="handleSelectionChange">
+          <el-table :data="tableData" v-loading="loading" element-loading-text="数据加载中，请稍等" height="410" border  style="width: 100%;margin-bottom:10px;"  @selection-change="handleSelectionChange">
             <el-table-column type="expand">
                 <template slot-scope="props">
                   <el-form label-position="left" inline class="demo-table-expand">

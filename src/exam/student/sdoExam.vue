@@ -241,6 +241,12 @@ export default {
      * 初始化
      */
     init() {
+      const loading = this.$loading({
+        lock: true,
+        text: "数据加载中，请稍等",
+        spinner: "el-icon-loading",
+        background: "rgba(0, 0, 0, 0.7)"
+      });
       this.$axios
         .get("/api/sgetExamInfo", {
           params: {
@@ -288,9 +294,11 @@ export default {
               }
             });
           }
+          loading.close();
         })
         .catch(err => {
           this.$message.error(err);
+          loading.close();
         });
     },
     /**
@@ -308,7 +316,6 @@ export default {
           clearInterval(timer);
         }
       }, 20);
-      console.log("dgadf");
     },
     getCode() {
       const TIME_COUNT = this.examTime;

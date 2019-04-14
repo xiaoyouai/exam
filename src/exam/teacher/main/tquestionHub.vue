@@ -18,7 +18,7 @@
               </el-col>
             </el-row>
           </div>
-          <el-table v-loading="loading" :data="tableData" height="410" border  style="width: 100%;margin-bottom:10px;"  @selection-change="handleSelectionChange">
+          <el-table v-loading="loading" element-loading-text="数据加载中，请稍等" :data="tableData" height="410" border  style="width: 100%;margin-bottom:10px;"  @selection-change="handleSelectionChange">
             <el-table-column type="expand">
                 <template slot-scope="props">
                   <el-form label-position="left" inline class="demo-table-expand">

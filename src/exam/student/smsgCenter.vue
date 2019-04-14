@@ -11,7 +11,7 @@
             <el-input placeholder="请输入试卷名" v-model="searchTxt" clearable prefix-icon="el-icon-search"  size="small" style="width:30%" @click="search">  </el-input>
              <el-button type="primary" size="small" @click="search">搜索</el-button>
           </div>
-          <el-table :data="tableData" border v-loading="loading" height="370" style="width: 80%;margin:0 auto 20px;" :default-sort = "{prop: 'startTime', order: 'descending'}">
+          <el-table :data="tableData" border v-loading="loading" element-loading-text="数据加载中，请稍等" height="370" style="width: 80%;margin:0 auto 20px;" :default-sort = "{prop: 'startTime', order: 'descending'}">
             <el-table-column prop="_paper.name" label="试卷名称" > </el-table-column>
             <el-table-column prop="startTime"  label="考试日期" sortable>
               <template slot-scope="props">
