@@ -105,11 +105,11 @@
     <el-card class="box-card">
       <div slot="header" class="clearfix">
         <el-row>
-            <el-col :span="4"><div class="grid-content bg-purple"><span >试卷名：{{name}}</span></div></el-col>
+            <el-col :span="9"><div class="grid-content bg-purple"><span >试卷名：{{name}}</span></div></el-col>
             <el-col :span="3"><div class="grid-content bg-purple-light"><span>试卷总分：{{grade}}</span></div></el-col>
             <el-col :span="3"><div class="grid-content bg-purple-light"><span>考试班级：{{myclass}}</span></div></el-col>
-            <el-col :span="5"><div class="grid-content bg-purple-light"><span>开始时间：{{starttime}}</span></div></el-col>
-            <el-col :span="4"><div class="grid-content bg-purple"><span>考试时长：{{sumtime}}</span></div></el-col>
+            <el-col :span="6"><div class="grid-content bg-purple-light"><span>开始时间：{{new Date(starttime).toLocaleString()}}</span></div></el-col>
+            <el-col :span="3"><div class="grid-content bg-purple"><span>考试时长：{{sumtime}}</span></div></el-col>
 
         </el-row>
 
@@ -123,13 +123,16 @@
                   <span v-if="item.type=='apfill'">(填空题)</span>
                   <span v-if="item.type=='multi'">(多选题)</span>
                   <span v-if="item.type=='Q&A'">(简答题)</span>
-            <span>{{item.content}}</span>
+            <span class="wrap">{{item.content}}</span>
             <span>&nbsp;&nbsp;({{item.score}}分)</span>
             <span><i class="el-icon-edit editicon" @click="editPaperItem(item,index)"></i></span>
             <span><i class="el-icon-delete delicon" @click="delPaperItem(index)"></i></span>
           </div>
           <div v-if="item.type=='single'||item.type=='multi'" class="paperItemSel">
             <span v-for="(i,index) in item.selection">{{[i.value,index]|paperSelection }}</span>
+          </div>
+          <div v-if="item.type=='apfill'||item.type=='Q&A'">
+            <p class="wrap">{{item.answer}}</p>
           </div>
       </div>
 
@@ -170,6 +173,9 @@
           <el-form-item prop="answer" label="答案：" v-if="myquestion.type!=='Q&A'&&myquestion.type!=='apfill'">
             <span class="tip" v-if="myquestion.type=='judgement'">判断题A(正确) 、 B(错误)</span>
             <el-input placeholder="请输入答案---A或A,B" v-model.trim="myquestion.answer" clearable></el-input>
+          </el-form-item>
+          <el-form-item prop="answer" :rules="rules.answer2" label="答案：" v-if="myquestion.type==='Q&A'||myquestion.type==='apfill'">
+            <el-input type="textarea" placeholder="请输入参考答案" v-model.trim="myquestion.answer" clearable></el-input>
           </el-form-item>
           <el-form-item prop="score" label="分值：">
             <el-input placeholder="请输入分值" v-model.trim="myquestion.score" clearable></el-input>
@@ -224,7 +230,7 @@ export default {
       sumtime: "", //考试总时长
       grade: 100,
       myclass: "",
-      delQuestionId: [], //被初始化时已存在的后面被删除的题目
+      delQuestionId: [], //被初始化时已存在的后面又被删除的题目
       dialogVisible: false,
       findQuestion: "", //从题库添加题目对应输入栏
       editIndex: -1, //编辑试卷题目时题目的位置
@@ -252,6 +258,7 @@ export default {
             message: "请按正确格式(A或A,B)输入答案"
           }
         ],
+        answer2: [{ validator: checkAnswer, trigger: "blur", required: true }],
         score: [
           { validator: checkScore, trigger: "blur", required: true },
           { pattern: /^[0-9]+$/, message: "分值必须为数字值" }
@@ -507,10 +514,15 @@ export default {
         type: "warning"
       })
         .then(() => {
-          if (this.paper[index]._papers.indexOf(this.paperId) > -1) {
+          if (
+            this.paper[index]._papers &&
+            this.paper[index]._papers.indexOf(this.paperId) > -1
+          ) {
             //新添加的题目不算
             this.delQuestionId.push(this.paper[index]._id);
-          } else {
+          }
+          if (this.paper[index]._id) {
+            //说明是从题库添加的题目
             this.allQuestion.push(this.paper[index]); //把从题库添加的题目再添加回去
           }
           this.paper.splice(index, 1);
@@ -521,7 +533,8 @@ export default {
             duration: 1000
           });
         })
-        .catch(() => {
+        .catch(err => {
+          console.log(err);
           this.$message({
             type: "info",
             message: "已取消删除",
@@ -805,11 +818,12 @@ export default {
 .paperItemSel span {
   margin-right: 10px;
 }
+.wrap {
+  max-width: 100%;
+  display: inline-block;
+  word-wrap: break-word;
+  white-space: normal;
+}
 /* 试卷相关样式 */
 </style>
 
-var a=[1,2,3,4,5];
-a.forEach((item,index)=>{
-  a[index]=100;
-  console.log(item);
-})

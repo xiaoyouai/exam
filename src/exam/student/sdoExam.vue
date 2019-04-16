@@ -498,6 +498,10 @@ export default {
 .main .question-title {
   font-size: 18px;
   margin-bottom: 5px;
+  width: 100%;
+  display: inline-block;
+  word-wrap: break-word;
+  white-space: normal;
 }
 
 .main .option {

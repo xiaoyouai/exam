@@ -40,8 +40,9 @@
     <el-dialog title="阅卷" :visible.sync="dialogVisible">
       <ul>
         <li class="question" v-for="(item, index) in questions">
-          <p><i class="fa-icon 	fa fa-hand-o-right"></i>&nbsp;&nbsp;{{item._question.content}} <span>&nbsp;&nbsp;({{item._question.score}}分)</span></p>
-          <p> 学生答案: <span>{{item.answer}}</span></p>
+          <p class="wrap"><i class="fa-icon 	fa fa-hand-o-right"></i>&nbsp;&nbsp;{{item._question.content}} <span>&nbsp;&nbsp;({{item._question.score}}分)</span></p>
+          <p class="wrap"> 学生答案: <span>{{item.answer}}</span></p>
+          <p class="wrap"> 题目参考答案: <span style="color:orange">{{item._question.answer}}</span></p>
           打分：<el-input class="input" size="small" @change="checkType(item.score,item._question.score)" v-model="item.score"></el-input>
           <span v-if='isNumber' class="error">*只能是数字</span>
           <span v-if='isMore' class="error">*不能大于题目总分</span>
@@ -102,7 +103,6 @@ export default {
           this.pageTotal = this.pageTotal === 0 ? res.total : this.pageTotal;
           if (res.msg == "success" && res.status == "0") {
             this.$set(this.$data, "tableData", res.result);
-            console.log(this.tableData);
             // this.tableData = res.result;
             this.paperName = res.paperName;
           } else if (res.status == "2") {
@@ -321,5 +321,12 @@ li {
 }
 li {
   list-style: none;
+}
+
+.wrap {
+  width: 100%;
+  display: inline-block;
+  word-wrap: break-word;
+  white-space: normal;
 }
 </style>

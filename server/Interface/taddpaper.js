@@ -62,7 +62,7 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                                 paperData._questions.forEach(item => {
                                     item._papers = [];
                                     item._papers.push(paperId);
-                                    item._teacher = paperId;
+                                    item._teacher = doc._id;
                                 })
 
                                 Question.create(paperData._questions, function(err2, doc2) { //创造题目

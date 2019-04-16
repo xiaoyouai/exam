@@ -28,11 +28,11 @@
                     <el-form-item label="题目分值">
                       <span>{{ props.row.score }}</span>
                     </el-form-item>
-                    <el-form-item label="题目答案">
-                      <span>{{transAnswer(props.row)}}</span>
-                    </el-form-item>
                     <el-form-item label="题目">
-                      <span>{{ props.row.content }}</span>
+                      <span class="wrap">{{ props.row.content }}</span>
+                    </el-form-item>
+                    <el-form-item label="题目答案">
+                      <span  class="wrap">{{transAnswer(props.row)}}</span>
                     </el-form-item>
                     <el-form-item label="题目选项" v-for="(item,index) in props.row.selection" :key="index" v-if="props.row.type=='multi'||props.row.type=='single'">
                       <span>{{(index + 10).toString(36).toUpperCase()}}：{{item.value}}</span>
@@ -54,7 +54,8 @@
             </el-table-column>
             <el-table-column label="题目答案" >
               <template slot-scope="props">
-                <span>{{transAnswer(props.row)}}</span>
+                <span v-if="props.row.answer.length<12">{{transAnswer(props.row)}}</span>
+                <span v-else>行首下拉查看详情</span>
               </template>
             </el-table-column>
             <el-table-column prop="score" label="题目分值" > </el-table-column>
@@ -118,6 +119,9 @@
           <el-form-item prop="answer" label="答案：" v-if="myquestion.type!=='Q&A'&&myquestion.type!=='apfill'">
             <span class="tip" v-if="myquestion.type=='judgement'">判断题A(正确) 、 B(错误)</span>
             <el-input placeholder="请输入答案---A或A,B" v-model="myquestion.answer" clearable></el-input>
+          </el-form-item>
+          <el-form-item prop="answer" :rules="rules.answer2" label="答案：" v-if="myquestion.type==='Q&A'||myquestion.type==='apfill'">
+            <el-input type="textarea" placeholder="请输入参考答案" v-model.trim="myquestion.answer" clearable></el-input>
           </el-form-item>
           <el-form-item prop="score" label="分值：">
             <el-input placeholder="请输入分值" v-model="myquestion.score" clearable></el-input>
@@ -195,6 +199,7 @@ export default {
             message: "请按正确格式(A或A,B)输入答案"
           }
         ],
+        answer2: [{ validator: checkAnswer, trigger: "blur", required: true }],
         score: [
           { validator: checkScore, trigger: "blur", required: true },
           { pattern: /^[0-9]+$/, message: "分值必须为数字值" }
@@ -229,8 +234,6 @@ export default {
       return function(row) {
         if (row.type == "judgement") {
           return row.answer == "A" ? "对" : "错";
-        } else if (row.type == "apfill" || row.type == "Q&A") {
-          return "该类型未保存答案";
         } else {
           return row.answer;
         }
@@ -655,11 +658,18 @@ export default {
 .demo-table-expand .el-form-item {
   margin-right: 0;
   margin-bottom: 0;
-  width: 33.3%;
+  width: 50%;
   color: #0a2f5f;
 }
-.demo-table-expand .el-form-item:last-child {
+.demo-table-expand .el-form-item:nth-child(3),
+.demo-table-expand .el-form-item:nth-child(4) {
   width: 100%;
+}
+.wrap {
+  width: 800px !important;
+  display: inline-block;
+  word-wrap: break-word;
+  white-space: normal;
 }
 
 /* 题目弹窗相关样式 */

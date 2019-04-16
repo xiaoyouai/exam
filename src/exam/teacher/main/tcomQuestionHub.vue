@@ -19,11 +19,11 @@
                     <el-form-item label="题目分值">
                       <span>{{ props.row.grade }}</span>
                     </el-form-item>
-                    <el-form-item label="题目答案">
-                      <span>{{transAnswer(props.row)}}</span>
+                    <el-form-item label="题目" >
+                      <span class="wrap">{{ props.row.name }}</span>
                     </el-form-item>
-                    <el-form-item label="题目">
-                      <span>{{ props.row.name }}</span>
+                    <el-form-item label="题目答案">
+                      <span class="wrap">{{transAnswer(props.row)}}</span>
                     </el-form-item>
                     <el-form-item label="题目选项" v-for="(item,index) in props.row.selection" :key="index" v-if="props.row.type=='multi'||props.row.type=='single'">
                       <span>{{(index + 10).toString(36).toUpperCase()}}：{{item.value}}</span>
@@ -45,7 +45,8 @@
             </el-table-column>
             <el-table-column label="题目答案" >
               <template slot-scope="props">
-                <span>{{transAnswer(props.row)}}</span>
+                <span v-if="props.row.answer.length<12">{{transAnswer(props.row)}}</span>
+                <span v-else>行首下拉查看详情</span>
               </template>
             </el-table-column>
             <el-table-column prop="grade" label="题目分值" > </el-table-column>
@@ -114,8 +115,6 @@ export default {
       return function(row) {
         if (row.type == "judgement") {
           return row.answer == "A" ? "对" : "错";
-        } else if (row.type == "apfill" || row.type == "Q&A") {
-          return "该类型未保存答案";
         } else {
           return row.answer;
         }
@@ -323,11 +322,18 @@ export default {
 .demo-table-expand .el-form-item {
   margin-right: 0;
   margin-bottom: 0;
-  width: 33.3%;
+  width: 50%;
   color: #0a2f5f;
 }
-.demo-table-expand .el-form-item:last-child {
+.demo-table-expand .el-form-item:nth-child(3),
+.demo-table-expand .el-form-item:nth-child(4) {
   width: 100%;
+}
+.wrap {
+  width: 800px !important;
+  display: inline-block;
+  word-wrap: break-word;
+  white-space: normal;
 }
 /* 批量添加按钮样式 */
 .multiAddBtn {

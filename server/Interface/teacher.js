@@ -222,6 +222,8 @@ exports.tgetAllpaper = function(req, res) { //教师--我的试卷里获取所�
     let pageSize = parseInt(req.param("pageSize")); //每页条数
     let pageNumber = parseInt(req.param("pageNumber")); //第几页
     let skip = (pageNumber - 1) * pageSize; // 跳过几条
+    let reg = new RegExp(name, 'i');
+
     Teacher.findOne({
         userId: userId
     }, (err, doc) => {
@@ -235,9 +237,7 @@ exports.tgetAllpaper = function(req, res) { //教师--我的试卷里获取所�
                 if (myclass > 0) {
                     Paper.find({
                             "_teacher": doc._id,
-                            "name": {
-                                $regex: name
-                            },
+                            "name": reg,
                             "examclass": parseInt(myclass)
                         }).skip(skip).limit(pageSize)
                         .exec((err2, doc2) => {
@@ -265,9 +265,7 @@ exports.tgetAllpaper = function(req, res) { //教师--我的试卷里获取所�
                 } else {
                     Paper.find({
                             "_teacher": doc._id,
-                            "name": {
-                                $regex: name
-                            }
+                            "name": reg
                         }).skip(skip).limit(pageSize)
                         .exec((err2, doc2) => {
                             if (err2) {
@@ -308,6 +306,7 @@ exports.tgetMyQuestion = function(req, res) { //tquestionHub，taddmypaper里面
     let pageNumber = parseInt(req.param("pageNumber")); //第几页
     let skip = (pageNumber - 1) * pageSize; // 跳过几条
 
+    let reg = new RegExp(content, 'i');
     Teacher.findOne({
         userId: userId
     }, (err, doc) => {
@@ -322,9 +321,7 @@ exports.tgetMyQuestion = function(req, res) { //tquestionHub，taddmypaper里面
                         "_id": {
                             $in: doc._questions
                         },
-                        "content": {
-                            $regex: content
-                        }
+                        "content": reg
                     }).skip(skip).limit(pageSize)
                     .exec((err2, doc2) => {
                         if (err2) {
@@ -365,6 +362,8 @@ exports.tgetAllQuestion = function(req, res) { //tcomQuestionHub里面调用
     let pageNumber = parseInt(req.param("pageNumber")); //第几页
     let skip = (pageNumber - 1) * pageSize; // 跳过几条
 
+    let reg = new RegExp(content, 'i');
+
     Teacher.findOne({
         "userId": userId
     }, (err, doc) => {
@@ -376,9 +375,7 @@ exports.tgetAllQuestion = function(req, res) { //tcomQuestionHub里面调用
         } else {
             if (doc) {
                 Question.find({
-                        "content": {
-                            $regex: content
-                        }
+                        "content": reg
                     }).skip(skip).limit(pageSize)
                     .exec((err2, doc2) => {
                         if (err2) {
@@ -768,7 +765,7 @@ exports.tgetCheckPaperList = function(req, res) { //获取需要打分的试卷�
                         "class": doc2.examclass
                     }).skip(skip).limit(pageSize).populate({
                         path: 'exams.answers._question',
-                        select: 'content type score',
+                        select: 'content type score answer',
                     })
                     .exec((err3, doc3) => {
                         if (err3) {
@@ -890,6 +887,9 @@ exports.tgetScorePaper = function(req, res) {
     let pageSize = parseInt(req.param("pageSize")); //每页条数
     let pageNumber = parseInt(req.param("pageNumber")); //第几页
     let skip = (pageNumber - 1) * pageSize; // 跳过几条
+
+    let reg = new RegExp(name, 'i');
+
     Teacher.findOne({
         userId: userId
     }, (err, doc) => {
@@ -904,9 +904,7 @@ exports.tgetScorePaper = function(req, res) {
                     Paper.find({
                             "_teacher": doc._id,
                             "status": parseInt(status),
-                            "name": {
-                                $regex: name
-                            },
+                            "name": reg,
                             "examclass": parseInt(myclass)
                         }).skip(skip).limit(pageSize)
                         .exec((err2, doc2) => {
@@ -936,9 +934,7 @@ exports.tgetScorePaper = function(req, res) {
                     Paper.find({
                             "_teacher": doc._id,
                             "status": parseInt(status),
-                            "name": {
-                                $regex: name
-                            }
+                            "name": reg
                         }).skip(skip).limit(pageSize)
                         .exec((err2, doc2) => {
                             if (err2) {

@@ -105,6 +105,8 @@
         <ul class="question-item">
           <li class="marginB10" v-for="(item,index) in apfillQuestions" :key="item._id">
             <p class="question-title">{{index+1}} 、{{item.content}}&nbsp;（{{item.score}}分）</p>
+            <p class="question-title">您的答案：{{item.sanswer}}</p>
+             <p class="question-title" style="color:red">参考答案：{{item.answer}}</p>
           </li>
         </ul>
       </div>
@@ -113,6 +115,8 @@
         <ul class="question-item">
           <li class="marginB10" v-for="(item,index) in QAQuestions" :key="item._id">
             <p class="question-title">{{index+1}} 、{{item.content}}&nbsp;（{{item.score}}分）</p>
+             <p class="question-title">您的答案：{{item.sanswer}}</p>
+             <p class="question-title" style="color:red">参考答案：{{item.answer}}</p>
           </li>
         </ul>
       </div>
@@ -262,6 +266,10 @@ export default {
 .main .question-title {
   font-size: 18px;
   margin-bottom: 5px;
+  width: 100%;
+  display: inline-block;
+  word-wrap: break-word;
+  white-space: normal;
 }
 
 .main .option {
