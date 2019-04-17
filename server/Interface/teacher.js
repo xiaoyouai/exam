@@ -711,6 +711,8 @@ exports.taddQuestion = function(req, res) { //tquestionHub里面调用，添加�
         } else {
             if (doc2) {
                 questionData._teacher = doc2._id;
+                questionData.canused = false;
+
                 Question.create(questionData, function(err, doc) { //创造题目
                     if (err) {
                         res.json({

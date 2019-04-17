@@ -341,14 +341,6 @@ export default {
             this.allQuestion.forEach(item => {
               item.value = item.content; //因为input的显示必须要有value这一项
             });
-            if (this.allQuestion.length === 0) {
-              this.$message({
-                showClose: true,
-                message: "题库还没有创建题目！！！",
-                type: "warning",
-                duration: 1000
-              });
-            }
           } else if (res.status == "2") {
             this.$message({
               showClose: true,

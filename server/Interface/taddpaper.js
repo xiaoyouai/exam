@@ -63,6 +63,7 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                                     item._papers = [];
                                     item._papers.push(paperId);
                                     item._teacher = doc._id;
+                                    item.canused = false;
                                 })
 
                                 Question.create(paperData._questions, function(err2, doc2) { //创造题目
@@ -304,6 +305,7 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
         } else { //自主添加的题目
             item._papers = [paperId];
             item._teacher = teacherId;
+            item.canused = false;
             addQuestion.push(item);
         }
     })

@@ -23,5 +23,6 @@ let questionSchema = new Schema({
     score: Number, //分数
     answer: String, //答案
     selection: Array, //选项
+    canused: Boolean, //是否失效，true表示失效了，失效的题目就是题目存在所属试卷，但是老师又把它删了，失效的也不能修改了
 });
 module.exports = mongoose.model('Question', questionSchema);
