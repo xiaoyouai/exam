@@ -42,6 +42,7 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                     totalPoints: paperData.totalPoints,
                     time: paperData.time,
                     examclass: paperData.examclass,
+                    examgrade: parseInt(paperData.examgrade),
                     startTime: paperData.startTime,
                     status: 0,
                     _teacher: doc._id,
@@ -117,7 +118,8 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                                                                         answers: studentQuestion
                                                                     }
                                                                     Student.updateMany({
-                                                                        "class": parseInt(paperData.examclass)
+                                                                        "class": parseInt(paperData.examclass),
+                                                                        'grade': parseInt(paperData.examgrade),
                                                                     }, {
                                                                         '$push': {
                                                                             'exams': examData
@@ -158,7 +160,8 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                                                     answers: studentQuestion
                                                 }
                                                 Student.updateMany({
-                                                    "class": parseInt(paperData.examclass)
+                                                    "class": parseInt(paperData.examclass),
+                                                    'grade': parseInt(paperData.examgrade),
                                                 }, {
                                                     '$push': {
                                                         'exams': examData
@@ -223,7 +226,8 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                                                         answers: studentQuestion
                                                     }
                                                     Student.updateMany({
-                                                        "class": parseInt(paperData.examclass)
+                                                        "class": parseInt(paperData.examclass),
+                                                        'grade': parseInt(paperData.examgrade),
                                                     }, {
                                                         '$push': {
                                                             'exams': examData
@@ -294,6 +298,7 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
         totalPoints: paperData.totalPoints,
         time: paperData.time,
         examclass: paperData.examclass,
+        examgrade: parseInt(paperData.examgrade),
         startTime: paperData.startTime,
         status: 0,
         _questions: []
@@ -352,6 +357,7 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
                                             })
                                             Student.updateMany({ //学生添加题目,直接更新整个数组
                                                     'class': parseInt(paperData.examclass),
+                                                    'grade': parseInt(paperData.examgrade),
                                                     "exams._paper": paperId
                                                 }, {
                                                     $set: {
@@ -506,6 +512,7 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
                     })
                     Student.updateMany({ //学生添加题目,直接更新整个数组
                             'class': parseInt(paperData.examclass),
+                            'grade': parseInt(paperData.examgrade),
                             "exams._paper": paperId
                         }, {
                             $set: {

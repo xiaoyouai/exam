@@ -17,34 +17,55 @@
   </el-row>
 
   <el-row>
-    <el-form label-width="100px">
-      <el-col :span="8">
+    <el-form label-width="75px">
+      <el-col :span="10">
         <div class="grid-content bg-purple">
           <el-form-item label="试卷名：">
             <el-input v-model.trim="name" clearable></el-input>
           </el-form-item>
         </div>
       </el-col>
-      <el-col :span="8">
+      <el-col :span="5">
         <div class="grid-content bg-purple">
-          <el-form-item label="试卷总分：">
-            <el-input v-model.trim="grade" clearable  placeholder="请输入数字">
+          <el-form-item label="总分：">
+            <el-input v-model.trim="score" clearable  placeholder="请输入数字">
               <template slot="append">分</template>
             </el-input>
           </el-form-item>
         </div>
       </el-col>
-      <el-col :span="8">
-        <div class="grid-content bg-purple">
-          <el-form-item label="考试班级：">
-            <el-tooltip class="item" content="请认真填写班级，一经保存无法修改" placement="top-start"  v-if="paperId=='-1'">
-              <el-input v-model.trim="myclass" clearable  placeholder="请输入数字" >
-                <template slot="append" >班</template>
-              </el-input>
-            </el-tooltip>
-            <span v-if="paperId!=='-1'">{{myclass}}</span>
-          </el-form-item>
-        </div>
+      <el-col :span="9">
+        <el-row>
+          <el-col :span="10">
+            <div class="grid-content bg-purple">
+              <el-form-item label="年级：">
+                <el-tooltip class="item" content="请认真选择年级，一经保存无法修改" placement="top" v-if="paperId=='-1'">
+                  <el-select v-model="mygrade" placeholder="请选择">
+                    <el-option label="1年级" value=1></el-option>
+                    <el-option label="2年级" value=2></el-option>
+                    <el-option label="3年级" value=3></el-option>
+                    <el-option label="4年级" value=4></el-option>
+                    <el-option label="5年级" value=5></el-option>
+                    <el-option label="6年级" value=6></el-option>
+                  </el-select>
+                </el-tooltip>
+                <span v-if="paperId!=='-1'">{{mygrade}}年级</span>
+              </el-form-item>
+            </div>
+          </el-col>
+          <el-col :span="14">
+            <div class="grid-content bg-purple">
+              <el-form-item label="班级：">
+                <el-tooltip class="item" content="请认真填写班级，一经保存无法修改" placement="top" v-if="paperId=='-1'">
+                  <el-input v-model.trim="myclass" clearable  placeholder="请输数字" >
+                    <template slot="append" >班</template>
+                  </el-input>
+                </el-tooltip>
+                <span v-if="paperId!=='-1'">{{myclass}}班</span>
+              </el-form-item>
+            </div>
+          </el-col>
+        </el-row>
       </el-col>
     </el-form>
   </el-row>
@@ -64,7 +85,7 @@
       </el-col>
       <el-col :span="8">
         <div class="grid-content bg-purple">
-          <el-form-item label="考试总时长：">
+          <el-form-item label="总时长：">
             <el-input v-model.trim="sumtime" clearable  placeholder="请输入数字">
               <template slot="append">分钟</template>
             </el-input>
@@ -105,11 +126,12 @@
     <el-card class="box-card">
       <div slot="header" class="clearfix">
         <el-row>
-            <el-col :span="9"><div class="grid-content bg-purple"><span >试卷名：{{name}}</span></div></el-col>
-            <el-col :span="3"><div class="grid-content bg-purple-light"><span>试卷总分：{{grade}}</span></div></el-col>
-            <el-col :span="3"><div class="grid-content bg-purple-light"><span>考试班级：{{myclass}}</span></div></el-col>
+            <el-col :span="8"><div class="grid-content bg-purple"><span >试卷名：{{name}}</span></div></el-col>
+            <el-col :span="3"><div class="grid-content bg-purple-light"><span>总分：{{score}}</span></div></el-col>
+            <el-col :span="2"><div class="grid-content bg-purple-light"><span>年级：{{mygrade}}</span></div></el-col>
+            <el-col :span="2"><div class="grid-content bg-purple-light"><span>班级：{{myclass}}</span></div></el-col>
             <el-col :span="6"><div class="grid-content bg-purple-light"><span>开始时间：{{new Date(starttime).toLocaleString()}}</span></div></el-col>
-            <el-col :span="3"><div class="grid-content bg-purple"><span>考试时长：{{sumtime}}</span></div></el-col>
+            <el-col :span="3"><div class="grid-content bg-purple"><span>总时长：{{sumtime}}</span></div></el-col>
 
         </el-row>
 
@@ -228,8 +250,9 @@ export default {
       name: "", //试卷名称
       starttime: "", //考试开始时间
       sumtime: "", //考试总时长
-      grade: 100,
+      score: 100,
       myclass: "",
+      mygrade: "",
       delQuestionId: [], //被初始化时已存在的后面又被删除的题目
       dialogVisible: false,
       findQuestion: "", //从题库添加题目对应输入栏
@@ -291,7 +314,8 @@ export default {
               this.name = data.name;
               this.starttime = new Date(data.startTime); //考试开始时间
               this.sumtime = data.time; //考试总时长
-              this.grade = data.totalPoints;
+              this.score = data.totalPoints;
+              this.mygrade = data.examgrade;
               this.myclass = data.examclass;
               this.paper = data._questions;
               this.teacherId = data._questions[0]._teacher;
@@ -565,11 +589,12 @@ export default {
       //保存试卷
       if (
         !this.name ||
-        !this.grade ||
+        !this.score ||
+        !this.mygrade ||
         !this.myclass ||
         !this.sumtime ||
         !this.starttime ||
-        !/^[0-9]*$/.test(this.grade) ||
+        !/^[0-9]*$/.test(this.score) ||
         !/^[0-9]*$/.test(this.myclass) ||
         !/^[0-9]*$/.test(this.sumtime)
       ) {
@@ -611,7 +636,7 @@ export default {
       if (this.paperId == "-1") {
         this.$confirm(
           `确定新增试卷吗？请确认已正确选择班级信息`,
-          `您选择的班级是--${this.myclass}--班`,
+          `您选择的--${this.mygrade}--年级--${this.myclass}--班`,
           {
             confirmButtonText: "确定",
             cancelButtonText: "取消",
@@ -624,8 +649,9 @@ export default {
               .post("/api/taddpaper", {
                 paperData: {
                   name: this.name,
-                  totalPoints: this.grade,
+                  totalPoints: this.score,
                   time: parseInt(this.sumtime),
+                  examgrade: parseInt(this.mygrade),
                   examclass: parseInt(this.myclass),
                   startTime: this.starttime,
                   _questions: this.paper
@@ -686,6 +712,7 @@ export default {
               });
           })
           .catch(() => {
+            loading.close();
             this.$message({
               type: "info",
               message: "已取消操作"
@@ -697,8 +724,9 @@ export default {
           .post("/api/tupdatepaper", {
             paperData: {
               name: this.name,
-              totalPoints: this.grade,
+              totalPoints: this.score,
               time: parseInt(this.sumtime),
+              examgrade: parseInt(this.mygrade),
               examclass: parseInt(this.myclass),
               startTime: this.starttime,
               _questions: this.paper
@@ -780,6 +808,11 @@ export default {
 .text {
   font-size: 16px;
   text-align: left;
+}
+
+.is-dark {
+  color: red !important;
+  font-size: 20px;
 }
 .item {
   margin-bottom: 18px;

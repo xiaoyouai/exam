@@ -288,7 +288,7 @@ exports.sSubmitExam = function(req, res) {
 
 
 
-exports.sgetExamedInfo = function(req, res) { //获取考试题目等数据,sdoExam的init方法里面调用
+exports.sgetExamedInfo = function(req, res) { //获取考过的考试的题目，sexamRecord里面的init方法里面调用
     let paperId = req.param('paperId');
     let userId = req.param('userId');
 

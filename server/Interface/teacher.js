@@ -185,7 +185,6 @@ exports.tsignout = function(req, res) { //tmain里调用
 // 修改试卷-查找到_id对应的试卷
 exports.tgetpapermsg = function(req, res) { //taddPaper里的init方法里调用
     let paperId = req.body.paperId;
-    let questionData = [];
     Paper.findOne({
         '_id': paperId
     }).populate({
@@ -219,10 +218,13 @@ exports.tgetAllpaper = function(req, res) { //教师--我的试卷里获取所�
     let userId = req.param('userId');
     let name = req.param('name');
     let myclass = parseInt(req.param('class'));
+    let mygrade = parseInt(req.param('grade'));
     let pageSize = parseInt(req.param("pageSize")); //每页条数
     let pageNumber = parseInt(req.param("pageNumber")); //第几页
     let skip = (pageNumber - 1) * pageSize; // 跳过几条
     let reg = new RegExp(name, 'i');
+
+    let searchParam = {};
 
     Teacher.findOne({
         userId: userId
@@ -234,63 +236,54 @@ exports.tgetAllpaper = function(req, res) { //教师--我的试卷里获取所�
             })
         } else {
             if (doc) {
-                if (myclass > 0) {
-                    Paper.find({
-                            "_teacher": doc._id,
-                            "name": reg,
-                            "examclass": parseInt(myclass)
-                        }).skip(skip).limit(pageSize)
-                        .exec((err2, doc2) => {
-                            if (err2) {
-                                res.json({
-                                    status: '1',
-                                    msg: err2.message
-                                })
-                            } else {
-                                if (doc2) {
-                                    res.json({
-                                        status: '0',
-                                        msg: 'success',
-                                        result: doc2,
-                                        total: doc2.length
-                                    })
-                                } else {
-                                    res.json({
-                                        status: '2',
-                                        msg: '暂未创建试卷'
-                                    })
-                                }
-                            }
-                        })
+                if (myclass > 0 && mygrade > 0) {
+                    searchParam = {
+                        "_teacher": doc._id,
+                        "name": reg,
+                        "examclass": parseInt(myclass),
+                        "examgrade": mygrade,
+                    }
+                } else if (myclass > 0) {
+                    searchParam = {
+                        "_teacher": doc._id,
+                        "name": reg,
+                        "examclass": parseInt(myclass),
+                    }
+                } else if (mygrade > 0) {
+                    searchParam = {
+                        "_teacher": doc._id,
+                        "name": reg,
+                        "examgrade": mygrade,
+                    }
                 } else {
-                    Paper.find({
-                            "_teacher": doc._id,
-                            "name": reg
-                        }).skip(skip).limit(pageSize)
-                        .exec((err2, doc2) => {
-                            if (err2) {
+                    searchParam = {
+                        "_teacher": doc._id,
+                        "name": reg,
+                    }
+                }
+                Paper.find(searchParam).skip(skip).limit(pageSize)
+                    .exec((err2, doc2) => {
+                        if (err2) {
+                            res.json({
+                                status: '1',
+                                msg: err2.message
+                            })
+                        } else {
+                            if (doc2) {
                                 res.json({
-                                    status: '1',
-                                    msg: err2.message
+                                    status: '0',
+                                    msg: 'success',
+                                    result: doc2,
+                                    total: doc2.length
                                 })
                             } else {
-                                if (doc2) {
-                                    res.json({
-                                        status: '0',
-                                        msg: 'success',
-                                        result: doc2,
-                                        total: doc2.length
-                                    })
-                                } else {
-                                    res.json({
-                                        status: '2',
-                                        msg: '暂未创建试卷'
-                                    })
-                                }
+                                res.json({
+                                    status: '2',
+                                    msg: '暂未创建试卷'
+                                })
                             }
-                        })
-                }
-
+                        }
+                    })
             }
         }
     })
@@ -412,10 +405,12 @@ exports.tdelpaper = function(req, res) { //tmypaper里面调用
     let data = req.body.paperId; //随便用paperId或者class都行
     let paperId = [];
     let myclass = [];
+    let mygrade = [];
     let userId = req.body.userId;
     data.forEach(item => {
         paperId.push(item._id);
         myclass.push(item.examclass);
+        mygrade.push(item.examgrade);
     })
     Teacher.update({
         "userId": userId
@@ -466,6 +461,9 @@ exports.tdelpaper = function(req, res) { //tmypaper里面调用
                                         Student.updateMany({
                                             "class": {
                                                 $in: myclass
+                                            },
+                                            "grade": {
+                                                $in: mygrade
                                             }
                                         }, {
                                             '$pull': {
