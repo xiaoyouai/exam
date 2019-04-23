@@ -7,6 +7,14 @@
                     题目关键词：
                 <el-input placeholder="请输入题目关键词" v-model="searchTxt" clearable prefix-icon="el-icon-search"  size="small" style="width:30%">  </el-input>
                 <el-button type="primary" size="small" @click="search">搜索</el-button>
+                <el-select v-model="questionType" style="height:100%;margin-left:20px;width:150px"  size="small" @change="changeType">
+                    <el-option label="全部题型" value="all"></el-option>
+                    <el-option label="单选题" value="single"></el-option>
+                    <el-option label="判断题" value="judgement"></el-option>
+                    <el-option label="填空题" value="apfill"></el-option>
+                    <el-option label="多选题" value="multi"></el-option>
+                    <el-option label="简答题" value="Q&A"></el-option>
+                </el-select>
                 <el-button type="primary" size="small" class="multiAddBtn" @click="multiAdd">批量添加</el-button>
           </div>
           <el-table :data="tableData" v-loading="loading" element-loading-text="数据加载中，请稍等" height="410" border  style="width: 100%;margin-bottom:10px;"  @selection-change="handleSelectionChange">
@@ -88,6 +96,8 @@ export default {
       searchTxt: "",
       multipleSelection: "", //批量选择时的选定项
 
+      questionType: "all", //选择的题目类型
+
       currentPage: 1, //当前页码
       pageSize: 10000, //每页条数,初始化为10000
       pageTotal: 0 //总条数
@@ -144,7 +154,13 @@ export default {
           this.pageTotal =
             this.pageTotal === 0 ? res.result.total : this.pageTotal;
           if (res.msg == "success" && res.status == "0") {
-            this.questionData = res.result.questionData;
+            this.questionData =
+              this.questionType === "all"
+                ? res.result.questionData
+                : res.result.questionData.filter(
+                    item => item.type === this.questionType
+                  );
+
             this.tableData = [];
             this.teacherId = res.result.teacherId;
             if (this.questionData.length > 0) {
@@ -159,6 +175,9 @@ export default {
                   teacher: item._teacher //用于判断出题老师
                 });
               });
+              if (this.questionType !== "all") {
+                this.pageTotal = this.questionData.length;
+              }
             } else {
               this.$message({
                 showClose: true,
@@ -185,6 +204,7 @@ export default {
           this.loading = false;
         })
         .catch(err => {
+          console.log(err);
           this.loading = false;
           this.$message({
             showClose: true,
@@ -308,6 +328,15 @@ export default {
             message: "已取消添加"
           });
         });
+    },
+    /**
+     * 按类型筛选
+     */
+    changeType() {
+      this.currentPage = 1; //当前页码
+      this.pageSize = 10000; //每页条数
+      this.pageTotal = 0; //总条数
+      this.init();
     }
   }
 };

@@ -5,10 +5,20 @@
           <span slot="label"><i class="el-icon-date"></i>考试记录</span>
           <div class="comBottom">
             <el-row>
-              <el-col :span="20">
+              <el-col :span="16">
                     题目关键词：
-                <el-input placeholder="请输入题目关键词" v-model="searchTxt" clearable prefix-icon="el-icon-search"  size="small" style="width:30%">  </el-input>
+                <el-input placeholder="请输入题目关键词" v-model="searchTxt" clearable prefix-icon="el-icon-search"  size="small" style="width:70%">  </el-input>
                 <el-button type="primary" size="small" @click="search">搜索</el-button>
+              </el-col>
+              <el-col :span="4">
+                <el-select v-model="questionType" style="height:100%;width:150px"  size="small" @change="changeType">
+                    <el-option label="全部题型" value="all"></el-option>
+                    <el-option label="单选题" value="single"></el-option>
+                    <el-option label="判断题" value="judgement"></el-option>
+                    <el-option label="填空题" value="apfill"></el-option>
+                    <el-option label="多选题" value="multi"></el-option>
+                    <el-option label="简答题" value="Q&A"></el-option>
+                </el-select>
               </el-col>
               <el-col :span="4">
                 <el-row>
@@ -177,6 +187,9 @@ export default {
       tableData: [],
       loading: true,
       selQuestion: [], //所有选中的题目
+
+      questionType: "all", //选择的题目类型
+
       // 弹窗相关数据
       dialogVisible: false,
       myquestion: {
@@ -263,17 +276,16 @@ export default {
           this.pageTotal =
             this.pageTotal === 0 ? res.result.total : this.pageTotal;
           if (res.msg == "success" && res.status == "0") {
-            // if (res.result.question.length === 0 && this.tableData.length > 0) {
-            //   this.$message({
-            //     showClose: true,
-            //     message: "未搜到该题目！！！",
-            //     type: "warning",
-            //     duration: 1000
-            //   });
-            //   this.loading = false;
-            //   return;
-            // }
-            this.tableData = res.result.question;
+            this.tableData =
+              this.questionType === "all"
+                ? res.result.question
+                : res.result.question.filter(
+                    item => item.type === this.questionType
+                  );
+            if (this.questionType !== "all") {
+              this.pageTotal = this.tableData.length;
+            }
+
             this.teacherId = res.result.teacher;
             if (this.tableData.length === 0) {
               this.$message({
@@ -643,6 +655,16 @@ export default {
     },
     handleCurrentChange(val) {
       this.currentPage = val;
+      this.init();
+    },
+
+    /**
+     * 按类型筛选
+     */
+    changeType() {
+      this.currentPage = 1; //当前页码
+      this.pageSize = 10000; //每页条数
+      this.pageTotal = 0; //总条数
       this.init();
     }
   }
