@@ -456,7 +456,7 @@ export default {
           score: score,
           answers: answers,
           startTime: this.startTime,
-          isSure:
+          examStatus:
             this.apfillQuestions.length == 0 && this.QAQuestions.length == 0
               ? 2
               : 1

@@ -230,7 +230,7 @@ exports.sSubmitExam = function(req, res) {
     let paperId = req.body.paperId; //paper的_id
     let score = req.body.score;
     let startTime = req.body.startTime;
-    let isSure = req.body.isSure;
+    let examStatus = req.body.examStatus;
     let answers = req.body.answers;
     Student.update({ //学生添加题目,直接更新整个数组
         'userId': userId,
@@ -239,7 +239,7 @@ exports.sSubmitExam = function(req, res) {
         $set: {
             "exams.$.answers": answers,
             "exams.$.score": score,
-            "exams.$.isSure": isSure,
+            "exams.$.examStatus": examStatus,
         }
     }, (err, doc) => {
         if (err) {
@@ -253,7 +253,7 @@ exports.sSubmitExam = function(req, res) {
                     '_id': paperId
                 }, {
                     '$set': {
-                        'status': isSure
+                        'status': examStatus
                     }
                 }, (err1, doc1) => {
                     if (err1) {

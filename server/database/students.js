@@ -9,7 +9,7 @@ for (let i = 1; i <= 20; i++) {
         "exams": [{
             "_paper" : ObjectId("5c3c608f490eaa83ce72c757"),
             "date": "2018-05-02",
-            "isSure": "true",
+            "examStatus": "true",
             "score": 60,
             "_id": ObjectId("5c3c608f490eaa83ce72c757"),
             "answers": []

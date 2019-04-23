@@ -821,7 +821,7 @@ exports.tsubmitCheckPapers = function(req, res) { //提交打分，tscoring里�
     }, {
         $set: {
             "exams.$.score": score,
-            "exams.$.isSure": 2,
+            "exams.$.examStatus": 2,
         }
     }, (err, doc) => {
         if (err) {

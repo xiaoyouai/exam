@@ -123,7 +123,7 @@ export default {
 
           if (res.msg == "success" && res.status == "0") {
             this.tableData = res.result.filter(
-              item => item._paper && item.isSure === 2
+              item => item._paper && item.examStatus === 2
             );
             this.pageSize =
               this.pageSize === 10000 ? this.tableData.length : this.pageSize;

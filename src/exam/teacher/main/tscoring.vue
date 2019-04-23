@@ -14,13 +14,13 @@
             <el-table-column prop="grade" label="考试年级" width="80"> </el-table-column>
             <el-table-column prop="class" label="考试班级" width="80"> </el-table-column>
             <el-table-column prop="userId" label="学生学号" width="90"> </el-table-column>
-            <el-table-column  label="阅卷" width="90">
+            <el-table-column  label="阅卷" width="110">
               <template slot-scope="props">
-                <span v-if="props.row.exams[0].isSure===2">{{props.row.exams[0].score}}分--已阅卷</span>
+                <span v-if="props.row.exams[0].examStatus===2">{{props.row.exams[0].score}}分--已阅卷</span>
                 <el-button
                   size="mini"
                   type="primary"
-                  @click="checkPaper(props.$index,props.row)"  v-if="props.row.exams[0].isSure===1">阅卷</el-button>
+                  @click="checkPaper(props.$index,props.row)"  v-if="props.row.exams[0].examStatus===1">阅卷</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -233,7 +233,7 @@ export default {
 
               let newData = this.tableData[this.currentCheckIndex];
               console.log(newData);
-              newData.exams[0].isSure = 2;
+              newData.exams[0].examStatus = 2;
               newData.exams[0].score = newScore;
               this.tableData.splice(this.currentCheckIndex, 1, newData);
 
@@ -263,7 +263,7 @@ export default {
      * 已阅卷完毕
      */
     hasScoreAll() {
-      let data = this.tableData.filter(item => item.exams[0].isSure !== 2);
+      let data = this.tableData.filter(item => item.exams[0].examStatus !== 2);
       if (data.length === 0) {
         this.$axios
           .post("/api/tupdatePaperStatus", { paperId: this.paperId })
