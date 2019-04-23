@@ -154,7 +154,7 @@
             <span v-for="(i,index) in item.selection">{{[i.value,index]|paperSelection }}</span>
           </div>
           <div v-if="item.type=='apfill'||item.type=='Q&A'">
-            <p class="wrap">{{item.answer}}</p>
+            <p class="wrap" style="margin-top:5px;margin-bottom:0">{{item.answer}}</p>
           </div>
       </div>
 

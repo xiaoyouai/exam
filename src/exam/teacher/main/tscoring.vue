@@ -21,7 +21,7 @@
                 <el-button
                   size="mini"
                   type="primary"
-                  @click="checkPaper(props.$index,props.row)"  v-if="props.row.exams[0].examStatus===1">阅卷</el-button>
+                  @click="checkPaper(props.$index,props.row)"  v-if="props.row.exams[0].examStatus!==2">阅卷</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -43,7 +43,7 @@
       <ul>
         <li class="question" v-for="(item, index) in questions">
           <p class="wrap"><i class="fa-icon 	fa fa-hand-o-right"></i>&nbsp;&nbsp;{{item._question.content}} <span>&nbsp;&nbsp;({{item._question.score}}分)</span></p>
-          <p class="wrap"> 学生答案: <span>{{item.answer}}</span></p>
+          <p class="wrap"><span>学生答案: {{item.answer}}</span></p>
           <p class="wrap"> 题目参考答案: <span style="color:orange">{{item._question.answer}}</span></p>
           打分：<el-input class="input" size="small" @change="checkType(item.score,item._question.score)" v-model="item.score"></el-input>
           <span v-if='isNumber' class="error">*只能是数字</span>

@@ -23,7 +23,7 @@
                 <span>{{ new Date(props.row.startTime).toLocaleString()}}</span>
               </template>
             </el-table-column>
-            <el-table-column prop="date" label="考试总时长" sortable></el-table-column>
+            <el-table-column prop="date" label="考试总时长(分钟)" sortable></el-table-column>
             <el-table-column label="操作">
               <template slot-scope="scope">
                 <el-button size="mini" type="primary" @click="doExam(scope.row)">进入考试</el-button>

@@ -150,7 +150,7 @@ exports.ssignout = function(req, res) { //smsgCenter里面调用
 
 
 // 获取考试记录
-exports.sexamLogs = function(req, res) { //smsgCenter里面的getExamData方法里调用
+exports.sexamLogs = function(req, res) { //smsgCenter里面的getExamData方法里调用,sexamCenter的getExamData方法里调用
     let userId = req.param("userId");
     let pageSize = parseInt(req.param("pageSize")); //每页条数
     let pageNumber = parseInt(req.param("pageNumber")); //第几页
@@ -166,7 +166,7 @@ exports.sexamLogs = function(req, res) { //smsgCenter里面的getExamData方法�
         }
     }).populate({
         path: 'exams._paper',
-        select: 'name',
+        select: 'name status',
         match: {
             name: reg
         }
@@ -178,12 +178,29 @@ exports.sexamLogs = function(req, res) { //smsgCenter里面的getExamData方法�
             })
         } else {
             if (doc1) {
-                res.json({
-                    status: '0',
-                    msg: 'success',
-                    result: doc1.exams,
-                    total: doc1.exams.length
+                let sum = -1;
+                let len = doc1.exams.length;
+                doc1.exams.forEach(item => {
+                    sum++;
+                    if (
+                        item._paper &&
+                        item._paper.status === 2 &&
+                        item.examStatus === 0 &&
+                        (new Date() - new Date(item.startTime)) / 60000 > item.date
+                    ) {
+                        item.examStatus = 2; //上面的判断条件说明该试卷不需要老师阅卷并且该考试已考完，并且考生没有参加该考试
+                    }
+                    if (sum === len - 1) {
+                        doc1.save();
+                        res.json({
+                            status: '0',
+                            msg: 'success',
+                            result: doc1.exams,
+                            total: doc1.exams.length
+                        })
+                    }
                 })
+
             } else {
                 res.json({
                     status: '2',
