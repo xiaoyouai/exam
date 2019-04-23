@@ -745,7 +745,7 @@ exports.taddQuestion = function(req, res) { //tquestionHub里面调用，添加�
 
 }
 
-exports.tgetCheckPaperList = function(req, res) { //获取需要打分的试卷的学生信息
+exports.tgetCheckPaperList = function(req, res) { //获取需要打分的试卷的学生信息,tscoring的getData里面调用
     let paperId = req.param('paperId');
     let pageSize = parseInt(req.param("pageSize")); //每页条数
     let pageNumber = parseInt(req.param("pageNumber")); //第几页
@@ -762,7 +762,8 @@ exports.tgetCheckPaperList = function(req, res) { //获取需要打分的试卷�
         } else {
             if (doc2) {
                 Student.find({
-                        "class": doc2.examclass
+                        "class": doc2.examclass,
+                        "grade": doc2.examgrade
                     }).skip(skip).limit(pageSize).populate({
                         path: 'exams.answers._question',
                         select: 'content type score answer',
@@ -882,6 +883,7 @@ exports.tgetScorePaper = function(req, res) {
     let userId = req.param('userId');
     let name = req.param('name');
     let myclass = parseInt(req.param('class'));
+    let mygrade = parseInt(req.param('grade'));
     let status = req.param('status');
 
     let pageSize = parseInt(req.param("pageSize")); //每页条数
@@ -890,6 +892,7 @@ exports.tgetScorePaper = function(req, res) {
 
     let reg = new RegExp(name, 'i');
 
+    let searchParam = {};
     Teacher.findOne({
         userId: userId
     }, (err, doc) => {
@@ -900,66 +903,58 @@ exports.tgetScorePaper = function(req, res) {
             })
         } else {
             if (doc) {
-                if (myclass > 0) {
-                    Paper.find({
-                            "_teacher": doc._id,
-                            "status": parseInt(status),
-                            "name": reg,
-                            "examclass": parseInt(myclass)
-                        }).skip(skip).limit(pageSize)
-                        .exec((err2, doc2) => {
-                            if (err2) {
-                                res.json({
-                                    status: '1',
-                                    msg: err2.message
-                                })
-                            } else {
-                                if (doc2) {
-
-                                    res.json({
-                                        status: '0',
-                                        msg: 'success',
-                                        result: doc2,
-                                        total: doc2.length
-                                    })
-                                } else {
-                                    res.json({
-                                        status: '2',
-                                        msg: '暂未创建试卷'
-                                    })
-                                }
-                            }
-                        })
+                if (myclass > 0 && mygrade > 0) {
+                    searchParam = {
+                        "_teacher": doc._id,
+                        "status": parseInt(status),
+                        "name": reg,
+                        "examclass": parseInt(myclass),
+                        "examgrade": parseInt(mygrade)
+                    }
+                } else if (myclass > 0) {
+                    searchParam = {
+                        "_teacher": doc._id,
+                        "status": parseInt(status),
+                        "name": reg,
+                        "examclass": parseInt(myclass)
+                    }
+                } else if (mygrade > 0) {
+                    searchParam = {
+                        "_teacher": doc._id,
+                        "status": parseInt(status),
+                        "name": reg,
+                        "examgrade": parseInt(mygrade)
+                    }
                 } else {
-                    Paper.find({
-                            "_teacher": doc._id,
-                            "status": parseInt(status),
-                            "name": reg
-                        }).skip(skip).limit(pageSize)
-                        .exec((err2, doc2) => {
-                            if (err2) {
+                    searchParam = {
+                        "_teacher": doc._id,
+                        "status": parseInt(status),
+                        "name": reg,
+                    }
+                }
+                Paper.find(searchParam).skip(skip).limit(pageSize)
+                    .exec((err2, doc2) => {
+                        if (err2) {
+                            res.json({
+                                status: '1',
+                                msg: err2.message
+                            })
+                        } else {
+                            if (doc2) {
                                 res.json({
-                                    status: '1',
-                                    msg: err2.message
+                                    status: '0',
+                                    msg: 'success',
+                                    result: doc2,
+                                    total: doc2.length
                                 })
                             } else {
-                                if (doc2) {
-                                    res.json({
-                                        status: '0',
-                                        msg: 'success',
-                                        result: doc2,
-                                        total: doc2.length
-                                    })
-                                } else {
-                                    res.json({
-                                        status: '2',
-                                        msg: '暂未创建试卷'
-                                    })
-                                }
+                                res.json({
+                                    status: '2',
+                                    msg: '暂未创建试卷'
+                                })
                             }
-                        })
-                }
-
+                        }
+                    })
             }
         }
     })
@@ -968,9 +963,11 @@ exports.tgetScorePaper = function(req, res) {
 
 exports.tgetStudentScore = function(req, res) { //获取学生成绩，tgradeMan里面的handlelook方法调用
     let myclass = req.param("class");
+    let mygrade = req.param("grade");
     let paperId = req.param("paperId"); //paper的_id
     Student.find({ //学生添加题目,直接更新整个数组
         'class': myclass,
+        'grade': mygrade,
         "exams._paper": paperId
     }, (err, doc) => {
         if (err) {

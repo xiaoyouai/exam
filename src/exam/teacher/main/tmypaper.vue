@@ -29,7 +29,7 @@
 
           </div>
           <el-table :data="tableData" height="420" border v-loading="loading"  element-loading-text="数据加载中，请稍等" style="width: 100%;margin-bottom:10px;" :default-sort = "{prop: 'startTime', order: 'descending'}" @selection-change="handleSelectionChange">
-            <el-table-column type="selection" width="56"> </el-table-column>
+            <el-table-column type="selection" width="50"> </el-table-column>
             <el-table-column prop="startTime" label="考试时间"  width="180" sortable><template slot-scope="props">
                 <span>{{ new Date(props.row.startTime).toLocaleString()}}</span>
               </template></el-table-column>
@@ -38,7 +38,7 @@
             <el-table-column prop="name" label="试卷名称" > </el-table-column>
             <el-table-column prop="totalPoints" label="试卷总分"   width="80"> </el-table-column>
             <el-table-column prop="time" label="考试时长"  width="80"> </el-table-column>
-            <el-table-column label="操作"   width="160">
+            <el-table-column label="操作"   width="148">
               <template slot-scope="scope">
                 <el-button
                   size="mini"

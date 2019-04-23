@@ -19,7 +19,7 @@
                 <i class="el-icon-edit-outline"></i>
                 <span slot="title">试卷打分</span>
               </el-menu-item>
-              <el-menu-item :index="'/tmain/tgardeMan/'+id">
+              <el-menu-item :index="'/tmain/tgradeMan/'+id">
                 <i class="fa-icon fa 	fa-gear"></i>&nbsp;&nbsp;
                 <span slot="title">成绩查看</span>
               </el-menu-item>

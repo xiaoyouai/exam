@@ -9,11 +9,12 @@
             <el-button type="primary" size="small" @click="search">搜索</el-button>
           </div>
           <el-table v-loading="loading" element-loading-text="数据加载中，请稍等" :data="tableData" height="420" border  style="width: 100%;margin-bottom:10px;">
-            <el-table-column label="考试时长"><template slot-scope="props"><span>{{props.row.exams[0].date}}分钟</span></template></el-table-column>
+            <el-table-column label="考试时长" width="80"><template slot-scope="props"><span>{{props.row.exams[0].date}}分钟</span></template></el-table-column>
             <el-table-column label="试卷名称" ><template slot-scope="props"><span>{{paperName}}</span></template></el-table-column>
-            <el-table-column prop="class" label="考试班级"> </el-table-column>
-            <el-table-column prop="userId" label="学生学号"> </el-table-column>
-            <el-table-column  label="阅卷">
+            <el-table-column prop="grade" label="考试年级" width="80"> </el-table-column>
+            <el-table-column prop="class" label="考试班级" width="80"> </el-table-column>
+            <el-table-column prop="userId" label="学生学号" width="90"> </el-table-column>
+            <el-table-column  label="阅卷" width="90">
               <template slot-scope="props">
                 <span v-if="props.row.exams[0].isSure===2">{{props.row.exams[0].score}}分--已阅卷</span>
                 <el-button
