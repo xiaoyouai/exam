@@ -161,20 +161,6 @@ export default {
       this.currentCheckIndex = -1;
       this.questions = [];
     },
-    checkPaper(index, row) {
-      this.dialogVisible = true;
-      this.currentCheckIndex = index;
-      this.questions = [];
-      let data = this.$deepCopy(row.exams[0].answers);
-      for (let i = 0, len = row.exams[0].answers.length; i < len; i++) {
-        if (
-          data[i]._question.type === "apfill" ||
-          data[i]._question.type === "Q&A"
-        ) {
-          this.questions.push(data[i]);
-        }
-      }
-    },
     /**
      * 输入判断
      */
@@ -194,6 +180,30 @@ export default {
       if (value == "") {
         this.isNumber = false;
         this.isMore = false;
+      }
+    },
+    checkPaper(index, row) {
+      if (row.exams[0].answers.length === 0) {
+        this.$message({
+          showClose: true,
+          message: "该考生考试缺考，已记0分",
+          type: "warning",
+          duration: 2000
+        });
+        this.doSubmit(index, 0);
+      } else {
+        this.dialogVisible = true;
+        this.currentCheckIndex = index;
+        this.questions = [];
+        let data = this.$deepCopy(row.exams[0].answers);
+        for (let i = 0, len = row.exams[0].answers.length; i < len; i++) {
+          if (
+            data[i]._question.type === "apfill" ||
+            data[i]._question.type === "Q&A"
+          ) {
+            this.questions.push(data[i]);
+          }
+        }
       }
     },
     submit() {
@@ -216,49 +226,51 @@ export default {
         this.questions.forEach(item => {
           newScore += parseInt(item.score);
         });
-        this.$axios
-          .post("/api/tsubmitCheckPapers", {
-            userId: this.tableData[this.currentCheckIndex].userId,
-            score: newScore,
-            paperId: this.tableData[this.currentCheckIndex].exams[0]._paper
-          })
-          .then(response => {
-            let res = response.data;
-            if (res.status == "0" && res.msg == "success") {
-              this.$message({
-                showClose: true,
-                message: "修改成功",
-                type: "success",
-                duration: 1000
-              });
-
-              let newData = this.tableData[this.currentCheckIndex];
-              console.log(newData);
-              newData.exams[0].examStatus = 2;
-              newData.exams[0].score = newScore;
-              this.tableData.splice(this.currentCheckIndex, 1, newData);
-
-              this.hasScoreAll();
-              this.quitCheck();
-            } else {
-              this.$message({
-                showClose: true,
-                message: "修改失败，稍后再试",
-                type: "error",
-                duration: 1000
-              });
-            }
-          })
-          .catch(err => {
-            console.log(err);
+        this.doSubmit(this.currentCheckIndex, newScore);
+      }
+    },
+    doSubmit(index, newScore) {
+      this.$axios
+        .post("/api/tsubmitCheckPapers", {
+          userId: this.tableData[index].userId,
+          score: newScore,
+          paperId: this.tableData[index].exams[0]._paper
+        })
+        .then(response => {
+          let res = response.data;
+          if (res.status == "0" && res.msg == "success") {
             this.$message({
               showClose: true,
-              message: "修改失败，稍后再试",
+              message: "阅卷提交成功",
+              type: "success",
+              duration: 1000
+            });
+
+            let newData = this.tableData[index];
+            newData.exams[0].examStatus = 2;
+            newData.exams[0].score = newScore;
+            this.tableData.splice(index, 1, newData);
+
+            this.hasScoreAll();
+            this.quitCheck(); //并不是真的取消，只是代码复用
+          } else {
+            this.$message({
+              showClose: true,
+              message: "阅卷提交失败，稍后再试",
               type: "error",
               duration: 1000
             });
+          }
+        })
+        .catch(err => {
+          console.log(err);
+          this.$message({
+            showClose: true,
+            message: "阅卷提交失败，稍后再试",
+            type: "error",
+            duration: 1000
           });
-      }
+        });
     },
     /**
      * 已阅卷完毕

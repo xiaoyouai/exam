@@ -183,19 +183,16 @@ exports.sexamLogs = function(req, res) { //smsgCenter里面的getExamData方法�
                 let len = doc1.exams.length;
                 doc1.exams.forEach(item => {
                     sum++;
-                    if (
-                        item._paper &&
-                        item._paper.status === 2 &&
-                        item.examStatus === 0 &&
-                        (new Date() - new Date(item.startTime)) / 60000 > item.date
-                    ) {
-                        item.examStatus = 2; //上面的判断条件说明该试卷不需要老师阅卷并且该考试已考完，并且考生没有参加该考试
-                        // doc1._questions.forEach(item => {
-                        //     item.answers.push({ //学生填入题目信息
-                        //         _question: item,
-                        //         answer: ''
-                        //     })
-                        // })
+                    if ((new Date() - new Date(item.startTime)) / 60000 > item.date && item.answers.length === 0) {
+                        //说明考试缺考了
+                        item.examStatus = 2;
+                        item._paper._questions.forEach((qid, index) => {
+                            console.log(qid, index);
+                            item.answers.push({ //学生填入题目信息
+                                _question: qid,
+                                answer: ''
+                            })
+                        })
                     }
                     if (sum === len - 1) {
                         doc1.save();
@@ -234,7 +231,7 @@ exports.sgetExamInfo = function(req, res) { //获取考试题目等数据,sdoExa
         } else {
             if (doc1) {
                 let qid = [];
-                doc1._questions.forEach(item => {
+                doc1._questions.forEach((item) => {
                     qid.push(item._id);
                 })
                 Question.updateMany({

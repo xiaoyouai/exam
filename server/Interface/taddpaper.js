@@ -5,16 +5,15 @@ const Student = require('./../models/students');
 
 // taddpaper的逻辑：
 // 首先找到老师_id，没找到就返回4和未查询到教师信息，找到了就开始创造试卷，创建完成了之后教师添加试卷的_id，然后看有没有手动添加的题目
-//---- 有手动添加的题目，那首先题目加入教师和试卷信息，然后新增题目，然后试卷和老师填入题目信息（老师这里就保存了），然后学生填入题目信息，然后看有没有题库添加的题目
-// -------有题库添加的题目，那就题目加入试卷信息，然后修改，然后试卷填入题目信息并更新，然后学生填入题目信息，学生填入考试信息并更新返回
-// -------没有题库添加的题目，那就更新题目信息（前面的添加无更新），然后学生填入题目信息，学生填入考试信息并更新
-//---- 没有手动添加的题目，那就题目加入试卷信息，然后修改，然后试卷填入题目信息并更新，然后学生填入题目信息，学生填入考试信息并更新返回
+//---- 有手动添加的题目，那首先题目加入教师和试卷信息，然后新增题目，老师填入新增的题目信息并保存，然后试卷填入新增和题库添加的题目信息并保存，然后看有没有题库添加的题目
+// -------有题库添加的题目，那就题目加入试卷信息，然后修改，然后学生填入考试信息并更新返回
+// -------没有题库添加的题目，那就学生填入考试信息并返回
+//---- 没有手动添加的题目，那就试卷填入题目信息，题目加入试卷信息，然后学生填入考试信息并更新返回
 
 
 exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
     let paperData = req.body.paperData;
     let userId = req.body.userId;
-    let studentQuestion = []; //学生考卷对应的题目
     let updateQuestion = [];
     let addQuestion = [];
     let paperId = ''; //新创建的试卷的_id
@@ -60,7 +59,7 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                             doc._papers.push(paperId); // 教师中添加该试卷
                             doc.save(); // 很重要 不save则没有数据
                             if (paperData._questions.length > 0) { //有自主添加的题目
-                                paperData._questions.forEach(item => {
+                                paperData._questions.forEach((item) => {
                                     item._papers = [];
                                     item._papers.push(paperId);
                                     item._teacher = doc._id;
@@ -76,22 +75,14 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                                     } else {
                                         if (doc2) {
                                             doc2.forEach(item => {
-                                                doc1._questions.push(item._id) //试卷填入题目信息
+                                                doc1._questions.push(item._id) //试卷填入新出的题目信息
                                                 doc._questions.push(item._id) //老师表增加新出的题目信息
-                                                studentQuestion.push({ //学生填入题目信息
-                                                    _question: item._id,
-                                                    answer: ''
-                                                })
                                             });
                                             doc.save(); //更新老师
                                             let len = updateQuestion.length;
                                             let sum = -1;
                                             updateQuestion.forEach((item) => {
-                                                doc1._questions.push(item._id) //试卷填入题目信息
-                                                studentQuestion.push({ //学生填入题目信息
-                                                    _question: item._id,
-                                                    answer: ''
-                                                })
+                                                doc1._questions.push(item._id) //试卷填入题库增加的题目信息
                                             })
                                             doc1.save(); //更新试卷
                                             if (len > 0) { //有从题库添加的题目
@@ -115,7 +106,7 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                                                                         examStatus: 0,
                                                                         score: 0, //考试分数
                                                                         startTime: paperData.startTime,
-                                                                        answers: studentQuestion
+                                                                        answers: []
                                                                     }
                                                                     Student.updateMany({
                                                                         "class": parseInt(paperData.examclass),
@@ -150,14 +141,13 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                                                     })
                                                 })
                                             } else { //没有从题库添加的题目
-                                                doc1.save();
                                                 let examData = {
                                                     _paper: doc1._id, //试卷
                                                     date: paperData.time, //考试时间
                                                     examStatus: 0,
                                                     score: 0, //考试分数
                                                     startTime: paperData.startTime,
-                                                    answers: studentQuestion
+                                                    answers: []
                                                 }
                                                 Student.updateMany({
                                                     "class": parseInt(paperData.examclass),
@@ -197,10 +187,6 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                                 let sum = -1;
                                 updateQuestion.forEach((item) => {
                                     doc1._questions.push(item._id) //试卷填入题目信息
-                                    studentQuestion.push({ //学生填入题目信息
-                                        _question: item._id,
-                                        answer: ''
-                                    })
                                 })
                                 doc1.save(); //更新试卷
                                 updateQuestion.forEach((item) => {
@@ -223,7 +209,7 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
                                                         examStatus: 0,
                                                         score: 0, //考试分数
                                                         startTime: paperData.startTime,
-                                                        answers: studentQuestion
+                                                        answers: []
                                                     }
                                                     Student.updateMany({
                                                         "class": parseInt(paperData.examclass),
@@ -280,8 +266,8 @@ exports.taddpaper = function(req, res) { //添加试卷,taddPaper里调用
 
 // tupdatepaper实现逻辑
 // 首先看有没有自主添加的题目，
-// ------有的话就添加题目，然后老师添加题目，然后试卷把题目信息更新为发过来的题目信息，然后学生跟着把题目信息改为发过来的题目信息，然后题目进行修改，题库新增的题目就加上paperId,不是新增的题目也改成发过来的题目，然后看有没有删除的题目，有删除就题目删掉paperId然后返回去，没有删除就直接返回去
-// ------没有的话就试卷把题目信息更新为发过来的题目信息，然后学生跟着把题目信息改为发过来的题目信息，然后题目进行修改，题库新增的题目就加上paperId,不是新增的题目也改成发过来的题目，然后看有没有删除的题目，有删除就题目删掉paperId然后返回去，没有删除就直接返回去
+// ------有的话就添加题目，然后老师添加题目，然后试卷把题目信息更新为发过来的题目信息和新增的题目信息，然后学生修改试卷信息，然后判断试卷有没有原来的老题目，没有就删除要删除的题目然后返回或直接返回，有的话就题目进行修改，题库新增的题目就加上paperId,不是新增的题目也改成发过来的题目，然后看有没有删除的题目，有删除就题目删掉paperId然后返回去，没有删除就直接返回去
+// ------没有的话就试卷把题目信息更新为发过来的题目信息，然后学生跟着把试卷信息改为发过来的试卷信息，然后判断试卷有没有原来的老题目，没有就删除要删除的题目然后返回或直接返回，有的话就题目进行修改，题库新增的题目就加上paperId,不是新增的题目也改成发过来的题目，然后看有没有删除的题目，有删除就题目删掉paperId然后返回去，没有删除就直接返回去
 
 exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
     let paperId = req.body.paperId;
@@ -291,7 +277,6 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
 
     let updateQuestion = [];
     let addQuestion = [];
-    let studentQuestion = []; //有添加题目的话，学生也需要把题目加进去
 
     let paperParams = {
         name: paperData.name,
@@ -349,19 +334,12 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
                                         })
                                     } else {
                                         if (doc2) {
-                                            paperParams._questions.forEach(item => {
-                                                studentQuestion.push({ //学生填入题目信息
-                                                    _question: item,
-                                                    answer: ''
-                                                })
-                                            })
-                                            Student.updateMany({ //学生添加题目,直接更新整个数组
+                                            Student.updateMany({ //学生修改试卷信息
                                                     'class': parseInt(paperData.examclass),
                                                     'grade': parseInt(paperData.examgrade),
                                                     "exams._paper": paperId
                                                 }, {
                                                     $set: {
-                                                        "exams.$.answers": studentQuestion,
                                                         "exams.$.date": paperData.time,
                                                         "exams.$.score": 0,
                                                         "exams.$.startTime": paperData.startTime,
@@ -377,7 +355,7 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
                                                         if (doc4) {
                                                             let len = updateQuestion.length;
                                                             let sum = -1;
-                                                            if (len > 0) {
+                                                            if (len > 0) { //试卷有原来的老题目
                                                                 updateQuestion.forEach((item) => {
                                                                     if (item._papers.indexOf(paperId) === -1) {
                                                                         item._papers.push(paperId); //说明这是从题库新增的题目
@@ -433,7 +411,7 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
                                                                         }
                                                                     })
                                                                 })
-                                                            } else {
+                                                            } else { //试卷没有原来的老题目
                                                                 if (delQuestionId.length > 0) {
                                                                     Question.updateMany({
                                                                         "_id": {
@@ -504,19 +482,12 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
                 })
             } else {
                 if (doc2) {
-                    paperParams._questions.forEach(item => {
-                        studentQuestion.push({ //学生填入题目信息
-                            _question: item,
-                            answer: ''
-                        })
-                    })
                     Student.updateMany({ //学生添加题目,直接更新整个数组
                             'class': parseInt(paperData.examclass),
                             'grade': parseInt(paperData.examgrade),
                             "exams._paper": paperId
                         }, {
                             $set: {
-                                "exams.$.answers": studentQuestion,
                                 "exams.$.date": paperData.time,
                                 "exams.$.score": 0,
                                 "exams.$.startTime": paperData.startTime,
@@ -532,7 +503,7 @@ exports.tupdatepaper = function(req, res) { //修改试卷，taddPaper里调用
                                 if (doc4) {
                                     let len = updateQuestion.length;
                                     let sum = -1;
-                                    if (len > 0) {
+                                    if (len > 0) { //试卷有原来的老题目
                                         updateQuestion.forEach((item) => {
                                             if (item._papers.indexOf(paperId) === -1) {
                                                 item._papers.push(paperId); //说明这是从题库新增的题目
