@@ -80,7 +80,7 @@ exports.tlogin = function(req, res) { //tlogin里调用
                         result: {
                             userName: doc.userName,
                             userId: doc.userId,
-                            grade: 0,
+                            grade: doc._id,
                             class: 0
                         }
                     })
@@ -368,7 +368,10 @@ exports.tgetAllQuestion = function(req, res) { //tcomQuestionHub里面调用
         } else {
             if (doc) {
                 Question.find({
-                        "content": reg
+                        "content": reg,
+                        "useState": {
+                            $ne: 2
+                        }
                     }).skip(skip).limit(pageSize)
                     .exec((err2, doc2) => {
                         if (err2) {
@@ -458,6 +461,7 @@ exports.tdelpaper = function(req, res) { //tmypaper里面调用
                                     })
                                 } else {
                                     if (doc2) {
+                                        console.log(doc2);
                                         Student.updateMany({
                                             "class": {
                                                 $in: myclass
@@ -540,12 +544,16 @@ exports.tupdateQuestion = function(req, res) { //我的题库里面修改题目�
     })
 }
 
-exports.tdelQuestion = function(req, res) { //tquestionHub里面调用
+//首先老师删除题目，然后未开考的试卷删除题目，然后有开考的试卷的题目失效,没有的删除
+exports.tdelQuestion = function(req, res) {
     let data = req.body.questionData;
     let len = data.length;
     let questionId = [];
-    let studentQuestion = []; //存储学生的试卷对应的题目
+    let failQid = []; //已开考的试卷
     for (let i = 0; i < len; i++) {
+        if (data[i].useState === 1) {
+            failQid.push(data[i]._id);
+        }
         questionId.push(data[i]._id); //题目的_id
     }
     Teacher.update({
@@ -559,64 +567,71 @@ exports.tdelQuestion = function(req, res) { //tquestionHub里面调用
     }, (err, doc) => {
         if (err) {
             res.json({
-                status: '11',
+                status: '1',
                 msg: err.message
             })
         } else {
-            if (doc) {
-                Question.remove({
-                    "_id": {
+            Paper.updateMany({
+                "_questions": {
+                    $in: questionId
+                },
+                "status": 0
+            }, {
+                '$pull': {
+                    "_questions": {
                         $in: questionId
                     }
-                }, function(err1, doc1) {
-                    if (err1) {
-                        res.json({
-                            status: '12',
-                            msg: err1.message
-                        })
-                    } else {
-                        if (doc1) {
-                            Paper.updateMany({ //修改试卷------
-                                    "_questions": {
-                                        $in: questionId
-                                    }
-                                }, {
-                                    '$pull': {
-                                        "_questions": {
-                                            $in: questionId
-                                        }
-                                    }
-                                }, (err3, doc3) => {
-                                    if (err3) {
-                                        res.json({
-                                            status: '15',
-                                            msg: err3.message
-                                        })
-                                    } else {
-                                        res.json({ //题目暂无试卷
-                                            status: '0',
-                                            msg: 'success'
-                                        })
-                                    }
-                                }) //-------
-                        } else {
+                }
+            }, (err2, doc2) => {
+                if (err2) {
+                    res.json({
+                        status: '1',
+                        msg: err2.message
+                    })
+                } else {
+                    Question.remove({
+                        "_id": {
+                            $in: questionId
+                        },
+                        "useState": 0
+                    }, function(err3, doc3) {
+                        if (err3) {
                             res.json({
-                                status: '3',
-                                msg: '没有该题目'
+                                status: '12',
+                                msg: err3.message
                             })
-                        }
-                    }
-                })
-            } else {
-                res.json({
-                    status: '2',
-                    msg: '没有该教师'
-                })
-            }
-        }
-    })
-}
+                        } else {
+                            Question.updateMany({ //修改试卷------
+                                "_id": {
+                                    $in: failQid
+                                }
+                            }, {
+                                '$set': {
+                                    "useState": 2
+                                }
+                            }, (err4, doc4) => {
+                                if (err4) {
+                                    res.json({
+                                        status: '1',
+                                        msg: err4.message
+                                    })
+                                } else {
+                                    res.json({
+                                        status: '0',
+                                        msg: 'success'
+                                    })
+                                }
+                            })
 
+                        }
+                    })
+                }
+            })
+        }
+
+    })
+
+}
 
 
 exports.taddQuestionToHub = function(req, res) { //tcomQuestionHub里面调用，把题目添加到我的题库里面去，但是题目的出题人（_teacher）保持不变
@@ -709,7 +724,7 @@ exports.taddQuestion = function(req, res) { //tquestionHub里面调用，添加�
         } else {
             if (doc2) {
                 questionData._teacher = doc2._id;
-                questionData.canused = false;
+                questionData.useState = 0;
 
                 Question.create(questionData, function(err, doc) { //创造题目
                     if (err) {

@@ -1,6 +1,7 @@
 // server-----Interface--student.js
 const Student = require('./../models/students');
 const Paper = require('./../models/papers');
+const Question = require('./../models/questions');
 const crypto = require('crypto');
 
 function md5(str) {
@@ -166,7 +167,7 @@ exports.sexamLogs = function(req, res) { //smsgCenter里面的getExamData方法�
         }
     }).populate({
         path: 'exams._paper',
-        select: 'name status',
+        select: 'name status _questions',
         match: {
             name: reg
         }
@@ -189,6 +190,12 @@ exports.sexamLogs = function(req, res) { //smsgCenter里面的getExamData方法�
                         (new Date() - new Date(item.startTime)) / 60000 > item.date
                     ) {
                         item.examStatus = 2; //上面的判断条件说明该试卷不需要老师阅卷并且该考试已考完，并且考生没有参加该考试
+                        // doc1._questions.forEach(item => {
+                        //     item.answers.push({ //学生填入题目信息
+                        //         _question: item,
+                        //         answer: ''
+                        //     })
+                        // })
                     }
                     if (sum === len - 1) {
                         doc1.save();
@@ -226,10 +233,31 @@ exports.sgetExamInfo = function(req, res) { //获取考试题目等数据,sdoExa
             })
         } else {
             if (doc1) {
-                res.json({
-                    status: '0',
-                    msg: 'success',
-                    result: doc1
+                let qid = [];
+                doc1._questions.forEach(item => {
+                    qid.push(item._id);
+                })
+                Question.updateMany({
+                    "_id": {
+                        $in: qid
+                    }
+                }, {
+                    '$set': {
+                        "useState": 1
+                    }
+                }, (err2, doc2) => {
+                    if (err2) {
+                        res.json({
+                            status: '1',
+                            msg: err3.message
+                        })
+                    } else {
+                        res.json({
+                            status: '0',
+                            msg: 'success',
+                            result: doc1
+                        })
+                    }
                 })
             } else {
                 res.json({

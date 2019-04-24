@@ -318,7 +318,7 @@ export default {
               this.mygrade = data.examgrade;
               this.myclass = data.examclass;
               this.paper = data._questions;
-              this.teacherId = data._questions[0]._teacher;
+              this.teacherId = this.$getUserData().grade;
             } else if (res.status == "2") {
               this.$message({
                 showClose: true,
@@ -337,6 +337,7 @@ export default {
             loading.close();
           })
           .catch(err => {
+            console.log(err);
             loading.close();
             this.$message({
               showClose: true,
