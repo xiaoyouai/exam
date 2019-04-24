@@ -166,7 +166,7 @@
   title="新增题目"
   :visible.sync="dialogVisible"
   width="30%">
-    <el-form :model="myquestion" :rules="rules" ref="myquestion" label-width="100px" class="demo-ruleForm">
+    <el-form :model="myquestion" :rules="rules" ref="myquestion" label-width="100px" :disabled="isAddFromHub" class="demo-ruleForm">
           <el-form-item prop="content" label="题目：">
             <el-input placeholder="请输入题目" v-model.trim="myquestion.content" clearable></el-input>
           </el-form-item>
@@ -260,7 +260,7 @@ export default {
       paper: [], //试卷题目
       allQuestion: [], //题库所有的题目
       timeout: null, //用于从题库搜搜题目的节流操作
-      isAddFromHub: true, //是否是从题库添加题目，
+      isAddFromHub: false, //是否是从题库添加题目，
       // 题目弹窗相关
       myquestion: {
         content: "", //题目内容
@@ -421,22 +421,27 @@ export default {
     // 添加题目弹窗相关
     single() {
       this.dialogVisible = true;
+      this.isAddFromHub = false;
       this.myquestion.type = "single";
     },
     multi() {
       this.dialogVisible = true;
+      this.isAddFromHub = false;
       this.myquestion.type = "multi";
     },
     judgement() {
       this.dialogVisible = true;
+      this.isAddFromHub = false;
       this.myquestion.type = "judgement";
     },
     QA() {
       this.dialogVisible = true;
+      this.isAddFromHub = false;
       this.myquestion.type = "Q&A";
     },
     apfill() {
       this.dialogVisible = true;
+      this.isAddFromHub = false;
       this.myquestion.type = "apfill";
     },
     addsel() {
@@ -445,7 +450,11 @@ export default {
     },
     delsel(index) {
       //删除选项
-      this.myquestion.selection.splice(index, 1);
+      if (this.isAddFromHub) {
+        return;
+      } else {
+        this.myquestion.selection.splice(index, 1);
+      }
     },
     quit() {
       //取消添加题目
@@ -518,10 +527,33 @@ export default {
 
     editPaperItem(item, index) {
       // 编辑试卷中的题目
-      this.dialogVisible = true;
-      this.myquestion.type = item.type;
-      this.editIndex = index;
-      this.myquestion = this.$deepCopy(item);
+      if (item._id) {
+        //编辑从题库添加的题目
+        this.$confirm("您是因为题目有错所以修改题目?", "提示", {
+          confirmButtonText: "是",
+          cancelButtonText: "不是",
+          type: "warning"
+        })
+          .then(() => {
+            this.dialogVisible = true;
+            this.myquestion.type = item.type;
+            this.editIndex = index;
+            this.myquestion = this.$deepCopy(item);
+          })
+          .catch(() => {
+            this.$message({
+              type: "warning",
+              message: "请选择删除该题目然后新增题目",
+              duration: 2000,
+              showClose: true
+            });
+          });
+      } else {
+        this.dialogVisible = true;
+        this.myquestion.type = item.type;
+        this.editIndex = index;
+        this.myquestion = this.$deepCopy(item);
+      }
     },
     delPaperItem(index) {
       //删除试卷中的题目

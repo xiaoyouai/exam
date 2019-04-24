@@ -178,16 +178,18 @@ export default {
     this.userData = this.$getUserData();
     this.paperId = this.$route.params.paperId;
     this.init();
-    window.addEventListener("scroll", this.handleScroll);
-  },
-  beforeDestroy() {
-    window.removeEventListener("scroll", this.handleScroll);
   },
   methods: {
     /**
      * 初始化
      */
     init() {
+      const loading = this.$loading({
+        lock: true,
+        text: "数据加载中，请稍等",
+        spinner: "el-icon-loading",
+        background: "rgba(0, 0, 0, 0.7)"
+      });
       this.$axios
         .get("/api/sgetExamedInfo", {
           params: {
@@ -220,9 +222,11 @@ export default {
               }
             });
           }
+          loading.close();
         })
         .catch(err => {
           console.log(err);
+          loading.close();
         });
     },
     /**
@@ -240,16 +244,16 @@ export default {
           clearInterval(timer);
         }
       }, 20);
-    },
-    handleScroll() {
-      this.scroll =
-        document.documentElement.scrollTop || document.body.scrollTop;
-      if (this.scroll > 250) {
-        this.$refs.submitBox.style.top = 10 + "px";
-      } else {
-        this.$refs.submitBox.style.top = 250 + "px";
-      }
     }
+    // handleScroll() {
+    //   this.scroll =
+    //     document.documentElement.scrollTop || document.body.scrollTop;
+    //   if (this.scroll > 250) {
+    //     this.$refs.submitBox.style.top = 10 + "px";
+    //   } else {
+    //     this.$refs.submitBox.style.top = 250 + "px";
+    //   }
+    // }
   }
 };
 </script>

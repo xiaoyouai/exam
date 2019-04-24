@@ -337,8 +337,23 @@ export default {
         });
         return;
       }
-      this.dialogVisible = true; //唤起弹窗
-      this.myquestion = this.$deepCopy(row); //给数据
+      this.$confirm("您是因为题目有错所以修改题目?", "提示", {
+        confirmButtonText: "不是",
+        cancelButtonText: "是",
+        type: "warning"
+      })
+        .then(() => {
+          this.dialogVisible = true; //唤起弹窗
+          this.myquestion = this.$deepCopy(row); //给数据
+        })
+        .catch(() => {
+          this.$message({
+            type: "warning",
+            message: "请选择新增题目",
+            duration: 2000,
+            showClose: true
+          });
+        });
     },
     handleDelete(row) {
       if (row._teacher !== this.teacherId) {
