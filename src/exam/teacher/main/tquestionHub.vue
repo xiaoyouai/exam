@@ -338,8 +338,8 @@ export default {
         return;
       }
       this.$confirm("您是因为题目有错所以修改题目?", "提示", {
-        confirmButtonText: "不是",
-        cancelButtonText: "是",
+        confirmButtonText: "是",
+        cancelButtonText: "不是",
         type: "warning"
       })
         .then(() => {

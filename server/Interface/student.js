@@ -181,28 +181,38 @@ exports.sexamLogs = function(req, res) { //smsgCenter里面的getExamData方法�
             if (doc1) {
                 let sum = -1;
                 let len = doc1.exams.length;
-                doc1.exams.forEach(item => {
-                    sum++;
-                    if ((new Date() - new Date(item.startTime)) / 60000 > item.date && item.answers.length === 0) {
-                        //说明考试缺考了
-                        item.examStatus = 2;
-                        item._paper._questions.forEach((qid) => {
-                            item.answers.push({ //学生填入题目信息
-                                _question: qid,
-                                answer: '考试缺考，无答案'
+                if (len === 0) {
+                    res.json({
+                        status: '0',
+                        msg: 'success',
+                        result: doc1.exams,
+                        total: doc1.exams.length
+                    })
+                } else {
+                    doc1.exams.forEach(item => {
+                        sum++;
+                        if ((new Date() - new Date(item.startTime)) / 60000 > item.date && item.answers.length === 0) {
+                            //说明考试缺考了
+                            item.examStatus = 2;
+                            item._paper._questions.forEach((qid) => {
+                                item.answers.push({ //学生填入题目信息
+                                    _question: qid,
+                                    answer: '考试缺考，无答案'
+                                })
                             })
-                        })
-                    }
-                    if (sum === len - 1) {
-                        doc1.save();
-                        res.json({
-                            status: '0',
-                            msg: 'success',
-                            result: doc1.exams,
-                            total: doc1.exams.length
-                        })
-                    }
-                })
+                        }
+                        if (sum === len - 1) {
+                            doc1.save();
+                            res.json({
+                                status: '0',
+                                msg: 'success',
+                                result: doc1.exams,
+                                total: doc1.exams.length
+                            })
+                        }
+                    })
+                }
+
 
             } else {
                 res.json({
