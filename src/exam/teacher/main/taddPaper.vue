@@ -364,7 +364,19 @@ export default {
               return item._papers.indexOf(this.paperId) === -1;
             });
             this.allQuestion.forEach(item => {
-              item.value = item.content; //因为input的显示必须要有value这一项
+              let type = "";
+              if (item.type === "single") {
+                type = "单选";
+              } else if (item.type === "multi") {
+                type = "多选";
+              } else if (item.type === "apfill") {
+                type = "填空";
+              } else if (item.type === "Q&A") {
+                type = "简答";
+              } else if (item.type === "judgement") {
+                type = "判断";
+              }
+              item.value = `${item.content}（${type}）`; //因为input的显示必须要有value这一项
             });
           } else if (res.status == "2") {
             this.$message({

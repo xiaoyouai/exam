@@ -95,6 +95,10 @@ export default {
         })
         .then(response => {
           let res = response.data;
+          res.result = res.result.filter(
+            item => (new Date() - new Date(item.startTime)) / 60000 > item.time //考试中的试卷不能阅卷
+          );
+          res.total = res.result.length;
           this.pageSize = this.pageSize === 10000 ? res.total : this.pageSize;
           this.pageTotal = this.pageTotal === 0 ? res.total : this.pageTotal;
           if (res.msg == "success" && res.status == "0") {

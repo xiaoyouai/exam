@@ -55,7 +55,7 @@
             <p class="question-title">
                 {{index+1}} 、{{item.content}}&nbsp;（{{item.score}}分）
                 <span style="color:red">正确答案：{{item.answer}}</span>&nbsp;&nbsp;
-                <span style="color:orange">您的答案：{{item.sanswer}}</span>
+                <span style="color:#409eff">您的答案：{{item.sanswer}}</span>
             </p>
             <span
               class="option"
@@ -76,7 +76,7 @@
             <p class="question-title">
                 {{index+1}} 、{{item.content}}&nbsp;（{{item.score}}分）
                 <span style="color:red">正确答案：{{item.answer}}</span>&nbsp;&nbsp;
-                <span style="color:orange">您的答案：{{item.sanswer}}</span>
+                <span style="color:#409eff">您的答案：{{item.sanswer}}</span>
             </p>
             <span
               class="option"
@@ -96,7 +96,7 @@
           <li class="marginB10" v-for="(item,index) in judgeQuestions" :key="item._id">
             <p class="question-title">{{index+1}} 、{{item.content}}&nbsp;（{{item.score}}分）</p>
              <span style="color:red">正确答案：{{item.answer==="A"?"对":"错"}}</span>&nbsp;&nbsp;
-             <span style="color:orange">您的答案：{{item.sanswer==="A"?"对":"错"}}</span>
+             <span style="color:#409eff">您的答案：{{item.sanswer==="A"?"对":"错"}}</span>
           </li>
         </ul>
       </div>
@@ -105,7 +105,7 @@
         <ul class="question-item">
           <li class="marginB10" v-for="(item,index) in apfillQuestions" :key="item._id">
             <p class="question-title">{{index+1}} 、{{item.content}}&nbsp;（{{item.score}}分）</p>
-            <p class="question-title">您的答案：{{item.sanswer}}</p>
+            <p class="question-title" style="color:#409eff">您的答案：{{item.sanswer}}</p>
              <p class="question-title" style="color:red">参考答案：{{item.answer}}</p>
           </li>
         </ul>
@@ -115,7 +115,7 @@
         <ul class="question-item">
           <li class="marginB10" v-for="(item,index) in QAQuestions" :key="item._id">
             <p class="question-title">{{index+1}} 、{{item.content}}&nbsp;（{{item.score}}分）</p>
-             <p class="question-title">您的答案：{{item.sanswer}}</p>
+             <p class="question-title" style="color:#409eff">您的答案：{{item.sanswer}}</p>
              <p class="question-title" style="color:red">参考答案：{{item.answer}}</p>
           </li>
         </ul>
@@ -207,7 +207,7 @@ export default {
             this.startTime = res.result.paperData.startTime;
             res.result.paperData._questions.forEach(item => {
               item.sanswer = res.result.studentAnswer.filter(
-                item2 => (item2._question = item._id)
+                item2 => item2._question == item._id
               )[0].answer;
               if (item.type == "single") {
                 this.singleQuestions.push(item);
@@ -221,6 +221,7 @@ export default {
                 this.apfillQuestions.push(item);
               }
             });
+            console.log(this.QAQuestions);
           }
           loading.close();
         })

@@ -332,6 +332,7 @@ ul,
 li {
   padding: 0;
   margin: 0;
+  text-align: left;
 }
 li {
   list-style: none;

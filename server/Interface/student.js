@@ -186,11 +186,10 @@ exports.sexamLogs = function(req, res) { //smsgCenter里面的getExamData方法�
                     if ((new Date() - new Date(item.startTime)) / 60000 > item.date && item.answers.length === 0) {
                         //说明考试缺考了
                         item.examStatus = 2;
-                        item._paper._questions.forEach((qid, index) => {
-                            console.log(qid, index);
+                        item._paper._questions.forEach((qid) => {
                             item.answers.push({ //学生填入题目信息
                                 _question: qid,
-                                answer: ''
+                                answer: '考试缺考，无答案'
                             })
                         })
                     }
