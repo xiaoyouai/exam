@@ -184,13 +184,7 @@ export default {
     },
     checkPaper(index, row) {
       if (row.exams[0].answers.length === 0) {
-        this.$message({
-          showClose: true,
-          message: "该考生考试缺考，已记0分",
-          type: "warning",
-          duration: 2000
-        });
-        this.doSubmit(index, 0);
+        this.doSubmit(index, 0, true);
       } else {
         this.dialogVisible = true;
         this.currentCheckIndex = index;
@@ -226,10 +220,10 @@ export default {
         this.questions.forEach(item => {
           newScore += parseInt(item.score);
         });
-        this.doSubmit(this.currentCheckIndex, newScore);
+        this.doSubmit(this.currentCheckIndex, newScore, false);
       }
     },
-    doSubmit(index, newScore) {
+    doSubmit(index, newScore, isAbsent) {
       this.$axios
         .post("/api/tsubmitCheckPapers", {
           userId: this.tableData[index].userId,
@@ -239,12 +233,21 @@ export default {
         .then(response => {
           let res = response.data;
           if (res.status == "0" && res.msg == "success") {
-            this.$message({
-              showClose: true,
-              message: "阅卷提交成功",
-              type: "success",
-              duration: 1000
-            });
+            if (isAbsent) {
+              this.$message({
+                showClose: true,
+                message: "该考生考试缺考，已记0分",
+                type: "warning",
+                duration: 2000
+              });
+            } else {
+              this.$message({
+                showClose: true,
+                message: "阅卷提交成功",
+                type: "success",
+                duration: 1000
+              });
+            }
 
             let newData = this.tableData[index];
             newData.exams[0].examStatus = 2;
