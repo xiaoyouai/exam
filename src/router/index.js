@@ -24,6 +24,7 @@ import tcomQuestionHub from "./../exam/teacher/main/tcomQuestionHub";
 import taddPaper from "./../exam/teacher/main/taddPaper";
 import tlookPaper from "./../exam/teacher/main/tlookPaper";
 
+import error from './../common/404'
 
 Vue.use(Router);
 
@@ -123,6 +124,11 @@ export default new Router({
                     component: tlookPaper
                 }
             ]
+        },
+        {
+            path: '/*',
+            name: '404',
+            component: error
         }
     ]
 });
