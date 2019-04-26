@@ -8,7 +8,7 @@
     <el-col :span="7" :offset="14">
       <div class="grid-content bg-purple-light" style="margin-top:1em;">
         <el-button type="primary" size="small" @click="save">保存</el-button>
-        <el-button type="danger" size="small" @click="resetPaper">清空试卷题目</el-button>
+        <el-button type="danger" size="small" v-if="paperId==='-1'" @click="resetPaper">清空试卷题目</el-button>
         <el-button type="primary" size="small">
           <router-link :to="'/tmain/tmypaper/'+userId">返回</router-link>
           </el-button>
@@ -149,12 +149,13 @@
             <span>&nbsp;&nbsp;({{item.score}}分)</span>
             <span><i class="el-icon-edit editicon" @click="editPaperItem(item,index)"></i></span>
             <span><i class="el-icon-delete delicon" @click="delPaperItem(index)"></i></span>
+            <span style="color:#409eff" v-if="item.type=='single'||item.type=='judgement'||item.type=='multi'">&nbsp;&nbsp;答案：{{item.answer}}</span>
           </div>
           <div v-if="item.type=='single'||item.type=='multi'" class="paperItemSel">
             <span v-for="(i,index) in item.selection">{{[i.value,index]|paperSelection }}</span>
           </div>
           <div v-if="item.type=='apfill'||item.type=='Q&A'">
-            <p class="wrap" style="margin-top:5px;margin-bottom:0">{{item.answer}}</p>
+            <p class="wrap" style="margin-top:5px;margin-bottom:0;color:#409eff">答案：{{item.answer}}</p>
           </div>
       </div>
 
@@ -376,7 +377,7 @@ export default {
               } else if (item.type === "judgement") {
                 type = "判断";
               }
-              item.value = `${item.content}（${type}）`; //因为input的显示必须要有value这一项
+              item.value = `(${type})${item.content}（${item.score}分）`; //因为input的显示必须要有value这一项
             });
           } else if (res.status == "2") {
             this.$message({
@@ -408,19 +409,21 @@ export default {
     querySearchAsync(queryString, cb) {
       let allQuestion = this.allQuestion;
       let results = [];
-      if (queryString) {
+      let time = 0;
+      if (queryString !== "") {
         allQuestion.forEach(item => {
           if (item.value.indexOf(queryString) > -1) {
             results.push(item);
           }
         });
+        time = 1500;
       } else {
         results = allQuestion;
       }
       clearTimeout(this.timeout);
       this.timeout = setTimeout(() => {
         cb(results);
-      }, 3000 * Math.random());
+      }, time * Math.random());
     },
     handleSelect(item) {
       // 编辑试卷中的题目
@@ -607,13 +610,17 @@ export default {
 
     // 清空试卷题目：
     resetPaper() {
-      this.$confirm("确认清空?", "提示", {
+      this.$confirm("确认清空试卷题目?", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
       })
         .then(() => {
-          this.paper = "";
+          this.allQuestion = [
+            ...this.allQuestion,
+            ...this.paper.filter(item => item._id)
+          ];
+          this.paper = [];
           this.$message({
             type: "success",
             message: "删除成功!",
@@ -672,6 +679,37 @@ export default {
         return;
       }
 
+      let sum = 0;
+      this.paper.forEach(item => {
+        sum += parseInt(item.score);
+      });
+      if (sum !== parseInt(this.score)) {
+        this.$confirm(
+          `试卷总分与题目总分不相等,是否修改题目总分为试卷总分?`,
+          `试卷总分${this.score}--题目总分${sum}`,
+          {
+            confirmButtonText: "是",
+            cancelButtonText: "否，我要修改题目",
+            type: "warning",
+            center: true
+          }
+        )
+          .then(() => {
+            this.score = sum;
+            this.doSubmit();
+          })
+          .catch(err => {
+            console.log(err);
+            return;
+          });
+      } else {
+        this.doSubmit();
+      }
+    },
+    /**
+     * 执行提交数据
+     */
+    doSubmit() {
       const loading = this.$loading({
         lock: true,
         text: "数据提交中",
@@ -680,7 +718,7 @@ export default {
       });
       if (this.paperId == "-1") {
         this.$confirm(
-          `确定新增试卷吗？请确认已正确选择班级信息`,
+          `确定新增试卷吗？请确认已正确选择年级和班级信息`,
           `您选择的--${this.mygrade}--年级--${this.myclass}--班`,
           {
             confirmButtonText: "确定",

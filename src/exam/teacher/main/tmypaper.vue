@@ -30,19 +30,31 @@
           </div>
           <el-table :data="tableData" height="420" border v-loading="loading"  element-loading-text="数据加载中，请稍等" style="width: 100%;margin-bottom:10px;" :default-sort = "{prop: 'startTime', order: 'descending'}" @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="50"> </el-table-column>
-            <el-table-column prop="startTime" label="考试时间"  width="180" sortable><template slot-scope="props">
+            <el-table-column prop="status" label="状态"  width="50">
+              <template slot-scope="props">
+                <span v-if="parseInt(parseInt(props.row.status))===0">未考</span>
+                <span v-if="parseInt(props.row.status)===1">已考</span>
+                <span v-if="parseInt(props.row.status)===2">已阅</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="startTime" label="考试时间"  width="180" sortable>
+              <template slot-scope="props">
                 <span>{{ new Date(props.row.startTime).toLocaleString()}}</span>
-              </template></el-table-column>
+              </template>
+            </el-table-column>
             <el-table-column prop="examgrade" label="考试年级" width="80"> </el-table-column>
             <el-table-column prop="examclass" label="考试班级" width="80"> </el-table-column>
-            <el-table-column prop="name" label="试卷名称" > </el-table-column>
-            <el-table-column prop="totalPoints" label="试卷总分"   width="80"> </el-table-column>
-            <el-table-column prop="time" label="考试时长"  width="80"> </el-table-column>
+            <el-table-column prop="name" label="试卷名称" width="350"> </el-table-column>
+            <el-table-column prop="totalPoints" label="总分"   width="50"> </el-table-column>
+            <el-table-column prop="time" label="总时长"  width="70"> </el-table-column>
             <el-table-column label="操作"   width="148">
               <template slot-scope="scope">
                 <el-button
                   size="mini"
-                  @click="handleEdit(scope.row)">编辑</el-button>
+                  @click="handleEdit(scope.row)" v-if="parseInt(scope.row.status)===0">编辑</el-button>
+                <el-button
+                size="mini"
+                @click="handleLook(scope.row)" v-if="parseInt(scope.row.status)!==0">查看</el-button>
                 <el-button
                   size="mini"
                   type="danger"
@@ -107,16 +119,6 @@ export default {
           this.pageSize = this.pageSize === 10000 ? res.total : this.pageSize;
           this.pageTotal = this.pageTotal === 0 ? res.total : this.pageTotal;
           if (res.msg == "success" && res.status == "0") {
-            // if (res.result.length === 0 && this.tableData.length > 0) {
-            //   this.$message({
-            //     showClose: true,
-            //     message: "未搜到该试卷！！！",
-            //     type: "warning",
-            //     duration: 1000
-            //   });
-            //   this.loading = false;
-            //   return;
-            // }
             this.tableData = res.result;
             if (this.tableData.length === 0) {
               this.$message({
@@ -158,22 +160,14 @@ export default {
       this.selPaper = val;
     },
     handleEdit(row) {
-      //表格的编辑按钮，跳转去修改试卷
-      let now = new Date();
-      if (now - new Date(row.startTime) > 0) {
-        this.$message({
-          showClose: true,
-          message: "已开考或正在考试，无法修改",
-          type: "warning",
-          duration: 1000
-        });
-        return;
-      }
-      if (now - new Date(row.startTime)) {
-        this.$router.push({
-          path: "/tmain/taddpaper/" + row._id + "/" + this.userId
-        });
-      }
+      this.$router.push({
+        path: "/tmain/taddpaper/" + row._id + "/" + this.userId
+      });
+    },
+    handleLook(row) {
+      this.$router.push({
+        path: "/tmain/tlookpaper/" + row._id + "/" + this.userId
+      });
     },
     handleDelete(row) {
       this.$confirm("确认删除?", "提示", {

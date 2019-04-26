@@ -221,7 +221,6 @@ export default {
                 this.apfillQuestions.push(item);
               }
             });
-            console.log(this.QAQuestions);
           }
           loading.close();
         })
@@ -246,15 +245,6 @@ export default {
         }
       }, 20);
     }
-    // handleScroll() {
-    //   this.scroll =
-    //     document.documentElement.scrollTop || document.body.scrollTop;
-    //   if (this.scroll > 250) {
-    //     this.$refs.submitBox.style.top = 10 + "px";
-    //   } else {
-    //     this.$refs.submitBox.style.top = 250 + "px";
-    //   }
-    // }
   }
 };
 </script>

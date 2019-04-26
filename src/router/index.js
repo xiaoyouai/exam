@@ -22,6 +22,8 @@ import tmodifyMsg from "./../exam/teacher/main/tmodifyMsg";
 import tquestionHub from "./../exam/teacher/main/tquestionHub";
 import tcomQuestionHub from "./../exam/teacher/main/tcomQuestionHub";
 import taddPaper from "./../exam/teacher/main/taddPaper";
+import tlookPaper from "./../exam/teacher/main/tlookPaper";
+
 
 Vue.use(Router);
 
@@ -114,6 +116,11 @@ export default new Router({
                     path: "taddPaper/:paperId/:id", //添加试卷,paperId为-1表示添加试卷
                     name: "taddPaper",
                     component: taddPaper
+                },
+                {
+                    path: "tlookPaper/:paperId/:id", //添加试卷,paperId为-1表示添加试卷
+                    name: "tlookPaper",
+                    component: tlookPaper
                 }
             ]
         }
