@@ -556,8 +556,10 @@ exports.tdelQuestion = function(req, res) {
         }
         questionId.push(data[i]._id); //题目的_id
     }
-    Teacher.update({
-        "_id": data[0]._teacher
+    Teacher.updateMany({
+        "_questions": {
+            $in: questionId
+        }
     }, {
         '$pull': {
             "_questions": {

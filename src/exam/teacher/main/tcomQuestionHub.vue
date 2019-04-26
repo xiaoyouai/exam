@@ -94,7 +94,7 @@ export default {
       questionData: [], //从数据库获取得来的题目数据
       loading: true,
       searchTxt: "",
-      multipleSelection: "", //批量选择时的选定项
+      multipleSelection: [], //批量选择时的选定项
 
       questionType: "all", //选择的题目类型
 
