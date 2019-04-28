@@ -109,14 +109,24 @@
         @select="handleSelect"
       ></el-autocomplete>
     </el-col>
-    <el-col :span="14" >
+    <el-col :span="7" >
       <div class="grid-content bg-purple-light">
-         <span class="type"><i class="fa-icon 	fa fa-hand-o-right"></i>&nbsp;&nbsp;自主添加题目：</span>
-        <el-button type="primary" size="medium" @click="single">单选题</el-button>
-        <el-button type="primary" size="medium" @click="judgement">判断题</el-button>
+         <span class="type"><i class="fa-icon 	fa fa-hand-o-right"></i>&nbsp;&nbsp;题库随机出题：</span>
+        <el-button type="primary" size="medium" @click="randomGetQuestion">随机出题</el-button>
+        <!-- <el-button type="primary" size="medium" @click="judgement">判断题</el-button>
         <el-button type="primary" size="medium" @click="apfill">填空题</el-button>
         <el-button type="primary" size="medium" @click="multi">多选题</el-button>
-        <el-button type="primary" size="medium" @click="QA">简答题</el-button>
+        <el-button type="primary" size="medium" @click="QA">简答题</el-button> -->
+      </div>
+    </el-col>
+    <el-col :span="7" >
+      <div class="grid-content bg-purple-light">
+         <span class="type"><i class="fa-icon 	fa fa-hand-o-right"></i>&nbsp;&nbsp;自主添加题目：</span>
+        <el-button type="primary" size="medium" @click="single">新建题目</el-button>
+        <!-- <el-button type="primary" size="medium" @click="judgement">判断题</el-button>
+        <el-button type="primary" size="medium" @click="apfill">填空题</el-button>
+        <el-button type="primary" size="medium" @click="multi">多选题</el-button>
+        <el-button type="primary" size="medium" @click="QA">简答题</el-button> -->
       </div>
     </el-col>
   </el-row>
@@ -433,32 +443,54 @@ export default {
     },
     // 从题库搜索出现结果
 
+    /**
+     * 试卷随机出题
+     */
+    randomGetQuestion() {
+      let arr = [...this.allQuestion];
+      let i = arr.length;
+      let sum = 0;
+      this.paper.forEach(item => {
+        sum += parseInt(item.score);
+      });
+      while (i) {
+        let j = Math.floor(Math.random() * i--);
+        [arr[j], arr[i]] = [arr[i], arr[j]];
+        sum += parseInt(arr[i].score);
+        if (sum > this.score) {
+          break;
+        }
+        this.paper.push(arr[i]);
+        this.allQuestion.splice(j, 1);
+      }
+    },
+
     // 添加题目弹窗相关
     single() {
       this.dialogVisible = true;
       this.isAddFromHub = false;
       this.myquestion.type = "single";
     },
-    multi() {
-      this.dialogVisible = true;
-      this.isAddFromHub = false;
-      this.myquestion.type = "multi";
-    },
-    judgement() {
-      this.dialogVisible = true;
-      this.isAddFromHub = false;
-      this.myquestion.type = "judgement";
-    },
-    QA() {
-      this.dialogVisible = true;
-      this.isAddFromHub = false;
-      this.myquestion.type = "Q&A";
-    },
-    apfill() {
-      this.dialogVisible = true;
-      this.isAddFromHub = false;
-      this.myquestion.type = "apfill";
-    },
+    // multi() {
+    //   this.dialogVisible = true;
+    //   this.isAddFromHub = false;
+    //   this.myquestion.type = "multi";
+    // },
+    // judgement() {
+    //   this.dialogVisible = true;
+    //   this.isAddFromHub = false;
+    //   this.myquestion.type = "judgement";
+    // },
+    // QA() {
+    //   this.dialogVisible = true;
+    //   this.isAddFromHub = false;
+    //   this.myquestion.type = "Q&A";
+    // },
+    // apfill() {
+    //   this.dialogVisible = true;
+    //   this.isAddFromHub = false;
+    //   this.myquestion.type = "apfill";
+    // },
     addsel() {
       //添加选项
       this.myquestion.selection.push({ value: "" });

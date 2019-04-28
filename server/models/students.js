@@ -12,7 +12,7 @@ let studentSchema = new Schema({
             ref: 'Paper'
         }, //试卷
         date: Number, //考试总时长
-        examStatus: Number, //0表示没开考，1表示开考了没阅卷，2表示阅卷了
+        examStatus: Number, //0表示没开考，1表示开考了没阅卷，2表示阅卷了，4表示有答案存在里面
         score: Number, //考试分数
         startTime: Date,
         answers: [{

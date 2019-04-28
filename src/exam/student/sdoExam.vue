@@ -196,7 +196,9 @@ export default {
         "S",
         "T"
       ],
-      scroll: document.documentElement.scrollTop || document.body.scrollTop
+      scroll: document.documentElement.scrollTop || document.body.scrollTop,
+
+      beforeTime: "" //按时提交功能需要用到的变量
     };
   },
   computed: {
@@ -208,7 +210,6 @@ export default {
       hour = Math.floor(time / 3600);
       mm = Math.floor((time / 60) % 60);
       ss = Math.floor(time % 60);
-
       return `${hour}小时${mm}分钟${ss}秒`;
     }
   },
@@ -223,6 +224,65 @@ export default {
         });
         let isMust = true;
         this.submit(isMust);
+      }
+    },
+    examTime(curVal, oldVal) {
+      console.log(curVal, this.beforeTime);
+      if (parseInt(this.beforeTime) - parseInt(curVal) === 30) {
+        this.beforeTime = curVal;
+        let answers = [];
+        this.singleQuestions.forEach(item => {
+          answers.push({
+            _question: item._id,
+            answer: item.sanswer
+          });
+        });
+        this.multiQuestions.forEach(item => {
+          answers.push({
+            _question: item._id,
+            answer: item.sanswer
+          });
+        });
+        this.judgeQuestions.forEach(item => {
+          answers.push({
+            _question: item._id,
+            answer: item.sanswer
+          });
+        });
+        if (this.QAQuestions.length > 0) {
+          this.QAQuestions.forEach(item => {
+            answers.push({
+              _question: item._id,
+              answer: item.sanswer
+            });
+          });
+        }
+        if (this.apfillQuestions.length > 0) {
+          this.apfillQuestions.forEach(item => {
+            answers.push({
+              _question: item._id,
+              answer: item.sanswer
+            });
+          });
+        }
+        //暂存答案
+        this.$axios
+          .post("/api/sSubmitExam", {
+            userId: this.userData.userId,
+            paperId: this.paperId,
+            score: 0,
+            answers: answers,
+            startTime: this.startTime,
+            examStatus: 0
+          })
+          .then(response => {
+            let res = response.data;
+            if (res.status == "0") {
+            }
+          })
+          .catch(err => {
+            console.log(err);
+          });
       }
     }
   },
@@ -250,7 +310,8 @@ export default {
       this.$axios
         .get("/api/sgetExamInfo", {
           params: {
-            paperId: this.paperId
+            paperId: this.paperId,
+            userId: this.userData.userId
           }
         })
         .then(response => {
@@ -274,22 +335,26 @@ export default {
               this.$router.go(-1);
             }
             this.getCode();
+            this.beforeTime = this.examTime;
             // this.timeOut();
-            res.result._questions.forEach(item => {
+            res.result._questions.forEach((item, index) => {
+              let sanswer =
+                res.sanswer.length > 0
+                  ? res.sanswer.filter(item2 => item2._question == item._id)[0]
+                  : "";
+              item.sanswer = res.sanswer.length > 0 ? sanswer.answer : "";
+
               if (item.type == "single") {
-                item.sanswer = "";
                 this.singleQuestions.push(item);
               } else if (item.type == "multi") {
-                item.sanswer = [];
+                item.sanswer =
+                  res.sanswer.length > 0 ? sanswer.answer.split(",") : [];
                 this.multiQuestions.push(item);
               } else if (item.type == "Q&A") {
-                item.sanswer = "";
                 this.QAQuestions.push(item);
               } else if (item.type == "judgement") {
-                item.sanswer = "";
                 this.judgeQuestions.push(item);
               } else if (item.type == "apfill") {
-                item.sanswer = "";
                 this.apfillQuestions.push(item);
               }
             });

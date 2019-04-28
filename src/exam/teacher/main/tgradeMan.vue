@@ -56,11 +56,12 @@
   </el-container>
 
 <el-dialog title="考试成绩" :visible.sync="dialogTableVisible">
-  <el-table :data="gradeTable" stripe :default-sort = "{prop: 'exams[0].score', order: 'ascending'}" element-loading-text="数据加载中，请稍等" v-loading="gradeLoading" >
+  <el-table :data="gradeTable" stripe :default-sort = "{prop: `score`, order: 'ascending'}" element-loading-text="数据加载中，请稍等" v-loading="gradeLoading" >
     <el-table-column type="index">
     </el-table-column>
-    <el-table-column property="userName" label="姓名"></el-table-column>
-    <el-table-column property="exams[0].score" sortable label="成绩"></el-table-column>
+    <el-table-column property="name" label="姓名"></el-table-column>
+    <el-table-column property="score" sortable label="成绩">
+    </el-table-column>
   </el-table>
 </el-dialog>
 
@@ -166,7 +167,12 @@ export default {
         .then(response => {
           let res = response.data;
           if (res.msg == "success" && res.status == "0") {
-            this.gradeTable = res.result;
+            res.result.forEach(item=>{
+              this.gradeTable.push({
+                name:item.userName,
+                score:item.exams[0].score
+              })
+            })
             if (this.gradeTable.length === 0) {
               this.$message({
                 showClose: true,

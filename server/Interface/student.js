@@ -227,6 +227,8 @@ exports.sexamLogs = function(req, res) { //smsgCenter里面的getExamData方法�
 
 exports.sgetExamInfo = function(req, res) { //获取考试题目等数据,sdoExam的init方法里面调用
     let paperId = req.param('paperId');
+    let userId = req.param('userId');
+
     Paper.findOne({
         '_id': paperId
     }).populate({
@@ -255,14 +257,30 @@ exports.sgetExamInfo = function(req, res) { //获取考试题目等数据,sdoExa
                     if (err2) {
                         res.json({
                             status: '1',
-                            msg: err3.message
+                            msg: err2.message
                         })
                     } else {
-                        res.json({
-                            status: '0',
-                            msg: 'success',
-                            result: doc1
+                        Student.findOne({
+                            "userId": userId
+                        }, (err3, doc3) => {
+                            if (err3) {
+                                res.json({
+                                    status: '1',
+                                    msg: err3.message
+                                })
+                            } else {
+                                if (doc3) {
+                                    let data = doc3.exams.filter(item => JSON.stringify(item._paper) === JSON.stringify(paperId));
+                                    res.json({
+                                        status: '0',
+                                        msg: 'success',
+                                        result: doc1,
+                                        sanswer: data[0].answers
+                                    })
+                                }
+                            }
                         })
+
                     }
                 })
             } else {

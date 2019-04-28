@@ -45,7 +45,7 @@
           <p class="wrap"><i class="fa-icon 	fa fa-hand-o-right"></i>&nbsp;&nbsp;{{item._question.content}} <span>&nbsp;&nbsp;({{item._question.score}}分)</span></p>
           <p class="wrap"><span>学生答案: {{item.answer}}</span></p>
           <p class="wrap"> 题目参考答案: <span style="color:orange">{{item._question.answer}}</span></p>
-          打分：<el-input class="input" size="small" @change="checkType(item.score,item._question.score)" v-model="item.score"></el-input>
+          打分：<el-input class="input" size="small"clearable @change="checkType(item.score,item._question.score)" v-model="item.score"></el-input>
           <span v-if='isNumber' class="error">*只能是数字</span>
           <span v-if='isMore' class="error">*不能大于题目总分</span>
         </li>
