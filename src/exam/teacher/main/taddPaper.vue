@@ -113,10 +113,6 @@
       <div class="grid-content bg-purple-light">
          <span class="type"><i class="fa-icon 	fa fa-hand-o-right"></i>&nbsp;&nbsp;题库随机出题：</span>
         <el-button type="primary" size="medium" @click="randomGetQuestion">随机出题</el-button>
-        <!-- <el-button type="primary" size="medium" @click="judgement">判断题</el-button>
-        <el-button type="primary" size="medium" @click="apfill">填空题</el-button>
-        <el-button type="primary" size="medium" @click="multi">多选题</el-button>
-        <el-button type="primary" size="medium" @click="QA">简答题</el-button> -->
       </div>
     </el-col>
     <el-col :span="7" >
@@ -227,28 +223,28 @@
 export default {
   data() {
     var checkContent = (rule, value, callback) => {
-      if (!value) {
+      if (value === "") {
         return callback(new Error("题目不能为空"));
       } else {
         callback();
       }
     };
     var checkSelection = (rule, value, callback) => {
-      if (!value) {
+      if (value === "") {
         return callback(new Error("选项不能为空"));
       } else {
         callback();
       }
     };
     var checkAnswer = (rule, value, callback) => {
-      if (!value) {
+      if (value === "") {
         return callback(new Error("答案不能为空"));
       } else {
         callback();
       }
     };
     var checkScore = (rule, value, callback) => {
-      if (!value) {
+      if (value === "") {
         return callback(new Error("分值不能为空"));
       } else {
         callback();
@@ -447,6 +443,12 @@ export default {
      * 试卷随机出题
      */
     randomGetQuestion() {
+      const loading = this.$loading({
+        lock: true,
+        text: "生成数据中，请稍等",
+        spinner: "el-icon-loading",
+        background: "rgba(0, 0, 0, 0.7)"
+      });
       let arr = [...this.allQuestion];
       let i = arr.length;
       let sum = 0;
@@ -461,8 +463,12 @@ export default {
           break;
         }
         this.paper.push(arr[i]);
-        this.allQuestion.splice(j, 1);
+        this.allQuestion = this.allQuestion.filter(
+          item => item._id !== arr[i]._id
+        );
+        arr.pop();
       }
+      loading.close();
     },
 
     // 添加题目弹窗相关
@@ -648,10 +654,8 @@ export default {
         type: "warning"
       })
         .then(() => {
-          this.allQuestion = [
-            ...this.allQuestion,
-            ...this.paper.filter(item => item._id)
-          ];
+          this.paper = this.paper.filter(item => item._id);
+          this.allQuestion = this.allQuestion.concat(this.paper);
           this.paper = [];
           this.$message({
             type: "success",

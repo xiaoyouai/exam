@@ -2,10 +2,9 @@
 <div>
    <el-container>
     <el-main>
-          <span slot="label"><i class="el-icon-date"></i>考试记录</span>
           <div class="comBottom">
             <el-row>
-              <el-col :span="16">
+              <el-col :span="14">
                     题目关键词：
                 <el-input placeholder="请输入题目关键词" v-model="searchTxt" clearable prefix-icon="el-icon-search"  size="small" style="width:70%">  </el-input>
                 <el-button type="primary" size="small" @click="search">搜索</el-button>
@@ -20,10 +19,13 @@
                     <el-option label="简答题" value="Q&A"></el-option>
                 </el-select>
               </el-col>
-              <el-col :span="4">
+              <el-col :span="6">
                 <el-row>
-                  <el-col :span="12"><el-button type="primary" size="small" @click="addQuestion">新增题目</el-button></el-col>
-                  <el-col :span="12"><el-button type="danger" size="small" @click="multiDel">批量删除</el-button></el-col>
+                  <el-col :span="8"><el-button type="primary" size="small" @click="addQuestion">新增题目</el-button></el-col>
+                  <el-col :span="8"><el-button type="danger" size="small" @click="multiDel">批量删除</el-button></el-col>
+                  <el-col :span="8">
+                  <el-col :span="8"><el-button type="primary" size="small" @click="uploadDialogVisible=true">导入题库</el-button></el-col>
+                    </el-col>
                 </el-row>
               </el-col>
             </el-row>
@@ -144,6 +146,39 @@
   </el-dialog>
   <!-- 编辑问题弹窗 -->
 
+  <!-- 上传题库弹窗 -->
+  <el-dialog
+    title="上传题库"
+    :visible.sync="uploadDialogVisible"
+    width="30%">
+    <div style="text-align:left">
+      <h3><i class="fa-icon 	fa fa-hand-o-right"></i>&nbsp;&nbsp;1、下载模板</h3>
+      &nbsp;&nbsp;<span><i class="el-icon-info"></i>&nbsp;建议多次分批导入，请使用微软office编辑</span><br><br>
+      <el-button
+          icon="el-icon-download"
+          size="small"
+          type="primary">
+          <a href="./../../../../static/example.xlsx" download>下载EXCEL模板</a>
+      </el-button>
+    </div>
+    <div style="text-align:left">
+      <h3><i class="fa-icon 	fa fa-hand-o-right"></i>&nbsp;&nbsp;2、上传文件</h3>
+      &nbsp;&nbsp;<el-upload ref="upload" action="/"
+        :show-file-list="false"
+        :on-change="importExcel"
+        :auto-upload="false">
+        <el-button
+          slot="trigger"
+          icon="el-icon-upload"
+          size="small"
+          type="primary">
+          导入题库
+        </el-button>
+    </el-upload>
+    </div>
+  </el-dialog>
+  <!-- 上传题库弹窗 -->
+
 </div>
 </template>
 
@@ -152,28 +187,28 @@ export default {
   data() {
     // 弹窗验证规则
     var checkContent = (rule, value, callback) => {
-      if (!value) {
+      if (value === "") {
         return callback(new Error("题目不能为空"));
       } else {
         callback();
       }
     };
     var checkSelection = (rule, value, callback) => {
-      if (!value) {
+      if (value === "") {
         return callback(new Error("选项不能为空"));
       } else {
         callback();
       }
     };
     var checkAnswer = (rule, value, callback) => {
-      if (!value) {
+      if (value === "") {
         return callback(new Error("答案不能为空"));
       } else {
         callback();
       }
     };
     var checkScore = (rule, value, callback) => {
-      if (!value) {
+      if (value === "") {
         return callback(new Error("分值不能为空"));
       } else {
         callback();
@@ -189,6 +224,9 @@ export default {
       selQuestion: [], //所有选中的题目
 
       questionType: "all", //选择的题目类型
+
+      xlsxJson: "", //上传的excel的解析数据
+      uploadDialogVisible: false, //控制上传题库弹窗
 
       // 弹窗相关数据
       dialogVisible: false,
@@ -444,6 +482,9 @@ export default {
               message: "删除成功!",
               duration: 1000
             });
+            this.currentPage = 1; //当前页码
+            this.pageSize = 10000; //每页条数
+            this.pageTotal = 0; //总条数
             this.init();
           } else {
             this.$message({
@@ -556,7 +597,9 @@ export default {
           let questiondata = this.$deepCopy(this.myquestion); //深度克隆
           if (!questiondata._id) {
             //说明是新加的题目，进入添加操作
-            this.doAddQuestion(questiondata);
+            questiondata._papers = [];
+            questiondata.useState = 0;
+            this.doAddQuestion([questiondata]);
             return;
           }
           this.tableData.forEach((item, index) => {
@@ -618,6 +661,12 @@ export default {
     },
     doAddQuestion(questiondata) {
       //实现新增题目，在sureEditQuestion里调用
+      const loading = this.$loading({
+        lock: true,
+        text: "数据提交中，请稍等",
+        spinner: "el-icon-loading",
+        background: "rgba(0, 0, 0, 0.7)"
+      });
       this.$axios
         .post("/api/taddQuestion", {
           questionData: questiondata,
@@ -635,6 +684,7 @@ export default {
             this.currentPage = 1; //当前页码
             this.pageSize = 10000; //每页条数
             this.pageTotal = 0; //总条数
+            this.uploadDialogVisible = false;
             this.init();
           } else {
             this.$message({
@@ -644,8 +694,10 @@ export default {
               duration: 1000
             });
           }
+          loading.close();
         })
         .catch(err => {
+          loading.close();
           this.$message({
             showClose: true,
             message: "添加失败",
@@ -681,6 +733,128 @@ export default {
       this.pageSize = 10000; //每页条数
       this.pageTotal = 0; //总条数
       this.init();
+    },
+
+    /**
+     * 导入题库
+     */
+    importExcel(file) {
+      const types = file.name.split(".")[1];
+      const fileType = ["xlsx", "xlc", "xlm", "xls", "xlt", "xlw", "csv"].some(
+        item => item === types
+      );
+      if (!fileType) {
+        this.$message({
+          showClose: true,
+          message: "格式错误！请重新选择",
+          type: "warning",
+          duration: 1000
+        });
+        return;
+      }
+      this.file2Xce(file, this.$XLSX).then(tabJson => {
+        if (tabJson && tabJson.length > 0) {
+          this.xlsxJson = tabJson;
+          this.doUpload();
+          // xlsxJson就是解析出来的json数据,数据格式如下
+          // [
+          //   {
+          //     sheetName: sheet1
+          //     sheet: sheetData
+          //   }
+          // ]
+        }
+      });
+    },
+    file2Xce(file, XLSX) {
+      return new Promise(function(resolve, reject) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const data = e.target.result;
+          this.wb = XLSX.read(data, {
+            type: "binary"
+          });
+          const result = [];
+          this.wb.SheetNames.forEach(sheetName => {
+            result.push({
+              sheetName: sheetName,
+              sheet: XLSX.utils.sheet_to_json(this.wb.Sheets[sheetName])
+            });
+          });
+          resolve(result);
+        };
+        reader.readAsBinaryString(file.raw);
+      });
+    },
+    /**
+     * 上传数据到题库中
+     */
+    doUpload() {
+      let allData = [];
+      let postData = [];
+      let data;
+      this.xlsxJson.forEach(item => {
+        allData = [...allData, ...item.sheet];
+      });
+      allData.forEach(item => {
+        data = {};
+        let type = "";
+        let answer = item["答案"];
+        let selection = [
+          { value: "" },
+          { value: "" },
+          { value: "" },
+          { value: "" }
+        ];
+        if (item["类型"] == "单选题") {
+          type = "single";
+          selection = this.parseSelection(item);
+        } else if (item["类型"] == "多选题") {
+          type = "multi";
+          selection = this.parseSelection(item);
+          answer = answer.split("").join(",");
+        } else if (item["类型"] == "简答题") {
+          type = "Q&A";
+        } else if (item["类型"] == "判断题") {
+          type = "judgement";
+          answer = item["答案"] == "对" ? "A" : "B";
+        } else if (item["类型"] == "填空题") {
+          type = "apfill";
+        }
+        data = {
+          content: item["题目"],
+          answer: answer,
+          score: item["分数"],
+          type: type,
+          selection: selection,
+          _papers: [],
+          useState: 0
+        };
+        postData.push(data);
+      });
+      console.log(postData);
+      this.doAddQuestion(postData);
+    },
+    /**
+     * 解析选项
+     */
+    parseSelection(item) {
+      let data = [];
+      let result = [];
+      let index = 0;
+      for (let key in item) {
+        if (key.indexOf("选项") > -1) {
+          index = key.slice(2).charCodeAt() - 65;
+          data[index] = item[key];
+        }
+      }
+      data.forEach(element => {
+        result.push({
+          value: element
+        });
+      });
+      console.log(result);
+      return result;
     }
   }
 };

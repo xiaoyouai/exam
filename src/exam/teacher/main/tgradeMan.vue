@@ -56,7 +56,7 @@
   </el-container>
 
 <el-dialog title="考试成绩" :visible.sync="dialogTableVisible">
-  <el-table :data="gradeTable" stripe :default-sort = "{prop: `score`, order: 'ascending'}" element-loading-text="数据加载中，请稍等" v-loading="gradeLoading" >
+  <el-table :data="gradeTable" stripe :default-sort = "{prop: `score`, order: 'descending'}" element-loading-text="数据加载中，请稍等" v-loading="gradeLoading" >
     <el-table-column type="index">
     </el-table-column>
     <el-table-column property="name" label="姓名"></el-table-column>

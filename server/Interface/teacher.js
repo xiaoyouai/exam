@@ -713,7 +713,6 @@ exports.tdelQuestionFromHub = function(req, res) { //tcomQuestionHub里面调用
 exports.taddQuestion = function(req, res) { //tquestionHub里面调用，添加新的题目
     let teacherId = req.body.teacherId;
     let questionData = req.body.questionData;
-    questionData._papers = [];
 
     Teacher.findOne({
         "userId": teacherId,
@@ -725,8 +724,9 @@ exports.taddQuestion = function(req, res) { //tquestionHub里面调用，添加�
             })
         } else {
             if (doc2) {
-                questionData._teacher = doc2._id;
-                questionData.useState = 0;
+                questionData.forEach(item => {
+                    item._teacher = doc2._id;
+                })
 
                 Question.create(questionData, function(err, doc) { //创造题目
                     if (err) {
@@ -736,7 +736,10 @@ exports.taddQuestion = function(req, res) { //tquestionHub里面调用，添加�
                         })
                     } else {
                         if (doc) {
-                            doc2._questions.push(doc._id);
+                            doc.forEach(item2 => {
+                                doc2._questions.push(item2._id);
+                            })
+
                             doc2.save();
                             res.json({
                                 status: '0',

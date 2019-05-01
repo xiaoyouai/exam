@@ -47,35 +47,35 @@
 export default {
   data() {
     var checkuserId = (rule, value, callback) => {
-      if (!value) {
+      if (value==="") {
         return callback(new Error("学号不能为空"));
       } else {
         callback();
       }
     };
     var checkuserName = (rule, value, callback) => {
-      if (!value) {
+      if (value==="") {
         return callback(new Error("用户名不能为空"));
       } else {
         callback();
       }
     };
     var checkpassword = (rule, value, callback) => {
-      if (!value) {
+      if (value==="") {
         return callback(new Error("密码不能为空"));
       } else {
         callback();
       }
     };
     var checkgrade = (rule, value, callback) => {
-      if (!value) {
+      if (value==="") {
         return callback(new Error("年级不能为空"));
       } else {
         callback();
       }
     };
     var checkclass = (rule, value, callback) => {
-      if (!value) {
+      if (value==="") {
         return callback(new Error("班级不能为空"));
       } else {
         callback();

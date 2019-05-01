@@ -7,6 +7,8 @@ import router from './router'
 import ElementUI from 'element-ui' // 加载ElementUI
 import 'element-ui/lib/theme-chalk/index.css'
 
+import XLSX from 'xlsx'
+
 import VueLazyLoad from 'vue-lazyload'
 import axios from 'axios'
 import '../static/font-awesome/css/font-awesome.min.css' // 加载fontawesome字体
@@ -21,7 +23,7 @@ Vue.use(VueLazyLoad, { // 全局使用图片懒加载
 
 //过滤器，获得形如A、12形式
 Vue.filter("paperSelection", function([value, index]) {
-    if (!value) return ''
+    if (value === "") return ''
     return (index + 10).toString(36).toUpperCase() + '、' + value.toString();
 })
 
@@ -66,7 +68,12 @@ Array.prototype.equals = function(array) {
     return true;
 }
 
+
+
 Vue.prototype.$axios = axios; //设置全局使用axios方法，不然的话每个组件都要引入axios
+
+Vue.prototype.$XLSX = XLSX; //设置全局使用XSLX方法，不然的话每个组件都要引入XSLX
+
 
 Vue.prototype.$mySessionStorage = commonFun.mySessionStorage;
 let getUserData = function() { //获取用户信息
