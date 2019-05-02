@@ -4,13 +4,13 @@
     <el-main>
           <div class="comBottom">
             <el-row>
-              <el-col :span="14">
+              <el-col :span="13">
                     题目关键词：
                 <el-input placeholder="请输入题目关键词" v-model="searchTxt" clearable prefix-icon="el-icon-search"  size="small" style="width:70%">  </el-input>
                 <el-button type="primary" size="small" @click="search">搜索</el-button>
               </el-col>
-              <el-col :span="4">
-                <el-select v-model="questionType" style="height:100%;width:150px"  size="small" @change="changeType">
+              <el-col :span="3">
+                <el-select v-model="questionType" style="height:100%;width:100px"  size="small" @change="changeType">
                     <el-option label="全部题型" value="all"></el-option>
                     <el-option label="单选题" value="single"></el-option>
                     <el-option label="判断题" value="judgement"></el-option>
@@ -19,13 +19,12 @@
                     <el-option label="简答题" value="Q&A"></el-option>
                 </el-select>
               </el-col>
-              <el-col :span="6">
+              <el-col :span="8">
                 <el-row>
-                  <el-col :span="8"><el-button type="primary" size="small" @click="addQuestion">新增题目</el-button></el-col>
-                  <el-col :span="8"><el-button type="danger" size="small" @click="multiDel">批量删除</el-button></el-col>
-                  <el-col :span="8">
-                  <el-col :span="8"><el-button type="primary" size="small" @click="uploadDialogVisible=true">导入题库</el-button></el-col>
-                    </el-col>
+                  <el-col :span="6"><el-button type="primary" size="small" @click="addQuestion">新增题目</el-button></el-col>
+                  <el-col :span="6"><el-button type="danger" size="small" @click="multiDel">批量删除</el-button></el-col>
+                  <el-col :span="6"><el-button type="primary" size="small" @click="uploadDialogVisible=true">导入题库</el-button></el-col>
+                  <el-col :span="6"><el-button type="primary" size="small" @click="confirmEXport">导出题库</el-button></el-col>
                 </el-row>
               </el-col>
             </el-row>
@@ -832,7 +831,6 @@ export default {
         };
         postData.push(data);
       });
-      console.log(postData);
       this.doAddQuestion(postData);
     },
     /**
@@ -853,8 +851,146 @@ export default {
           value: element
         });
       });
-      console.log(result);
       return result;
+    },
+    /**
+     * 导出题库
+     */
+    confirmEXport() {
+      this.$confirm("此操作将导出excel文件, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          this.doExport();
+        })
+        .catch(err => {
+          console.log(err);
+          this.$message({
+            type: "info",
+            message: "已取消导出"
+          });
+        });
+    },
+    doExport() {
+      const loading = this.$loading({
+        lock: true,
+        text: "导出中，请稍等",
+        spinner: "el-icon-loading",
+        background: "rgba(0, 0, 0, 0.7)"
+      });
+
+      this.currentPage = 1; //当前页码
+      this.pageSize = 10000; //每页条数
+      this.pageTotal = 0; //总条数
+      this.init();
+
+      let excelData = [];
+      let itemData = {};
+      this.tableData.forEach(item => {
+        itemData = {
+          题目: item.content,
+          分数: item.score,
+          答案: item.answer
+        };
+        itemData["类型"] = item.type === "apfill" ? "填空题" : "简答题";
+        if (item.type === "single" || item.type === "multi") {
+          itemData["类型"] = item.type === "single" ? "单选题" : "多选题";
+          item.selection.forEach((item2, index) => {
+            itemData[`选项${String.fromCharCode(index + 65)}`] = item2.value;
+          });
+        }
+        if (item.type === "multi") {
+          itemData["答案"] = item.answer.split(",").join("");
+        }
+        if (item.type === "judgement") {
+          itemData["答案"] = item.answer === "A" ? "对" : "错";
+          itemData["类型"] = "判断题";
+        }
+        excelData.push(itemData);
+      });
+
+      require.ensure([], () => {
+        const { export_json_to_excel } = require("vendor/Export2Excel");
+        const tHeader = [
+          //导出的表头名
+          "题目",
+          "类型",
+          "答案",
+          "分数",
+          "选项A",
+          "选项B",
+          "选项C",
+          "选项D",
+          "选项E",
+          "选项F",
+          "选项G",
+          "选项H",
+          "选项I",
+          "选项J",
+          "选项K",
+          "选项L",
+          "选项M",
+          "选项N",
+          "选项O",
+          "选项P",
+          "选项Q",
+          "选项R",
+          "选项S",
+          "选项T",
+          "选项U",
+          "选项V",
+          "选项W",
+          "选项X",
+          "选项Y",
+          "选项Z"
+        ];
+        const filterVal = [
+          // 导出的表头字段名
+          "题目",
+          "类型",
+          "答案",
+          "分数",
+          "选项A",
+          "选项B",
+          "选项C",
+          "选项D",
+          "选项E",
+          "选项F",
+          "选项G",
+          "选项H",
+          "选项I",
+          "选项J",
+          "选项K",
+          "选项L",
+          "选项M",
+          "选项N",
+          "选项O",
+          "选项P",
+          "选项Q",
+          "选项R",
+          "选项S",
+          "选项T",
+          "选项U",
+          "选项V",
+          "选项W",
+          "选项X",
+          "选项Y",
+          "选项Z"
+        ];
+        const data = this.formatJson(filterVal, excelData);
+        export_json_to_excel(
+          tHeader,
+          data,
+          `题库_${new Date().toLocaleString()}`
+        );
+        loading.close();
+      });
+    },
+    // 参数过滤
+    formatJson(filterVal, jsonData) {
+      return jsonData.map(v => filterVal.map(j => v[j]));
     }
   }
 };

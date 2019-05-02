@@ -93,7 +93,7 @@ router.beforeEach((to, from, next) => {
     if (to.path != '/' && to.path != '/404' && to.path != '/slogin' && to.path != '/sregister' && to.path != '/tlogin' && to.path != '/tregister') {
         if (!userdata.userName) {
             ElementUI.Message.error('抱歉，您还没有登录！');
-            if (to.path.indexOf('s') > 0) {
+            if (to.path.indexOf('s') == 1) {
                 router.push({
                     path: '/'
                 });
