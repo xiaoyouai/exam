@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 let Schema = mongoose.Schema;
 let studentSchema = new Schema({
     userId: Number, //学号
-    userName: String, //用户名
+    userName: String, //姓名
     password: String, //密码
     grade: Number, //年级
     class: Number, //班级

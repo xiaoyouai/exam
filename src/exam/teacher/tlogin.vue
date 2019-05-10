@@ -18,71 +18,73 @@
 
 <script>
 export default {
-  data () {
+  data() {
     return {
-      userId:'',
-      pwd:''
-    }
+      userId: "",
+      pwd: ""
+    };
   },
 
   methods: {
-    login(){
-      if(!this.userId||!this.pwd){
+    login() {
+      if (!this.userId || !this.pwd) {
         this.$message({
           showClose: true,
-          message: '请完整输入用户名和密码',
-          type: 'warning',
-          duration:2000
+          message: "请完整输入工号和密码",
+          type: "warning",
+          duration: 2000
         });
-        return ;
+        return;
       }
-      this.$axios.post('/api/tlogin',{
-        userId:this.userId,
-        password:this.pwd
-      }).then(response=>{
+      this.$axios
+        .post("/api/tlogin", {
+          userId: this.userId,
+          password: this.pwd
+        })
+        .then(response => {
           let res = response.data;
-          if(res.msg=='success'&&res.status=='0'){
-            this.$mySessionStorage.set('currentUser',res.result,'json');
-            this.$router.push({path:'/tmain/tmypaper/'+this.userId})
-          }else if(res.status=='2'){
+          if (res.msg == "success" && res.status == "0") {
+            this.$mySessionStorage.set("currentUser", res.result, "json");
+            this.$router.push({ path: "/tmain/tmypaper/" + this.userId });
+          } else if (res.status == "2") {
             this.$message({
               showClose: true,
-              message: '您还没有注册，请先注册',
-              type: 'error',
-              duration:2000
+              message: "您还没有注册，请先注册",
+              type: "error",
+              duration: 2000
             });
-          }else{
+          } else {
             this.$message({
               showClose: true,
-              message: '请输入正确的用户名和密码',
-              type: 'error',
-              duration:2000
+              message: "请输入正确的密码",
+              type: "error",
+              duration: 2000
             });
           }
-      }).catch(err => {
+        })
+        .catch(err => {
           this.$message({
             showClose: true,
-            message: '登录失败，请稍后再试！',
-            type: 'warning',
-            duration:2000
+            message: "登录失败，请稍后再试！",
+            type: "warning",
+            duration: 2000
           });
-        })
+        });
     }
   }
-}
-
+};
 </script>
 <style scoped>
 .el-header {
-    font-family: '微软雅黑';
-    font-size: 28px;
-    color:#A569BD;
-    width: 16%;
-    margin: 150px 0px 0px 49%;
-    text-align: center;
-    line-height: 60px;
-    position: relative;
-  }
+  font-family: "微软雅黑";
+  font-size: 28px;
+  color: #a569bd;
+  width: 16%;
+  margin: 150px 0px 0px 49%;
+  text-align: center;
+  line-height: 60px;
+  position: relative;
+}
 .el-header img {
   width: 60px;
   height: 60px;
@@ -97,11 +99,10 @@ export default {
   background-size: 100% 100%;
   padding-bottom: 40px;
 }
-  .el-input{
-    width: 300px;
-  }
-  .el-button{
-    width: 300px;
-  }
-
+.el-input {
+  width: 300px;
+}
+.el-button {
+  width: 300px;
+}
 </style>

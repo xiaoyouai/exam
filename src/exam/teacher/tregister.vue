@@ -9,8 +9,8 @@
                   <el-form-item prop="userId" label="教师工号：">
                     <el-input placeholder="请输入教师工号" v-model="user.userId" clearable></el-input>
                   </el-form-item>
-                  <el-form-item prop="userName" label="用户名：">
-                    <el-input v-model="user.userName" placeholder="请输入用户名"  clearable></el-input>
+                  <el-form-item prop="userName" label="姓名：">
+                    <el-input v-model="user.userName" placeholder="请输入姓名"  clearable></el-input>
                   </el-form-item>
                   <el-form-item prop="password" label="密码：">
                     <el-input placeholder="请输入密码" v-model="user.password" clearable></el-input>
@@ -43,7 +43,7 @@ export default {
             }else{    callback();}};
          var  checkuserName=  (rule, value, callback) => {
             if (value==="") {
-              return callback(new Error('用户名不能为空'));
+              return callback(new Error('姓名不能为空'));
             }else{    callback();}};
          var checkpassword=  (rule, value, callback) => {
             if (value==="") {
@@ -112,7 +112,7 @@ export default {
         } else {
             this.$message({
             showClose: true,
-            message: '请将正确填写信息！',
+            message: '请正确填写信息！',
             type: 'warning',
             duration:2000
           });

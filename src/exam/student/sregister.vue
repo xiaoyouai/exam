@@ -6,8 +6,8 @@
       <el-row>
         <el-col :span="6" :offset="8">
           <el-form :model="user" :rules="rules" ref="user" label-width="100px" class="demo-ruleForm">
-                  <el-form-item prop="userName" label="用户名：">
-                    <el-input v-model="user.userName" placeholder="请输入用户名"  clearable></el-input>
+                  <el-form-item prop="userName" label="姓名：">
+                    <el-input v-model="user.userName" placeholder="请输入姓名"  clearable></el-input>
                   </el-form-item>
                   <el-form-item prop="password" label="密码：">
                     <el-input placeholder="请输入密码" v-model="user.password" clearable></el-input>
@@ -47,35 +47,35 @@
 export default {
   data() {
     var checkuserId = (rule, value, callback) => {
-      if (value==="") {
+      if (value === "") {
         return callback(new Error("学号不能为空"));
       } else {
         callback();
       }
     };
     var checkuserName = (rule, value, callback) => {
-      if (value==="") {
-        return callback(new Error("用户名不能为空"));
+      if (value === "") {
+        return callback(new Error("姓名不能为空"));
       } else {
         callback();
       }
     };
     var checkpassword = (rule, value, callback) => {
-      if (value==="") {
+      if (value === "") {
         return callback(new Error("密码不能为空"));
       } else {
         callback();
       }
     };
     var checkgrade = (rule, value, callback) => {
-      if (value==="") {
+      if (value === "") {
         return callback(new Error("年级不能为空"));
       } else {
         callback();
       }
     };
     var checkclass = (rule, value, callback) => {
-      if (value==="") {
+      if (value === "") {
         return callback(new Error("班级不能为空"));
       } else {
         callback();
@@ -159,7 +159,7 @@ export default {
         } else {
           this.$message({
             showClose: true,
-            message: "请将正确填写信息！",
+            message: "请正确填写信息！",
             type: "warning",
             duration: 1000
           });
@@ -171,15 +171,15 @@ export default {
 </script>
 <style scoped>
 .el-header {
-    font-family: '微软雅黑';
-    font-size: 28px;
-    color:#A569BD;
-    width: 16%;
-    margin: 90px 0px 0px 49%;
-    text-align: center;
-    line-height: 60px;
-    position: relative;
-  }
+  font-family: "微软雅黑";
+  font-size: 28px;
+  color: #a569bd;
+  width: 16%;
+  margin: 90px 0px 0px 49%;
+  text-align: center;
+  line-height: 60px;
+  position: relative;
+}
 .el-header img {
   width: 60px;
   height: 60px;
