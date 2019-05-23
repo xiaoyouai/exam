@@ -227,23 +227,36 @@ export default {
       }
     },
     examTime(curVal, oldVal) {
-      console.log(curVal, this.beforeTime);
+      // console.log(curVal, this.beforeTime);
       if (parseInt(this.beforeTime) - parseInt(curVal) === 30) {
         this.beforeTime = curVal;
         let answers = [];
+        let score = 0; // 得分
+
         this.singleQuestions.forEach(item => {
+          if (item.sanswer === item.answer) {
+            score += item.score;
+          }
           answers.push({
             _question: item._id,
             answer: item.sanswer
           });
         });
         this.multiQuestions.forEach(item => {
+          item.sanswer = item.sanswer.filter(item2 => item2 !== "");
+          let answer = item.answer.split(",");
+          if (answer.equals(item.sanswer)) {
+            score += item.score;
+          }
           answers.push({
             _question: item._id,
             answer: item.sanswer
           });
         });
         this.judgeQuestions.forEach(item => {
+          if (item.sanswer === item.answer) {
+            score += item.score;
+          }
           answers.push({
             _question: item._id,
             answer: item.sanswer
@@ -270,7 +283,7 @@ export default {
           .post("/api/sSubmitExam", {
             userId: this.userData.userId,
             paperId: this.paperId,
-            score: 0,
+            score: score,
             answers: answers,
             startTime: this.startTime,
             examStatus: 0
@@ -348,7 +361,9 @@ export default {
                 this.singleQuestions.push(item);
               } else if (item.type == "multi") {
                 item.sanswer =
-                  res.sanswer.length > 0 ? sanswer.answer.split(",") : [];
+                  res.sanswer.length > 0 && sanswer.answer !== ""
+                    ? sanswer.answer.split(",")
+                    : [];
                 this.multiQuestions.push(item);
               } else if (item.type == "Q&A") {
                 this.QAQuestions.push(item);
@@ -418,8 +433,10 @@ export default {
       this.singleQuestions.some(item => {
         single = !item.sanswer == "";
       });
-      this.multiQuestions.some(item => {
-        mutil = !item.sanswer.length == 0;
+      this.multiQuestions.forEach(item => {
+        if (item.sanswer.length === 0) {
+          mutil = false;
+        }
       });
       this.judgeQuestions.some(item => {
         judge = !item.sanswer == "";
