@@ -389,7 +389,7 @@ export default {
               } else if (item.type === "judgement") {
                 type = "判断";
               }
-              item.value = `(${type})${item.content}（${item.score}分）`; //因为input的显示必须要有value这一项
+              item.value = `${item.score}分${type})${item.content}`; //因为input的显示必须要有value这一项
             });
           } else if (res.status == "2") {
             this.$message({
