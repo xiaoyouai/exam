@@ -123,7 +123,10 @@ export default {
 
           if (res.msg == "success" && res.status == "0") {
             this.tableData = res.result.filter(
-              item => item._paper && item.examStatus === 2
+              item =>
+                (item._paper && item.examStatus === 2) ||
+                (item.examStatus === 3 &&
+                  (new Date() - new Date(item.startTime)) / 60000 > item.date) //试卷无主观题并且考试保存了答案并且因为某些原因未交卷
             );
             this.pageSize =
               this.pageSize === 10000 ? this.tableData.length : this.pageSize;

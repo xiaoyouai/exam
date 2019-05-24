@@ -107,7 +107,9 @@ export default {
               item =>
                 item._paper &&
                 this.isTimeOk(item.startTime, item.date) &&
-                item.examStatus === 0
+                (item.examStatus === 0 ||
+                  item.examStatus === 3 ||
+                  item.examStatus === 4)
             ); //时间设置为考试前一天或者开考后的考试总时长内
             this.pageSize =
               this.pageSize === 10000 ? this.tableData.length : this.pageSize;

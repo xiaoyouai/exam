@@ -286,7 +286,10 @@ export default {
             score: score,
             answers: answers,
             startTime: this.startTime,
-            examStatus: 0
+            examStatus:
+              this.apfillQuestions.length == 0 && this.QAQuestions.length == 0
+                ? 3
+                : 4
           })
           .then(response => {
             let res = response.data;
