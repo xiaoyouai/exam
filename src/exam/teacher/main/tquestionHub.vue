@@ -52,25 +52,25 @@
                 </template>
             </el-table-column>
             <el-table-column type="selection"> </el-table-column>
-            <el-table-column label="题目类型" >
+            <el-table-column label="类型" width="70">
               <template slot-scope="props">
                 <span>{{ transType(props.row) }}</span>
               </template>
             </el-table-column>
             <el-table-column label="题目" >
               <template slot-scope="props">
-                <span v-if="props.row.content.length<12">{{props.row.content}}</span>
+                <span v-if="props.row.content.length<28">{{props.row.content}}</span>
                 <span v-else>行首下拉查看详情</span>
               </template>
             </el-table-column>
             <el-table-column label="题目答案" >
               <template slot-scope="props">
-                <span v-if="props.row.answer.length<12">{{transAnswer(props.row)}}</span>
+                <span v-if="props.row.answer.length<28">{{transAnswer(props.row)}}</span>
                 <span v-else>行首下拉查看详情</span>
               </template>
             </el-table-column>
-            <el-table-column prop="score" label="题目分值" > </el-table-column>
-            <el-table-column label="操作">
+            <el-table-column prop="score" label="分值" width="50"> </el-table-column>
+            <el-table-column label="操作"  width="148">
               <template slot-scope="scope">
                 <el-button
                   size="mini"

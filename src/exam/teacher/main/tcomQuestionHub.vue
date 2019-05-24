@@ -21,10 +21,10 @@
             <el-table-column type="expand">
                 <template slot-scope="props">
                   <el-form label-position="left" inline class="demo-table-expand">
-                    <el-form-item label="题目类型">
+                    <el-form-item label="类型">
                       <span>{{ transType(props.row) }}</span>
                     </el-form-item>
-                    <el-form-item label="题目分值">
+                    <el-form-item label="分值">
                       <span>{{ props.row.grade }}</span>
                     </el-form-item>
                     <el-form-item label="题目" >
@@ -40,25 +40,25 @@
                 </template>
             </el-table-column>
             <el-table-column type="selection"  width="56"> </el-table-column>
-            <el-table-column label="题目类型" >
+            <el-table-column label="类型"  width="70">
               <template slot-scope="props">
                 <span>{{ transType(props.row) }}</span>
               </template>
             </el-table-column>
             <el-table-column label="题目" >
               <template slot-scope="props">
-                <span v-if="props.row.name.length<12">{{props.row.name}}</span>
+                <span v-if="props.row.name.length<28">{{props.row.name}}</span>
                 <span v-else>行首下拉查看详情</span>
               </template>
             </el-table-column>
             <el-table-column label="题目答案" >
               <template slot-scope="props">
-                <span v-if="props.row.answer.length<12">{{transAnswer(props.row)}}</span>
+                <span v-if="props.row.answer.length<28">{{transAnswer(props.row)}}</span>
                 <span v-else>行首下拉查看详情</span>
               </template>
             </el-table-column>
-            <el-table-column prop="grade" label="题目分值" > </el-table-column>
-            <el-table-column label="操作">
+            <el-table-column prop="grade" label="分值"  width="50"> </el-table-column>
+            <el-table-column label="操作"  width="135">
               <template slot-scope="scope">
                 <el-button
                   size="mini"
