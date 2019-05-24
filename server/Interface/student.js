@@ -301,6 +301,14 @@ exports.sSubmitExam = function(req, res) {
     let startTime = req.body.startTime;
     let examStatus = req.body.examStatus;
     let answers = req.body.answers;
+    let mystatus = 0;
+    if (parseInt(examStatus) === 4) {
+        mystatus = 1;
+    } else if (parseInt(examStatus) === 3) {
+        mystatus = 2;
+    } else {
+        mystatus = parseInt(examStatus);
+    }
     Student.update({ //学生添加题目,直接更新整个数组
         'userId': userId,
         "exams._paper": paperId
@@ -322,7 +330,7 @@ exports.sSubmitExam = function(req, res) {
                     '_id': paperId
                 }, {
                     '$set': {
-                        'status': examStatus
+                        'status': mystatus
                     }
                 }, (err1, doc1) => {
                     if (err1) {

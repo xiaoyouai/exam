@@ -56,13 +56,16 @@
   </el-container>
 
 <el-dialog title="考试成绩" :visible.sync="dialogTableVisible">
+    <el-button type="primary" size="small" @click="confirmEXport" style="margin-bottom:10px;">导出成绩</el-button>
   <el-table :data="gradeTable" stripe :default-sort = "{prop: `score`, order: 'descending'}" element-loading-text="数据加载中，请稍等" v-loading="gradeLoading" >
     <el-table-column type="index">
     </el-table-column>
+     <el-table-column property="userId" label="学号"></el-table-column>
     <el-table-column property="name" label="姓名"></el-table-column>
     <el-table-column property="score" sortable label="成绩">
     </el-table-column>
   </el-table>
+
 </el-dialog>
 
 </div>
@@ -167,12 +170,13 @@ export default {
         .then(response => {
           let res = response.data;
           if (res.msg == "success" && res.status == "0") {
-            res.result.forEach(item=>{
+            res.result.forEach(item => {
               this.gradeTable.push({
-                name:item.userName,
-                score:item.exams[0].score
-              })
-            })
+                userId: item.userId,
+                name: item.userName,
+                score: item.exams[0].score
+              });
+            });
             if (this.gradeTable.length === 0) {
               this.$message({
                 showClose: true,
@@ -218,6 +222,69 @@ export default {
     handleCurrentChange(val) {
       this.currentPage = val;
       this.init();
+    },
+
+    /**
+     * 导出成绩
+     */
+    confirmEXport() {
+      this.$confirm("此操作将导出excel文件, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          this.doExport();
+        })
+        .catch(err => {
+          console.log(err);
+          this.$message({
+            type: "info",
+            message: "已取消导出"
+          });
+        });
+    },
+    doExport() {
+      const loading = this.$loading({
+        lock: true,
+        text: "导出中，请稍等",
+        spinner: "el-icon-loading",
+        background: "rgba(0, 0, 0, 0.7)"
+      });
+
+      let excelData = [];
+      let itemData = {};
+
+      this.gradeTable.forEach(item => {
+        excelData.push(item);
+      });
+
+      require.ensure([], () => {
+        const { export_json_to_excel } = require("vendor/Export2Excel");
+        const tHeader = [
+          //导出的表头名
+          "学号",
+          "姓名",
+          "分数"
+        ];
+        const filterVal = [
+          // 导出的表头字段名
+          "userId",
+          "name",
+          "score"
+        ];
+        const data = this.formatJson(filterVal, excelData);
+        export_json_to_excel(
+          tHeader,
+          data,
+          `成绩单_${new Date().toLocaleString()}`
+        );
+        loading.close();
+      });
+    },
+    // 参数过滤
+    formatJson(filterVal, jsonData) {
+      return jsonData.map(v => filterVal.map(j => v[j]));
     }
   }
 };

@@ -33,7 +33,7 @@
             <el-table-column prop="status" label="状态"  width="50">
               <template slot-scope="props">
                 <span v-if="parseInt(parseInt(props.row.status))===0">未考</span>
-                <span v-if="parseInt(props.row.status)===1">已考</span>
+                <span v-if="(parseInt(props.row.status)===1)">已考</span>
                 <span v-if="parseInt(props.row.status)===2">已阅</span>
               </template>
             </el-table-column>

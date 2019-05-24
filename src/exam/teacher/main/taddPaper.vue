@@ -77,6 +77,7 @@
               <el-date-picker
                 v-model="starttime"
                 type="datetime"
+                :picker-options="pickerOptions"
                 value-format="yyyy-MM-dd HH:mm" format="yyyy-MM-dd HH:mm"
                 placeholder="选择开始时间">
               </el-date-picker>
@@ -256,6 +257,11 @@ export default {
       teacherId: "", //teacher表对应的_id，后面修改试卷的时候添加题目了需要用到
       name: "", //试卷名称
       starttime: "", //考试开始时间
+      pickerOptions: {
+        disabledDate(time) {
+          return time.getTime() < Date.now() - 8.64e7;
+        }
+      },
       sumtime: "", //考试总时长
       score: 100,
       myclass: "",
