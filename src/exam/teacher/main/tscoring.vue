@@ -96,7 +96,8 @@ export default {
           params: {
             paperId: this.paperId,
             pageNumber: this.currentPage,
-            pageSize: this.pageSize
+            pageSize: this.pageSize,
+            studentId: this.studentId
           }
         })
         .then(response => {

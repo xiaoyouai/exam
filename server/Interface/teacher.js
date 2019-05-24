@@ -850,9 +850,14 @@ exports.taddQuestion = function(req, res) { //tquestionHub里面调用，添加�
 
 exports.tgetCheckPaperList = function(req, res) { //获取需要打分的试卷的学生信息,tscoring的getData里面调用
     let paperId = req.param('paperId');
+    let studentId = req.param("studentId"); //学生id
+
     let pageSize = parseInt(req.param("pageSize")); //每页条数
     let pageNumber = parseInt(req.param("pageNumber")); //第几页
     let skip = (pageNumber - 1) * pageSize; // 跳过几条
+
+    let searchParam = {};
+
 
     Paper.findOne({
         '_id': paperId,
@@ -864,10 +869,19 @@ exports.tgetCheckPaperList = function(req, res) { //获取需要打分的试卷�
             })
         } else {
             if (doc2) {
-                Student.find({
+                if (studentId === "") {
+                    searchParam = {
                         "class": doc2.examclass,
                         "grade": doc2.examgrade
-                    }).skip(skip).limit(pageSize).populate({
+                    }
+                } else {
+                    searchParam = {
+                        "userId": parseInt(studentId),
+                        "class": doc2.examclass,
+                        "grade": doc2.examgrade
+                    }
+                }
+                Student.find(searchParam).skip(skip).limit(pageSize).populate({
                         path: 'exams.answers._question',
                         select: 'content type score answer',
                     })
