@@ -239,7 +239,7 @@ export default {
                 showClose: true,
                 message: "该考生考试缺考，已记0分",
                 type: "warning",
-                duration: 2000
+                duration: 3000
               });
             } else {
               this.$message({

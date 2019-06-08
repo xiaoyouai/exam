@@ -228,7 +228,7 @@ export default {
     },
     examTime(curVal, oldVal) {
       // console.log(curVal, this.beforeTime);
-      if (parseInt(this.beforeTime) - parseInt(curVal) === 30) {
+      if (parseInt(this.beforeTime) - parseInt(curVal) === 20) {
         this.beforeTime = curVal;
         let answers = [];
         let score = 0; // 得分
